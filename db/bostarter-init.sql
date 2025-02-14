@@ -324,6 +324,48 @@ BEGIN
     COMMIT;
 END//
 
+-- (ALL) Login di un utente
+CREATE PROCEDURE sp_login(
+    IN p_email VARCHAR(100),
+    IN p_password VARCHAR(255),
+    IN p_codice_sicurezza VARCHAR(100)
+)
+BEGIN
+    DECLARE count INT DEFAULT 0;
+
+    START TRANSACTION;
+    -- Controllo che esista un utente con le credenziali fornite
+    SELECT COUNT(*)
+    INTO count
+    FROM UTENTE
+    WHERE email = p_email
+      AND password = p_password;
+
+    IF count = 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: CREDEZIALI NON VALIDE';
+    END IF;
+
+    -- (ADMIN) Controlla il codice di sicurezza se l'utente è un admin
+    IF p_codice_sicurezza IS NOT NULL THEN
+        SELECT COUNT(*)
+        INTO count
+        FROM ADMIN
+        WHERE email_utente = p_email
+          AND codice_sicurezza = p_codice_sicurezza;
+
+        IF count = 0 THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'ERRORE: CODICE DI SICUREZZA ADMIN NON VALIDO';
+        END IF;
+    END IF;
+
+    SELECT nickname, email
+    FROM UTENTE
+    WHERE email = p_email;
+    COMMIT;
+END//
+
 -- (ALL) Inserimento di skill in un curriculum utente
 CREATE PROCEDURE sp_inserisci_skill_curriculum(
     IN p_email VARCHAR(100),
@@ -385,6 +427,41 @@ BEGIN
     COMMIT;
 END//
 
+-- (ALL) Cancellazione di un commento a un progetto
+DELIMITER //
+CREATE PROCEDURE sp_cancella_commento(
+    IN p_id INT,
+    IN p_email VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    -- Controllo che esista il commento
+    IF NOT EXISTS (SELECT 1
+                   FROM COMMENTO
+                   WHERE id = p_id) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: COMMENTO NON ESISTENTE';
+    END IF;
+
+    -- Controllo che l'utente sia l'autore del commento, OPPURE un admin
+    IF NOT EXISTS (SELECT 1
+                   FROM COMMENTO
+                   WHERE id = p_id
+                     AND email_utente = p_email)
+        OR NOT EXISTS (SELECT 1
+                       FROM ADMIN
+                       WHERE email_utente = p_email)
+    THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: NON SEI AUTORIZZATO A CANCELLARE QUESTO COMMENTO';
+    END IF;
+
+    DELETE
+    FROM COMMENTO
+    WHERE id = p_id;
+    COMMIT;
+END//
+
 -- (ALL) Inserimento di una candidatura a un progetto software
 -- TODO: EVALUATE IF USER QUALIFICATION CHECK IS DONE HERE OR AT PHP-LEVEL
 CREATE PROCEDURE sp_inserisci_candidatura(
@@ -395,6 +472,27 @@ BEGIN
     START TRANSACTION;
     INSERT INTO PARTECIPANTE (email_utente, nome_progetto, stato)
     VALUES (p_email, p_nome_progetto, 'potenziale');
+    COMMIT;
+END//
+
+-- (ADMIN) Inserimento di una nuova stringa nella lista delle competenze
+CREATE PROCEDURE sp_inserisci_competenza(
+    IN p_competenza VARCHAR(100),
+    IN p_email VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+
+    -- Controllo che l'admin sia l'utente che esegue la procedura
+    IF NOT EXISTS (SELECT 1
+                   FROM ADMIN
+                   WHERE email_utente = p_email) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: NON SEI AUTORIZZATO A ESEGUIRE QUESTA PROCEDURA';
+    END IF;
+
+    INSERT INTO SKILL (competenza)
+    VALUES (p_competenza);
     COMMIT;
 END//
 

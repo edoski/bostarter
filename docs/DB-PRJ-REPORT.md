@@ -1,7 +1,7 @@
 # TODO
 ---
 #todo 
-- [ ] review carefully the redundancy cost analysis of `nr_progetti`
+- [ ] MAKE SURE TO CHECK FOR AND FIX ALL TODO'S IN SQL AND PHP!!!
 - [ ] consider creating indexes for performance → which indexes are most commonly queried?
 
 ### ANY UTENTE THAT TRIES TO APPLY FOR A PROFILE AND DOES NOT HAVE THE NECESSARY COMPETENZA / LIVELLO IS DISCARDED AND ERROR-PROMPTED AT PHP RUNTIME, MEANING ONLY ACCEPTABLE UTENTI ARE EVER INSERTED IN PARTECIPANTE (business rule n.9)
@@ -22,30 +22,19 @@
 ### Reward Selection: The financing procedure accepts a reward code, assuming frontend handles the reward selection
 
 
-
 ### i think KEEP triggers for componenti, but add related stored procedures to perform php-side actions like insert/delete/update components
 - sp_componente_insert(...)
 - sp_componente_delete(...)
 - sp_componente_update(...)
 
+### learn how to handle php-side sql's signal state 45000
 
-
-#### Operazioni che riguardano TUTTI gli utenti:
-- [x] Autenticazione/registrazione sulla piattaforma
-- [x] Inserimento delle proprie skill di curriculum
-- [x] Visualizzazione dei progetti disponibili
-- [x] Finanziamento di un progetto (aperto). Un utente può finanziare anche il progetto di cui è creatore
-- [ ] Scelta della reward a valle del finanziamento di un progetto
-- [x] Inserimento di un commento relativo ad un progetto
-- [x] Inserimento di una candidatura per un profilo richiesto per la realizzazione di un progetto software
-
-#### Operazioni che riguardano SOLO gli amministratori:
-- [ ] Inserimento di una nuova stringa nella lista delle competenze
-- [ ] In fase di autenticazione, oltre a username e password, viene richiesto anche il codice di sicurezza
 
 #### Operazioni che riguardano SOLO i creatori:
 - [ ] Inserimento di un nuovo progetto
 - [ ] Inserimento delle reward per un progetto
+- [ ] Insert/delete/update componenti per progetti hardware
+- [ ] Insert/delete update profili per progetti software
 - [ ] Inserimento di una risposta ad un commento
 - [ ] Inserimento di un profilo - solo per la realizzazione di un progetto software
 - [ ] Accettazione o meno di una candidatura
