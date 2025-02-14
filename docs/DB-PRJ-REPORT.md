@@ -14,10 +14,10 @@
 
 - [ ] Implementare tutte le operazioni sui dati (ove possibile) attraverso stored procedure.
 
-- [ ] Implementare le tre statistiche menzionate in precedenza mediante viste.
-	- [ ] Visualizzare la classifica degli utenti creatori, in base al loro valore di affidabilità. Mostrare solo il nickname dei primi 3 utenti.
-	- [ ] Visualizzare i progetti APERTI che sono più vicini al proprio completamento (= minore differenza tra budget richiesto e somma totale dei finanziamenti ricevuti). Mostrare solo i primi 3 progetti.
-	- [ ] Visualizzare la classifica degli utenti, ordinati in base al TOTALE di finanziamenti erogati. Mostrare solo i nickname dei primi 3 utenti.
+- [x] Implementare le tre statistiche menzionate in precedenza mediante viste.
+	- [x] Visualizzare la classifica degli utenti creatori, in base al loro valore di affidabilità. Mostrare solo il nickname dei primi 3 utenti.
+	- [x] Visualizzare i progetti APERTI che sono più vicini al proprio completamento (= minore differenza tra budget richiesto e somma totale dei finanziamenti ricevuti). Mostrare solo i primi 3 progetti.
+	- [x] Visualizzare la classifica degli utenti, ordinati in base al TOTALE di finanziamenti erogati. Mostrare solo i nickname dei primi 3 utenti.
 
 - [x] Utilizzare dei trigger per aggiornare l’affidabilità di un utente creatore. L’affidabilità viene calcolata come X è la percentuale di progetti creati dall’utente che hanno ottenuto almeno un finanziamento. L’affidabilità viene aggiornata:
 	- [x] (i) ogni qualvolta un utente crea un progetto (denominatore);

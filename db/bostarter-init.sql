@@ -299,9 +299,39 @@ CREATE TABLE PROFILO_PROGETTO
 -- STORED PROCEDURES
 -- ==================================================
 
+-- TODO
+
 -- ==================================================
 -- VISTE
 -- ==================================================
+
+-- Classifica dei top 3 utenti creatori, in base al loro valore di affidabilità.
+CREATE VIEW view_classifica_creatori_affidabilita AS
+SELECT U.nickname
+FROM CREATORE C
+         JOIN UTENTE U ON C.email_utente = U.email
+ORDER BY affidabilita DESC
+LIMIT 3;
+
+-- Classifica dei top 3 progetti APERTI che sono più vicini al proprio completamento.
+CREATE VIEW view_classifica_progetti_completamento AS
+SELECT P.nome,
+       (P.budget - IFNULL((SELECT SUM(importo) -- Differenza tra il budget e il totale dei finanziamenti per quel progetto
+                    FROM FINANZIAMENTO
+                    WHERE nome_progetto = P.nome), 0)) AS completamento -- Uso di IFNULL per evitare NULL in caso di progetto senza finanziamenti
+FROM PROGETTO P
+WHERE P.stato = 'aperto'
+ORDER BY completamento
+LIMIT 3;
+
+-- Classifica dei top 3 utenti, in base al TOTALE di finanziamenti erogati.
+CREATE VIEW view_classifica_utenti_finanziamento AS
+SELECT U.nickname
+FROM UTENTE U
+         JOIN FINANZIAMENTO F ON U.email = F.email_utente
+GROUP BY U.email
+ORDER BY SUM(F.importo) DESC
+LIMIT 3;
 
 -- ==================================================
 -- TRIGGER
