@@ -299,13 +299,12 @@ CREATE TABLE PROFILO_PROGETTO
 -- STORED PROCEDURES
 -- ==================================================
 
--- TODO
 
 -- ==================================================
 -- VISTE
 -- ==================================================
 
--- Classifica dei top 3 utenti creatori, in base al loro valore di affidabilità.
+-- Classifica dei top 3 utenti creatori, in base al loro valore di affidabilità
 CREATE VIEW view_classifica_creatori_affidabilita AS
 SELECT U.nickname
 FROM CREATORE C
@@ -313,18 +312,20 @@ FROM CREATORE C
 ORDER BY affidabilita DESC
 LIMIT 3;
 
--- Classifica dei top 3 progetti APERTI che sono più vicini al proprio completamento.
+-- Classifica dei top 3 progetti APERTI che sono più vicini al proprio completamento
 CREATE VIEW view_classifica_progetti_completamento AS
 SELECT P.nome,
-       (P.budget - IFNULL((SELECT SUM(importo) -- Differenza tra il budget e il totale dei finanziamenti per quel progetto
-                    FROM FINANZIAMENTO
-                    WHERE nome_progetto = P.nome), 0)) AS completamento -- Uso di IFNULL per evitare NULL in caso di progetto senza finanziamenti
+       (P.budget -
+        IFNULL((SELECT SUM(importo) -- Differenza tra il budget e il totale dei finanziamenti per quel progetto
+                FROM FINANZIAMENTO
+                WHERE nome_progetto = P.nome),
+               0)) AS completamento -- Uso di IFNULL per evitare NULL in caso di progetto senza finanziamenti
 FROM PROGETTO P
 WHERE P.stato = 'aperto'
 ORDER BY completamento
 LIMIT 3;
 
--- Classifica dei top 3 utenti, in base al TOTALE di finanziamenti erogati.
+-- Classifica dei top 3 utenti, in base al TOTALE di finanziamenti erogati
 CREATE VIEW view_classifica_utenti_finanziamento AS
 SELECT U.nickname
 FROM UTENTE U
@@ -460,6 +461,138 @@ BEGIN
     SET nr_progetti = nr_progetti + 1
     WHERE email_utente = NEW.email_creatore;
 END//
+
+-- Trigger per aggiornare il budget di un progetto hardware quando un componente viene aggiunto
+DELIMITER //
+CREATE TRIGGER trg_aggiorna_budget_componente_insert
+    BEFORE INSERT
+    ON COMPONENTE
+    FOR EACH ROW
+BEGIN
+    DECLARE tot_componenti DECIMAL(10, 2);
+    DECLARE budget_progetto DECIMAL(10, 2);
+    DECLARE eccesso DECIMAL(10, 2);
+
+    -- Controllo che il progetto sia ancora aperto
+    IF (SELECT stato
+        FROM PROGETTO
+        WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROGETTO CHIUSO';
+    END IF;
+
+    -- Recupera il budget del progetto
+    SELECT budget
+    INTO budget_progetto
+    FROM PROGETTO
+    WHERE nome = NEW.nome_progetto;
+
+    -- Calcola il costo totale dei componenti del progetto
+    SELECT IFNULL(SUM(prezzo * quantita), 0) -- Per sicurezza anche se deve esistere sempre almeno un componente a prescindere
+    INTO tot_componenti
+    FROM COMPONENTE
+    WHERE nome_progetto = NEW.nome_progetto;
+
+    -- Determina l'eccesso di budget
+    SET eccesso = (tot_componenti + (NEW.prezzo * NEW.quantita)) - budget_progetto;
+
+    -- Se l'eccesso è > 0, allora aggiorna il budget del progetto
+    IF eccesso > 0 THEN
+        UPDATE PROGETTO
+        SET budget = budget + eccesso
+        WHERE nome = NEW.nome_progetto;
+    END IF;
+END //
+DELIMITER ;
+
+-- Trigger per aggiornare il budget di un progetto hardware quando un componente viene rimosso
+DELIMITER //
+CREATE TRIGGER trg_aggiorna_budget_componente_delete
+    BEFORE DELETE
+    ON COMPONENTE
+    FOR EACH ROW
+BEGIN
+    DECLARE budget_progetto DECIMAL(10, 2);
+    DECLARE new_budget DECIMAL(10, 2);
+
+    -- Controllo che il progetto sia ancora aperto
+    IF (SELECT stato
+        FROM PROGETTO
+        WHERE nome = OLD.nome_progetto) = 'chiuso' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROGETTO CHIUSO';
+    END IF;
+
+    -- Controllo che ci sia almeno un componente rimanente
+    IF (SELECT COUNT(*)
+        FROM COMPONENTE
+        WHERE nome_progetto = OLD.nome_progetto) = 1 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: IMPOSSIBILE RIMUOVERE ULTIMO COMPONENTE';
+    END IF;
+
+    -- Recupera il budget del progetto
+    SELECT budget
+    INTO budget_progetto
+    FROM PROGETTO
+    WHERE nome = OLD.nome_progetto;
+
+    -- Determina il budget del progetto senza il componente rimosso
+    SET new_budget = budget_progetto - (OLD.prezzo * OLD.quantita);
+
+    -- Aggiorna il budget del progetto
+    UPDATE PROGETTO
+    SET budget = new_budget
+    WHERE nome = OLD.nome_progetto;
+END //
+
+-- Trigger per aggiornare il budget di un progetto hardware quando un componente viene aggiornato
+DELIMITER //
+CREATE TRIGGER trg_aggiorna_budget_componente_update
+    BEFORE UPDATE
+    ON COMPONENTE
+    FOR EACH ROW
+BEGIN
+    DECLARE tot_componenti DECIMAL(10, 2);
+    DECLARE budget_progetto DECIMAL(10, 2);
+    DECLARE eccesso DECIMAL(10, 2);
+
+    -- Controllo che il progetto sia ancora aperto
+    IF (SELECT stato
+        FROM PROGETTO
+        WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROGETTO CHIUSO';
+    END IF;
+
+    -- Controllo che la quantità del componente sia > 0
+    IF NEW.quantita <= 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: QUANTITY COMPONENTE DEVE ESSERE > 0';
+    END IF;
+
+    -- Recupera il budget del progetto
+    SELECT budget
+    INTO budget_progetto
+    FROM PROGETTO
+    WHERE nome = NEW.nome_progetto;
+
+    -- Calcola il costo totale dei componenti del progetto, escludendo il componente corrente
+    SELECT IFNULL(SUM(prezzo * quantita), 0)
+    INTO tot_componenti
+    FROM COMPONENTE
+    WHERE nome_progetto = NEW.nome_progetto
+      AND NOT (nome_componente = OLD.nome_componente AND nome_progetto = OLD.nome_progetto); -- Nel caso in cui il nome del componente sia cambiato
+
+    -- Determina l'eccesso di budget con il nuovo componente
+    SET eccesso = (tot_componenti + (NEW.prezzo * NEW.quantita)) - budget_progetto;
+
+    -- Vale anche se l'"eccesso" è negativo, per ridurre il budget
+    UPDATE PROGETTO
+    SET budget = budget + eccesso
+    WHERE nome = NEW.nome_progetto;
+END //
+DELIMITER ;
 
 -- ==================================================
 -- EVENTI
