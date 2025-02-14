@@ -1,0 +1,583 @@
+# TODO
+---
+#todo 
+- [ ] review carefully the redundancy cost analysis of `nr_progetti`
+
+## FOR NORMALIZZAZIONE PROVE THAT TABLES AT LEAST 3FN USING THE NORMALIZATION ALGORITHM FROM SLIDES [[DB08S6_Normalizzazione.pdf]]
+- each table needs algorithm applied
+- use letters for attributes then convert back to attributes in final version
+
+
+- ### ANY UTENTE THAT TRIES TO APPLY FOR A PROFILE AND DOES NOT HAVE THE NECESSARY COMPETENZA / LIVELLO IS DISCARDED AND ERROR-PROMPTED AT PHP RUNTIME, MEANING ONLY ACCEPTABLE UTENTI ARE EVER INSERTED IN PARTECIPANTE (business rule n.9)
+- ### PARTECIPANTE.stato = rifiutato → A QUALIFIED UTENTE DENIED BY CREATORE
+
+# ANALISI DEI REQUISITI
+---
+## **DECOMPOSIZIONE DEL TESTO**
+
+#### `UTENTE`
+- Tutti gli utenti della piattaforma dispongono di: **email** (univoca), **nickname**, **password**, **nome**, **cognome**, **anno di nascita**, e un **luogo di nascita**. Inoltre, ogni utente può indicare le proprie skill di curriculum
+- Gli utenti **possono appartenere** (non necessariamente) a due sotto-categorie: **amministratori** e **creatori**
+- **Ogni utente** della piattaforma può **finanziare un progetto**
+- Un utente **può candidarsi ad un numero qualsiasi di profili**
+
+#### `SKILL DI CURRICULUM`
+- Le skill di curriculum consistono in una sequenza di: **<competenza, livello>**, dove la **competenza è una stringa** ed il **livello è un numero tra 0 e 5** (es. <AI, 3>)
+- La lista delle competenze è **comune a tutti gli utenti** della piattaforma
+
+#### `AMMINISTRATORE`
+- Gli utenti amministratori dispongono anche di **un codice di sicurezza**
+- **Solo** gli utenti **amministratori** possono **popolare la lista delle competenze**
+
+#### `CREATORE`
+- Gli utenti creatori dispongono anche dei campi: **nr_progetti** ed **affidabilità**
+- **Solo** un utente **creatore** può **inserire uno o più progetti**
+- L’utente creatore può eventualmente **inserire una risposta per ogni singolo commento** (un commento ha al **massimo 1 risposta**)
+- L’utente creatore può **accettare o meno la candidatura** di un potenziale partecipante del **proprio progetto software**
+
+#### `PROGETTO GENERICO`
+- Ogni progetto dispone di: un **nome** (univoco), un **campo descrizione**, una **data di inserimento**, **una o più foto**, un **budget** da raggiungere per avviare il progetto, una **data limite** entro cui raggiungere il budget, uno **stato**. Lo stato è un campo di tipo **enum (aperto/chiuso)**
+- Ogni progetto è **associato ad un solo utente creatore**
+- Ogni progetto prevede una **lista di reward**
+- Ogni progetto appartiene esclusivamente ad una di due categorie: progetti **hardware** o progetti **software**
+- Nel momento in cui la **somma totale degli importi dei finanziamenti supera il budget** del progetto, oppure il **progetto resta in stato aperto oltre la data limite**, lo stato di tale progetto **diventa pari a chiuso**
+- Un **progetto chiuso** non accetta **ulteriori finanziamenti**
+
+#### `REWARD`
+- Una reward dispone di: un **codice** (univoco), una **breve descrizione**, una **foto**
+
+#### `PROGETTO HARDWARE`
+- Nel caso dei progetti hardware, è presente anche la **lista delle componenti necessarie**
+
+#### `COMPONENTE HARDWARE`
+- Ogni componente ha: un **nome** (univoco), una **descrizione**, un **prezzo**, una **quantità (>0)**
+
+#### `PROGETTO SOFTWARE`
+- Nel caso dei progetti software, viene elencata la **lista dei profili necessari** per lo sviluppo
+- Un progetto software **può ricevere un numero qualsiasi di candidature per un certo profilo**
+
+#### `PROFILO`
+- Ogni profilo dispone di: un **nome** (es. “Esperto AI”) e di **skill richieste**
+
+#### `SKILL DI PROFILO`
+- Le **skill di profilo** consistono in una sequenza **<competenza, livello>**, dove la **competenza** è una **stringa** (tra quelle **presenti in piattaforma**) ed il **livello** è un **numero tra 0 e 5**
+
+#### `FINANZIAMENTO`
+- Ogni finanziamento dispone di: un **importo** ed una **data**.
+- Un utente potrebbe inserire **più finanziamenti per lo stesso progetto**, ma in **date diverse**
+- Ad ogni finanziamento è associata **una sola reward**, tra quelle **previste per il progetto** finanziato
+
+#### `COMMENTO`
+- Un utente può **inserire commenti relativi ad un progetto** Ogni commento dispone di: un **id** (univoco), una **data** ed un campo **testo**
+
+#### `PARTECIPANTE`
+- È prevista la possibilità per gli **utenti** di **candidarsi come partecipanti allo sviluppo di un progetto software**
+- La piattaforma consente ad un utente di inserire una candidatura su un profilo **SOLO se, per ogni skill richiesta da un profilo, l’utente dispone di un livello superiore o uguale** al valore richiesto
+
+#### `LOG` (MongoDB)
+- Si vuole tenere traccia di **tutti gli eventi che occorrono nella piattaforma**, relativamente **all’inserimento di nuovi dati** (es. nuovi utenti, nuovi progetti, etc)
+- Tali eventi vanno inseriti, sotto forma di **messaggi di testo**, **all’interno di un log**, implementato in un’ apposita **collezione MongoDB**
+
+## **LISTA DELLE OPERAZIONI**
+
+#### Operazioni che riguardano TUTTI gli utenti:
+- Autenticazione/registrazione sulla piattaforma
+- Inserimento delle proprie skill di curriculum
+- Visualizzazione dei progetti disponibili
+- Finanziamento di un progetto (aperto). Un utente può finanziare anche il progetto di cui è creatore
+- Scelta della reward a valle del finanziamento di un progetto
+- Inserimento di un commento relativo ad un progetto
+- Inserimento di una candidatura per un profilo richiesto per la realizzazione di un progetto software
+
+#### Operazioni che riguardano SOLO gli amministratori:
+- Inserimento di una nuova stringa nella lista delle competenze
+- In fase di autenticazione, oltre a username e password, viene richiesto anche il codice di sicurezza
+
+#### Operazioni che riguardano SOLO i creatori:
+- Inserimento di un nuovo progetto
+- Inserimento delle reward per un progetto
+- Inserimento di una risposta ad un commento
+- Inserimento di un profilo - solo per la realizzazione di un progetto software
+- Accettazione o meno di una candidatura
+
+## **GLOSSARIO DEI DATI**
+
+| **TERMINE**             | **DESCRIZIONE**                                                                                                                                                                                                                                     | **SINONIMI** | **COLLEGAMENTI**                                                                      |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------- |
+| **UTENTE**              | Un utente generico della piattaforma BOSTARTER. Generalizzazione (non totale) di AMMINISTRATORE/CREATORE.                                                                                                                                           |              | AMMINISTRATORE / CREATORE, SKILL DI CURRICULUM, FINANZIAMENTO, PARTECIPANTE, COMMENTO |
+| **SKILL DI CURRICULUM** | Le competenze specifiche di ogni utente. OGNI utente dispone di esse.                                                                                                                                                                               |              | UTENTE                                                                                |
+| **AMMINISTRATORE**      | Un utente privilegiato della piattaforma, può modificare dati sensitivi come la lista delle competenze. Essendo una specializzazione di UTENTE, è associato in via indiretta ad ogni collegamento di quest'ultimo.                                  |              | UTENTE                                                                                |
+| **CREATORE**            | Un utente che ha il permesso di aprire e gestire progetti (propri) sulla piattaforma.  Essendo una specializzazione di UTENTE, è associato in via indiretta ad ogni collegamento di quest'ultimo.                                                   |              | UTENTE, PROGETTO GENERICO /  HARDWARE /   SOFTWARE                                    |
+| **PROGETTO GENERICO**   | Un progetto generico sulla piattaforma; si tratta di una generalizzazione (totale) di PROGETTO HARDWARE/SOFTWARE. Viene gestito da un solo utente creatore.                                                                                         | Progetto     | PROGETTO HARDWARE / SOFTWARE, CREATORE, REWARD, FINANZIAMENTO, COMMENTO               |
+| **REWARD**              | Un premio associato ad un progetto, viene offerto ad utenti che finanziano il progetto.                                                                                                                                                             | Premio       | PROGETTO GENERICO, FINANZIAMENTO                                                      |
+| **PROGETTO HARDWARE**   | Un progetto specifico all'ambito hardware, dispone di una lista di componenti necessarie. Specializzazione di PROGETTO GENERICO.                                                                                                                    |              | PROGETTO GENERICO, CREATORE, COMPONENTE HARDWARE                                      |
+| **PROGETTO SOFTWARE**   | Un progetto specifico nell'ambito software, dispone di una lista di profili richiesti per lo sviluppo, e può avere più partecipanti. Specializzazione di PROGETTO GENERICO.                                                                         |              | PROGETTO GENERICO, CREATORE, PARTECIPANTE, PROFILO                                    |
+| **PROFILO**             | Un profilo particolare richiesto per un progetto software, dispone di un nome ed una lista di skill richieste. Potenziali partecipanti per un progetto software si misurano sulla base del profilo e livello delle skill sottostanti richieste.     |              | PROGETTO SOFTWARE, SKILL DI PROFILO                                                   |
+| **SKILL DI PROFILO**    | Una competenza specifica appartenente ad un profilo per progetti software.                                                                                                                                                                          |              | PROFILO                                                                               |
+| **FINANZIAMENTO**       | Un finanziamento economico fatto da un qualunque tipo di utente per un progetto hardware/software.                                                                                                                                                  |              | UTENTE, PROGETTO GENERICO, REWARD                                                     |
+| **COMMENTO**            | Un commento fatto da un qualunque tipo di utente per un progetto hardware/software. Può contenere al massimo una risposta da parte dell'utente creatore.                                                                                            |              | UTENTE, PROGETTO GENERICO                                                             |
+| **PARTECIPANTE**        | Un potenziale o effettivo partecipante ad un progetto software. Qualunque utente che non è creatore del progetto software può candidarsi ad esso se dispone del profilo e livelli necessari, e può essere accettato/rifiutato dall'utente creatore. | Candidato    | UTENTE, PROGETTO SOFTWARE                                                             |
+
+# PROGETTAZIONE CONCETTUALE
+---
+## **DIAGRAMMA E-R**
+![[DB-PRJ-ERD.png]]
+
+## **DIZIONARIO DELLE ENTITÀ**
+
+| **ENTITÀ**            | **DESCRIZIONE**                                                                                                                            | **ATTRIBUTI**                                                                   | **IDENTIFICATORE**                |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- | --------------------------------- |
+| **UTENTE**            | Utente generico della piattaforma BOSTARTER. Ogni utente (admin/creatore) viene inglobato in questa entità.                                | email, password, nickname, nome, cognome, anno_nascita, luogo_nascita           | email                             |
+| **ADMIN**             | Specializzazione di UTENTE. Vengono inseriti gli utenti privilegiati/amministratori.                                                       | email_utente, codice_sicurezza                                                  | email_utente                      |
+| **CREATORE**          | Specializzazione di UTENTE. Vengono inseriti gli utenti che creano e gestiscono progetti.                                                  | email_utente, nr_progetti, affidabilità                                         | email_utente                      |
+| **PROGETTO**          | Un progetto generico della piattaforma. Ogni progetto (software/hardware) viene inglobato in questa entità.                                | nome, email_creatore, descrizione, budget, stato, data_inserimento, data_limite | nome                              |
+| **FOTO**              | Una o più foto associate ad un determinato progetto.                                                                                       | id, nome_progetto, foto                                                         | id, nome_progetto                 |
+| **REWARD**            | Una o più reward associate ad un determinato progetto.                                                                                     | codice, nome_progetto, descrizione, foto, min_importo                           | codice, nome_progetto             |
+| **COMMENTO**          | Uno o più commenti associati ad un utente ed un progetto. Opzionalmente contengono una risposta dall'utente creatore.                      | id, email_utente, nome_progetto, data, testo, risposta                          | id                                |
+| **PROGETTO_SOFTWARE** | Specializzazione di PROGETTO. Vengono inseriti i progetti di tipo software.                                                                | nome_progetto                                                                   | nome_progetto                     |
+| **PROGETTO_HARDWARE** | Specializzazione di PROGETTO. Vengono inseriti i progetti di tipo hardware.                                                                | nome_progetto                                                                   | nome_progetto                     |
+| **COMPONENTE**        | Una o più componenti fisiche necessarie per un progetto hardware.                                                                          | nome_componente, nome_progetto, descrizione, quantità, prezzo                   | nome_componente, nome_progetto    |
+| **PROFILO**           | Uno o più profili necessari per un progetto software.                                                                                      | nome_profilo                                                                    | nome_profilo                      |
+| **SKILL**             | Una o più competenze richieste/disponibili sulla piattaforma per progetti software. La lista di competenze è gestita dagli amministratori. | competenza                                                                      | competenza                        |
+| **FINANZIAMENTO**     | Un finanziamento economico fatto da un utente, verso un progetto, associato ad una reward.                                                 | data, email_utente, nome_progetto, codice_reward, importo                       | data, email_utente, nome_progetto |
+
+## **DIZIONARIO DELLE RELAZIONI**
+
+| **RELAZIONI**              | **DESCRIZIONE**                                                                                                                                                            | **COMPONENTI**                | **ATTRIBUTI**     |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------- |
+| **SKILL_CURRICULUM**       | Le competenze effettive di ciascun utente, tratte da SKILL ed associate al livello dell'utente.                                                                            | UTENTE, SKILL                 | livello_effettivo |
+| **UTENTE_FINANZIAMENTO**   | L'associazione di un finanziamento all'utente che l'ha fatto.                                                                                                              | UTENTE, FINANZIAMENTO         |                   |
+| **UTENTE_COMMENTO**        | L'associazione di un commento all'utente che l'ha postato.                                                                                                                 | UTENTE, COMMENTO              |                   |
+| **PARTECIPANTE**           | Un utente e  potenziale candidato per partecipare ad un progetto software esistente. Candidati che non possiedono le competenze/livelli necessari non vengono considerati. | UTENTE, PROGETTO_SOFTWARE     | stato             |
+| **FINANZIAMENTO_PROGETTO** | L'associazione di un finanziamento ad un progetto.                                                                                                                         | FINANZIAMENTO, PROGETTO       |                   |
+| **COMMENTO_PROGETTO**      | L'associazione di un commento ad un progetto.                                                                                                                              | COMMENTO, PROGETTO            |                   |
+| **REWARD_PROGETTO**        | L'associazione di una reward ad un progetto.                                                                                                                               | REWARD, PROGETTO              |                   |
+| **CREATORE_PROGETTO**      | L'associazione di un utente creatore al progetto che ha creato.                                                                                                            | CREATORE, PROGETTO            |                   |
+| **FOTO_PROGETTO**          | La lista di una o più foto che rappresentano un progetto.                                                                                                                  | FOTO, PROGETTO                |                   |
+| **FINANZIAMENTO_REWARD**   | L'associazione di una reward per un finanziamento di un progetto.                                                                                                          | FINANZIAMENTO, REWARD         |                   |
+| **COMPONENTE_PROGETTO**    | La lista di una o più componenti fisiche necessarie per un progetto hardware.                                                                                              | PROGETTO_HARDWARE, COMPONENTE |                   |
+| **PROFILO_PROGETTO**       | La lista di uno o più profili necessari per lo sviluppo di un progetto software.                                                                                           | PROGETTO_SOFTWARE, PROFILO    |                   |
+| **SKILL_PROFILO**          | La lista di una o più skill comprese all'interno di un profilo di sviluppo, e il livello richiesto per ciascuna di esse.                                                   | SKILL, PROFILO                | livello_richiesto |
+
+**N.B.** **PARTECIPANTE**.stato → enum: {"accettato", "rifiutato", "potenziale"}
+
+## **BUSINESS RULES**
+
+|         | **REGOLE DI VINCOLO**                                                                                                                                                                                     |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **1.**  | Per le **skill di curriculum**, il **livello è un numero tra 0 e 5**                                                                                                                                      |
+| **2.**  | Per le **skill di profilo**, il **livello è un numero tra 0 e 5**                                                                                                                                         |
+| **3.**  | **Ogni componente** in un progetto **hardware** dispone di una **quantità maggiore di zero**                                                                                                              |
+| **4.**  | **Solo** gli utenti **amministratori** possono **popolare la lista delle competenze**                                                                                                                     |
+| **5.**  | Se la **somma totale degli importi dei finanziamenti supera il budget** del progetto, lo stato di tale progetto **diventa pari a chiuso**                                                                 |
+| **6.**  | Se il **progetto resta in stato aperto oltre la data limite**, lo stato di tale progetto **diventa pari a chiuso**                                                                                        |
+| **7.**  | Un **progetto chiuso** non accetta **ulteriori finanziamenti**                                                                                                                                            |
+| **8.**  | Ogni commento ha al **massimo 1 risposta** scritta dall'**utente creatore del progetto**                                                                                                                  |
+| **9.**  | La piattaforma consente ad un utente di inserire una candidatura su un profilo **SOLO se, per ogni skill richiesta da un profilo, l’utente dispone di un livello superiore o uguale** al valore richiesto |
+| **10.** | La **reward** ottenuta da un **finanziamento** dipende dal suo **importo** (confronto dinamico fra FINANZIAMENTO.importo e REWARD.min_importo)                                                            |
+
+# PROGETTAZIONE LOGICA
+---
+## **ANALISI DELLE RIDONDANZE**
+
+Si vuole valutare se la seguente ridondanza: **campo `nr_progetti`** relativo ad un utente creatore debba essere **tenuta o eliminata**, sulla base delle seguenti operazioni:
+
+#### **Operazioni**
+- $Op_{1}$: **Aggiungere (write)** un nuovo progetto ad un utente creatore esistente **(1 volte/mese, interattiva)**
+- $Op_{2}$: **Visualizzare (read)** tutti i progetti e tutti i finanziamenti **(1 volta/mese, batch)**
+- $Op_{3}$: **Contare (read)** il numero di progetti associati ad uno specifico utente **(3 volte/mese, batch)**
+
+#### **Contesto**
+Si deriva il **costo $c$ di un'operazione $O_{T}$**, dunque $c(O_{T})$, utilizzando la seguente formula:
+$$\begin{align*}
+c(O_{T})=f(O_{T})\cdot w_{T}\cdot (\alpha \cdot NC_{\text{write}}+NC_{\text{read}})
+\end{align*}$$
+Dove:
+- $f(O_{T})=$ **Frequenza** dell'operazione
+- $NC_{\text{write}}=$ Numero di **accessi in scrittura** a componenti (entità/relazioni) dello schema
+- $NC_{\text{read}}=$ Numero di **accessi in lettura** a componenti (entità/relazioni) dello schema
+- $w_{T}=$ **Peso** dell’operazione (interattiva/batch)
+- $\alpha=$ **Coefficiente moltiplicativo** delle operazioni in **scrittura**
+
+#### **Coefficienti per l'Analisi**
+- $\alpha=2$
+- $w_{I}=1$
+- $w_{B}=0.5$
+
+#### **Tabella dei Volumi**
+- 10 progetti
+- 3 finanziamenti per progetto
+- 5 utenti
+- 2 progetti per utente
+
+### **Operazione 1**
+---
+$Op_{1}$: **Aggiungere (write)** un nuovo progetto ad un utente creatore esistente **(1 volte/mese, interattiva)**.
+
+#### Includendo `nr_progetti`
+
+**Logica**
+1. Incrementa di uno il numero di progetti gestiti dall'utente creatore
+2. Crea un nuovo progetto
+	- Una entry per il progetto
+	- Una o più entry per le foto del progetto
+	- Una o più entry per le reward del progetto
+3. Inserisci una entry nella tabella relativa al tipo di progetto (software/hardware)
+	- IF software → Una o più entry per i profili richiesti
+	- IF hardware → Una o più entry per le componenti richieste
+
+**Procedura** (assumendo una foto, una reward, e un profilo/componente)
+- 1 `UPDATE` in `CREATORE.nr_progetti`
+- 1 `INSERT` in `PROGETTO`
+- 1 `INSERT` in `FOTO`
+- 1 `INSERT` in `REWARD`
+- 1 `INSERT` in `PROGETTO_SOFTWARE`/`PROGETTO_HARDWARE`
+- 1 `INSERT` in `PROFILO`/`COMPONENTE`
+
+**Variabili**
+- $f(Op_{1})=1$
+- $w_{I}=1$
+- $\alpha=2$
+- $NC_{\text{write}}=6$
+- $NC_{\text{read}}=0$
+
+**Costo**
+$$\begin{align*}
+c_{1}(Op_{1})=1\cdot 1\cdot (2\cdot 6+0)=12
+\end{align*}$$
+
+#### Escludendo `nr_progetti`
+
+**Logica**
+- Identica al caso di sopra eccetto per il primo passo
+
+**Procedura**
+- 1 `INSERT` in `PROGETTO`
+- 1 `INSERT` in `FOTO`
+- 1 `INSERT` in `REWARD`
+- 1 `INSERT` in `PROGETTO_SOFTWARE`/`PROGETTO_HARDWARE`
+- 1 `INSERT` in `PROFILO`/`COMPONENTE`
+
+**Variabili**
+- Identiche al caso di sopra eccetto:
+- $NC_{\text{write}}=5$
+
+**Costo**
+$$\begin{align*}
+c_{2}(Op_{1})=1\cdot 1\cdot (2\cdot 5+0)=10
+\end{align*}$$
+
+### **Operazione 2**
+---
+$Op_{2}$: **Visualizzare (read)** tutti i progetti e tutti i finanziamenti **(1 volta/mese, batch)**.
+
+#### Includendo `nr_progetti`
+
+**Logica**
+1. Leggi l'intera tabella `PROGETTO`
+2. Leggi l'intera tabella `FINANZIAMENTO`
+
+**Procedura**
+- 10 `SELECT` in `PROGETTO`
+- 30 `SELECT` in `FINANZIAMENTO`
+
+**Variabili**
+- $f(Op_{1})=1$
+- $w_{B}=0.5$
+- $\alpha=2$
+- $NC_{\text{write}}=0$
+- $NC_{\text{read}}=40$
+
+**Costo**
+$$\begin{align*}
+c_{1}(Op_{2})=1\cdot 0.5\cdot (2\cdot 0+40)=20
+\end{align*}$$
+
+#### Escludendo `nr_progetti`
+
+I calcoli rimangono invariati a quelli fatti di sopra.
+#### Costo
+$$\begin{align*}
+c_{2}(Op_{2})=1\cdot 0.5\cdot (2\cdot 0+40)=20
+\end{align*}$$
+
+### **Operazione 3**
+---
+$Op_{3}$: **Contare (read)** il numero di progetti associati ad uno specifico utente **(3 volte/mese, batch)**.
+
+#### Includendo `nr_progetti`
+
+**Logica**
+1. Leggi l'attributo `nr_progetti` dell'utente.
+
+**Procedura** (assumendo che per "associati" si intenda progetti creati da un utente)
+- 1 `SELECT` in `CREATORE`
+
+**Variabili**
+- $f(Op_{1})=3$
+- $w_{B}=0.5$
+- $\alpha=2$
+- $NC_{\text{write}}=0$
+- $NC_{\text{read}}=1$
+
+**Costo**
+$$\begin{align*}
+c_{1}(Op_{3})=3\cdot 0.5\cdot (2\cdot 0+1)=1.5
+\end{align*}$$
+
+#### Escludendo `nr_progetti`
+
+**Logica** (assumendo l'assenza di un indice efficiente)
+1. Leggi l'intera tabella `PROGETTO`
+2. Filtra laddove l'email del creatore del progetto corrente non corrisponde all'email del creatore per cui si sta facendo la query
+
+**Procedura**
+- 2 `SELECT` in `PROGETTO`, avendo scandito **10 entry**
+
+**Variabili**
+- $f(Op_{1})=3$
+- $w_{B}=0.5$
+- $\alpha=2$
+- $NC_{\text{write}}=0$
+- $NC_{\text{read}}=10$
+
+**Costo**
+$$\begin{align*}
+c_{2}(Op_{3})=3\cdot 0.5\cdot (2\cdot 0+10)=15
+\end{align*}$$
+
+### **Conclusione**
+---
+#### Includendo `nr_progetti`
+
+$$\begin{align*}
+\displaystyle\sum_{T=1}^{3}c_{1}(Op_{T})= 12+20+1.5=33.5
+\end{align*}$$
+
+#### Escludendo `nr_progetti`
+$$\begin{align*}
+\displaystyle\sum_{T=1}^{3}c_{2}(Op_{T})=10+20+15=45
+\end{align*}$$
+#### **Speedup**
+$$\begin{align*}
+\frac{45}{33.5}=1.34
+\end{align*}$$
+#### **Analisi**
+
+|            | **Includendo `nr_progetti`** | **Escludendo `nr_progetti`** |
+| ---------- | ---------------------------- | ---------------------------- |
+| $Op_{1}$   | 12                           | 10                           |
+| $Op_{2}$   | 20                           | 20                           |
+| $Op_{3}$   | 1.5                          | 15                           |
+| **Totale** | 33.5                         | 45                           |
+
+Osservando i costi di entrambi scenari, risulta che **includere `nr_progetti` sia l'approccio corretto**. Il costo per le prime due operazione è praticamente identico. Il guadagno principale nel mantenere `nr_progetti` deriva dalla differenza di costo per la terza ed ultima operazione, $Op_{3}$, che richiede di contare il numero di progetti associati ad un utente creatore nella piattaforma. Lo **speedup** infatti è **pari ad 1.34**, indicando un **guadagno di efficienza circa del 34% includendo la ridondanza** sulla base delle operazioni elencate.
+
+**N.B.** Anche se ci fosse per l'ultima operazione un indice efficiente che tenga traccia dell'associazione tra progetti e i creatori di essi, allora l'assenza della ridondanza comporterebbe un costo di 3 (basta porre $NC_{\text{read}}=2$ invece che $10$), che è comunque **2x più costoso rispetto all'utilizzo della ridondanza** (costo di $1.5$). Tenendo questa considerazione a mente, man mano che **la piattaforma cresce e più utenti creatori creano e gestiscono più progetti**, la differenza (di 2x) diventa sempre più notevole, e pertanto **converrà comunque mantenere la ridondanza**.
+
+**Includendo `nr_progetti`**, l'operazione è immediata, dovendo semplicemente leggere l'attributo `CREATORE.nr_progetti` dell'utente. Infatti, per $Op_{3}$, il costo è 10 volte minore tenendo conto di `nr_progetti`, ed il costo in memoria associato è trascurabile (tenendo conto la tabella di volumi fornita nella traccia), che presuppone in media 2 progetti per utente, e 5 utenti sulla piattaforma. Volendo ottimizzare ulteriormente il costo in memoria di `nr_progetti`, lo si può rappresentare in MySQL come un `TINYINT UNSIGNED`, che ha un costo di 1 byte e può rappresentare valori compresi in $[0,255]$ (valori negativi non hanno senso in questo contesto).
+
+**Escludendo `nr_progetti`**, l'operazione, a differenza dello scenario di sopra, non ha accesso a `CREATORE.nr_progetti`, e deve pertanto scandire ogni progetto nella tabella `PROGETTO`, effettivamente leggendo ogni entry (10 in tutto), e verificando su ciascuna se l'email del creatore combacia con quella inserita nella query.
+
+## **LISTA DELLE TABELLE**
+
+**UTENTE**(<u>email</u>, password, nickname, nome, cognome, anno_nascita, luogo_nascita)
+
+**ADMIN**(<u>email_utente</u>, codice_sicurezza)
+
+**CREATORE**(<u>email_utente</u>, nr_progetti, affidabilità)
+
+**PROGETTO**(<u>nome</u>, email_creatore, descrizione, budget, stato, data_inserimento, data_limite)
+
+**FOTO**(<u>id</u>, <u>nome_progetto</u>, foto)
+
+**REWARD**(<u>codice</u>, <u>nome_progetto</u>, descrizione, foto, min_importo)
+
+**COMMENTO**(<u>id</u>, email_utente, nome_progetto, data, testo, risposta)
+
+**PROGETTO_SOFTWARE**(<u>nome_progetto</u>)
+
+**PROGETTO_HARDWARE**(<u>nome_progetto</u>)
+
+**COMPONENTE**(<u>nome_componente</u>, <u>nome_progetto</u>, descrizione, quantità, prezzo)
+
+**PROFILO**(<u>nome_profilo</u>)
+
+**SKILL**(<u>competenza</u>)
+
+**FINANZIAMENTO**(<u>data</u>, <u>email_utente</u>, <u>nome_progetto</u>, codice_reward, importo)
+
+**SKILL_CURRICULUM**(<u>email_utente</u>, <u>competenza</u>, livello_effettivo)
+
+**SKILL_PROFILO**(<u>nome_profilo</u>, <u>competenza</u>, livello_richiesto)
+
+**PARTECIPANTE**(<u>email_utente</u>, <u>nome_progetto</u>, stato)
+
+**PROFILO_PROGETTO**(<u>nome_progetto</u>, <u>nome_profilo</u>)
+
+## **LISTA DEI VINCOLI INTER-RELAZIONALI**
+
+**ADMIN**.email_utente                                       → **UTENTE**.email
+**CREATORE**.email_utente                                → **UTENTE**.email
+**PROGETTO**.email_creatore                            → **UTENTE**.email
+**COMMENTO**.email_utente                             → **UTENTE**.email
+**FINANZIAMENTO**.email_utente                    → **UTENTE**.email
+**PARTECIPANTE**.email_utente                       → **UTENTE**.email
+**SKILL_CURRICULUM**.email_utente              → **UTENTE**.email
+
+**FOTO**.nome_progetto                                    → **PROGETTO**.nome
+**REWARD**.nome_progetto                              → **PROGETTO**.nome
+**COMMENTO**.nome_progetto                       → **PROGETTO**.nome
+**PROGETTO_SOFTWARE**.nome_progetto  → **PROGETTO**.nome
+**PROGETTO_HARDWARE**.nome_progetto → **PROGETTO**.nome
+**COMPONENTE**.nome_progetto                   → **PROGETTO**.nome
+**FINANZIAMENTO**.nome_progetto              → **PROGETTO**.nome
+**PARTECIPANTE**.nome_progetto                 → **PROGETTO**.nome
+**PROFILO_PROGETTO**.nome_progetto       → **PROGETTO**.nome
+
+**FINANZIAMENTO**.codice_reward                → **REWARD**.codice
+
+**SKILL_PROFILO**.nome_profilo                     → **PROFILO**.nome_profilo
+**PROFILO_PROGETTO**.nome_profilo           → **PROFILO**.nome_profilo
+
+**SKILL_CURRICULUM**.competenza             → **SKILL**.competenza
+**SKILL_PROFILO**.competenza                      → **SKILL**.competenza
+
+# NORMALIZZAZIONE
+---
+In questa sezione viene analizzato lo schema logico prodotto sulla base della terza, e FNBC forma normale.
+
+## 3FN
+
+Solo se per ogni dipendenza funzionale X→Y:
+- X è una superchiave dello schema
+**Oppure**
+- Y appartiene ad una chiave candidata dello schema
+
+## FNBC
+
+Solo se per ogni dipendenza funzionale X→Y:
+- X è una superchiave dello schema
+
+## ANALISI
+
+Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Normale Boyce & Codd**.
+
+#### `UTENTE`
+- **R**(<u>email</u>, password, nickname, nome, cognome, anno_nascita, luogo_nascita)
+- **F** = {email → OGNI ATTRIBUTO}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `ADMIN`
+- **R**(<u>email_utente</u>, codice_sicurezza)
+- **F** = {email_utente → codice_sicurezza}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `CREATORE`
+- **R**(<u>email_utente</u>, nr_progetti, affidabilità)
+- **F** = {email_utente → nr_progetti, affidabilità}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `PROGETTO`
+- **R**(<u>nome</u>, email_creatore, descrizione, budget, stato, data_inserimento, data_limite)
+- **F** = {nome → OGNI ATTRIBUTO}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `FOTO`
+- **R**(<u>id</u>, <u>nome_progetto</u>, foto)
+- **F** = {id, nome_progetto → foto}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `REWARD`
+- **R**(<u>codice</u>, <u>nome_progetto</u>, descrizione, foto, min_importo)
+- **F** = {codice, nome_progetto → OGNI ATTRIBUTO}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `COMMENTO`
+- **R**(<u>id</u>, email_utente, nome_progetto, data, testo, risposta)
+- **F** = {id → OGNI ATTRIBUTO}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `PROGETTO_SOFTWARE`
+- **R**(<u>nome_progetto</u>)
+- **F** = DF Banale
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `PROGETTO_HARDWARE
+- **R**(<u>nome_progetto</u>)
+- **F** = DF Banale
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `COMPONENTE`
+- **R**(<u>nome_componente</u>, <u>nome_progetto</u>, descrizione, quantità, prezzo)
+- **F** = {nome_componente, nome_progetto → OGNI ATTRIBUTO}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `PROFILO`
+- **R**(<u>nome_profilo</u>)
+- **F** = DF Banale
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `SKILL`
+- **R**(<u>competenza</u>)
+- **F** = DF Banale
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `FINANZIAMENTO`
+- **R**(<u>data</u>, <u>email_utente</u>, <u>nome_progetto</u>, codice_reward, importo)
+- **F** = {data, email_utente, nome_progetto → OGNI ATTRIBUTO}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `SKILL_CURRICULUM`
+- **R**(<u>email_utente</u>, <u>competenza</u>, livello_effettivo)
+- **F** = {email_utente, competenza → livello_effettivo}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `SKILL_PROFILO`
+- **R**(<u>nome_profilo</u>, <u>competenza</u>, livello_richiesto)
+- **F** = {nome_profilo, competenza → livello_richiesto}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `PARTECIPANTE`
+- **R**(<u>email_utente</u>, <u>nome_progetto</u>, stato)
+- **F** = {email_utente, nome_progetto → stato}
+- **3FN: ✅** / **FNBC: ✅**
+
+#### `PROFILO_PROGETTO`
+- **R**(<u>nome_progetto</u>, <u>nome_profilo</u>)
+- **F** = DF Banale
+- **3FN: ✅** / **FNBC: ✅**
+
+# FUNZIONALITÀ
+---
+# seriously reevaluate how to structure this section
+## REGISTRAZIONE UTENTE
+
+Ogni utente passa inizialmente per la pagina di login, `index.php`, se dispone di un account esistente sulla piattaforma (email e password) allora può autenticarsi, altrimenti clicca su Registra e continua con la procedura per creare il proprio account.
+
+## PER OGNI UTENTE
+#### QUANDO...
+
+## PER IL DOCENTE
+#### QUANDO...
+
+## PER LO STUDENTE
+#### QUANDO...
+
+## LOGGING (MongoDB)
+
+# for each table of MySQL create a dedicated MongoDB collection of the same name and log there whenever modification to the MySQL table is made. In essence just need to add a mongodb call at the end of each function in php logging whatever data and variables where passed as argument
+
+# Appendice
+---
+In seguito viene riportato il codice SQL completo utilizzato per la generazione della base di dati **BOSTARTER** e delle relative funzionalità (procedure, viste, trigger):
+
+```sql
+bostarter_db_init.sql here
+```
+
+ed il codice JavaScript relativo alla gestione del logging della piattaforma:
+
+```js
+bostarter_mongodb_logging.js here
+```
