@@ -10,6 +10,29 @@
 ### the budget of a hardware project must be >= the sum of the price of all its components
 
 
+
+
+- [ ] Implementare tutte le operazioni sui dati (ove possibile) attraverso stored procedure.
+
+- [ ] Implementare le tre statistiche menzionate in precedenza mediante viste.
+	- [ ] Visualizzare la classifica degli utenti creatori, in base al loro valore di affidabilità. Mostrare solo il nickname dei primi 3 utenti.
+	- [ ] Visualizzare i progetti APERTI che sono più vicini al proprio completamento (= minore differenza tra budget richiesto e somma totale dei finanziamenti ricevuti). Mostrare solo i primi 3 progetti.
+	- [ ] Visualizzare la classifica degli utenti, ordinati in base al TOTALE di finanziamenti erogati. Mostrare solo i nickname dei primi 3 utenti.
+
+- [x] Utilizzare dei trigger per aggiornare l’affidabilità di un utente creatore. L’affidabilità viene calcolata come X è la percentuale di progetti creati dall’utente che hanno ottenuto almeno un finanziamento. L’affidabilità viene aggiornata:
+	- [x] (i) ogni qualvolta un utente crea un progetto (denominatore);
+	- [x] (ii) ogni qualvolta un progetto dell’utente riceve un finanziamento (contribuisce al numeratore).
+
+- [x] Utilizzare un trigger per cambiare lo stato di un progetto. Lo stato di un progetto diventa CHIUSO quando ha raggiunto un valore complessivo di finanziamenti pari al budget richiesto.
+
+- [x] Utilizzare un trigger per incrementare il campo nr_progetti. Ogni qualvolta un utente creatore inserisce un progetto, il campo viene incrementato di un’unità.
+
+- [x] Utilizzare un evento per cambiare lo stato di un progetto. Lo stato di un progetto diventa CHIUSO quando la data attuale è posteriore alla data di chiusura del progetto stesso. L’evento viene eseguito 1 volta al giorno.
+
+
+
+
+
 # ANALISI DEI REQUISITI
 ---
 ## **DECOMPOSIZIONE DEL TESTO**

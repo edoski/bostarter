@@ -201,7 +201,7 @@ CREATE TABLE COMMENTO
     nome_progetto VARCHAR(100) NOT NULL,
     data          DATE         NOT NULL DEFAULT CURRENT_DATE,
     testo         TEXT         NOT NULL CHECK ( LENGTH(testo) >= 10 ), -- Minimo 10 caratteri
-    risposta      TEXT         NULL, -- Business Rule #8
+    risposta      TEXT         NULL,                                   -- Business Rule #8
     PRIMARY KEY (id),
     CONSTRAINT fk_com_utente
         FOREIGN KEY (email_utente)
@@ -307,6 +307,143 @@ CREATE TABLE PROFILO_PROGETTO
 -- TRIGGER
 -- ==================================================
 
+-- Trigger per aggiornare l'affidabilità di un creatore quando crea un progetto
+DELIMITER //
+CREATE TRIGGER trg_update_affidabilita_prog
+    AFTER INSERT
+    ON PROGETTO
+    FOR EACH ROW
+BEGIN
+    DECLARE tot_progetti INT;
+    DECLARE progetti_finanziati INT;
+    DECLARE new_aff DECIMAL(5, 2);
+
+    -- Numero totale di progetti creati dal creatore
+    SELECT COUNT(*)
+    INTO tot_progetti
+    FROM PROGETTO
+    WHERE email_creatore = NEW.email_creatore;
+
+    -- Numero di progetti del creatore che hanno ricevuto almeno un finanziamento
+    SELECT COUNT(DISTINCT P.nome)
+    INTO progetti_finanziati
+    FROM PROGETTO P
+             JOIN FINANZIAMENTO F ON P.nome = F.nome_progetto
+    WHERE P.email_creatore = NEW.email_creatore;
+
+    -- Calcola la nuova affidabilità del creatore
+    IF tot_progetti > 0 THEN
+        SET new_aff = (progetti_finanziati / tot_progetti) * 100;
+    ELSE
+        SET new_aff = 0;
+    END IF;
+
+    UPDATE CREATORE
+    SET affidabilita = new_aff
+    WHERE email_utente = NEW.email_creatore;
+END//
+DELIMITER ;
+
+-- Trigger per aggiornare l'affidabilità di un creatore quando un progetto da lui creato viene finanziato
+DELIMITER //
+CREATE TRIGGER trg_update_affidabilita_fin
+    AFTER INSERT
+    ON FINANZIAMENTO
+    FOR EACH ROW
+BEGIN
+    DECLARE email VARCHAR(100);
+    DECLARE tot_progetti INT;
+    DECLARE progetti_finanziati INT;
+    DECLARE new_aff DECIMAL(5, 2);
+
+    -- Recupera l'email del creatore del progetto
+    SELECT email_creatore
+    INTO email
+    FROM PROGETTO
+    WHERE nome = NEW.nome_progetto;
+
+    -- Numero totale di progetti creati dal creatore
+    SELECT COUNT(*)
+    INTO tot_progetti
+    FROM PROGETTO
+    WHERE email_creatore = email;
+
+    -- Numero di progetti del creatore che hanno ricevuto almeno un finanziamento
+    SELECT COUNT(DISTINCT P.nome)
+    INTO progetti_finanziati
+    FROM PROGETTO P
+             JOIN FINANZIAMENTO F ON P.nome = F.nome_progetto
+    WHERE P.email_creatore = email;
+
+    -- Calcola la nuova affidabilità del creatore
+    IF tot_progetti > 0 THEN
+        SET new_aff = (progetti_finanziati / tot_progetti) * 100;
+    ELSE
+        SET new_aff = 0;
+    END IF;
+
+    UPDATE CREATORE
+    SET affidabilita = new_aff
+    WHERE email_utente = email;
+END//
+DELIMITER ;
+
+-- Trigger per cambiare lo stato di un progetto in 'chiuso' quando il budget è stato raggiunto
+DELIMITER //
+CREATE TRIGGER trg_update_stato_progetto
+    AFTER INSERT
+    ON FINANZIAMENTO
+    FOR EACH ROW
+BEGIN
+    DECLARE tot_finanziamento DECIMAL(10, 2);
+    DECLARE budget_progetto DECIMAL(10, 2);
+
+    -- Calcola il budget del progetto
+    SELECT budget
+    INTO budget_progetto
+    FROM PROGETTO
+    WHERE nome = NEW.nome_progetto;
+
+    -- Calcola il totale del finanziamento per il progetto
+    SELECT SUM(importo)
+    INTO tot_finanziamento
+    FROM FINANZIAMENTO
+    WHERE nome_progetto = NEW.nome_progetto;
+
+    -- Se il totale del finanziamento è >= al budget del progetto, allora lo stato del progetto diventa 'chiuso'
+    IF tot_finanziamento >= budget_progetto THEN
+        UPDATE PROGETTO
+        SET stato = 'chiuso'
+        WHERE nome = NEW.nome_progetto;
+    END IF;
+END//
+DELIMITER ;
+
+-- Trigger per aumentare il numero di progetti creati da un creatore
+DELIMITER //
+CREATE TRIGGER trg_incrementa_progetti_creati
+    AFTER INSERT
+    ON PROGETTO
+    FOR EACH ROW
+BEGIN
+    UPDATE CREATORE
+    SET nr_progetti = nr_progetti + 1
+    WHERE email_utente = NEW.email_creatore;
+END//
+
 -- ==================================================
 -- EVENTI
 -- ==================================================
+
+-- Evento per chiudere automaticamente i progetti scaduti, eseguito ogni giorno
+DELIMITER //
+CREATE EVENT ev_chiudi_progetti_scaduti
+    ON SCHEDULE EVERY 1 DAY
+    DO
+    BEGIN
+        UPDATE PROGETTO
+        SET stato = 'chiuso'
+        WHERE stato = 'aperto'
+          AND data_limite < CURDATE();
+    END//
+DELIMITER ;
