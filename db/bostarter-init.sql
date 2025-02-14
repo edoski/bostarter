@@ -299,6 +299,106 @@ CREATE TABLE PROFILO_PROGETTO
 -- STORED PROCEDURES
 -- ==================================================
 
+DELIMITER //
+
+-- (ALL) Registrazione di un utente con o senza ruolo di creatore
+CREATE PROCEDURE sp_registra_utente(
+    IN p_email VARCHAR(100),
+    IN p_password VARCHAR(255),
+    IN p_nickname VARCHAR(50),
+    IN p_nome VARCHAR(50),
+    IN p_cognome VARCHAR(50),
+    IN p_anno_nascita INT,
+    IN p_luogo_nascita VARCHAR(50),
+    IN p_creator BOOLEAN
+)
+BEGIN
+    START TRANSACTION; -- Uso di transazione per garantire l'integrità dei dati
+    INSERT INTO UTENTE (email, password, nickname, nome, cognome, anno_nascita, luogo_nascita)
+    VALUES (p_email, p_password, p_nickname, p_nome, p_cognome, p_anno_nascita, p_luogo_nascita);
+
+    IF p_creator THEN
+        INSERT INTO CREATORE (email_utente)
+        VALUES (p_email);
+    END IF;
+    COMMIT;
+END//
+
+-- (ALL) Inserimento di skill in un curriculum utente
+CREATE PROCEDURE sp_inserisci_skill_curriculum(
+    IN p_email VARCHAR(100),
+    IN p_competenza VARCHAR(100),
+    IN p_livello TINYINT
+)
+BEGIN
+    START TRANSACTION;
+    INSERT INTO SKILL_CURRICULUM (email_utente, competenza, livello_effettivo)
+    VALUES (p_email, p_competenza, p_livello);
+    COMMIT;
+END//
+
+-- (ALL) Visualizzazione dei progetti disponibili
+CREATE PROCEDURE sp_visualizza_progetti()
+BEGIN
+    SELECT * FROM PROGETTO;
+END//
+
+-- (ALL) Finanziamento di un progetto aperto da parte di un utente (anche creatore)
+CREATE PROCEDURE sp_finanzia_progetto(
+    IN p_data DATE,
+    IN p_email VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100),
+    IN p_codice_reward VARCHAR(50), -- Si presuppone che il codice sia scelto dall'utente al livello di interfaccia
+    IN p_importo DECIMAL(10, 2)
+)
+BEGIN
+    DECLARE stato_progetto ENUM ('aperto', 'chiuso');
+
+    START TRANSACTION;
+    -- Controllo che il progetto sia aperto
+    SELECT stato
+    INTO stato_progetto
+    FROM PROGETTO
+    WHERE nome = p_nome_progetto;
+
+    IF stato_progetto = 'aperto' THEN
+        INSERT INTO FINANZIAMENTO (data, email_utente, nome_progetto, codice_reward, importo)
+        VALUES (p_data, p_email, p_nome_progetto, p_codice_reward, p_importo);
+    ELSE
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Il progetto non è aperto per finanziamenti';
+    END IF;
+    COMMIT;
+END//
+
+-- (ALL) Inserimento di un commento a un progetto
+CREATE PROCEDURE sp_inserisci_commento(
+    IN p_email VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100),
+    IN p_data DATE,
+    IN p_testo TEXT
+)
+BEGIN
+    START TRANSACTION;
+    INSERT INTO COMMENTO (email_utente, nome_progetto, data, testo)
+    VALUES (p_email, p_nome_progetto, p_data, p_testo);
+    COMMIT;
+END//
+
+-- (ALL) Inserimento di una candidatura a un progetto software
+-- TODO: EVALUATE IF USER QUALIFICATION CHECK IS DONE HERE OR AT PHP-LEVEL
+CREATE PROCEDURE sp_inserisci_candidatura(
+    IN p_email VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    INSERT INTO PARTECIPANTE (email_utente, nome_progetto, stato)
+    VALUES (p_email, p_nome_progetto, 'potenziale');
+    COMMIT;
+END//
+
+DELIMITER ;
 
 -- ==================================================
 -- VISTE
@@ -335,7 +435,7 @@ ORDER BY SUM(F.importo) DESC
 LIMIT 3;
 
 -- ==================================================
--- TRIGGER
+-- TRIGGERS
 -- ==================================================
 
 -- Trigger per aggiornare l'affidabilità di un creatore quando crea un progetto
@@ -582,7 +682,8 @@ BEGIN
     INTO tot_componenti
     FROM COMPONENTE
     WHERE nome_progetto = NEW.nome_progetto
-      AND NOT (nome_componente = OLD.nome_componente AND nome_progetto = OLD.nome_progetto); -- Nel caso in cui il nome del componente sia cambiato
+      AND NOT (nome_componente = OLD.nome_componente AND nome_progetto = OLD.nome_progetto);
+    -- Nel caso in cui il nome del componente sia cambiato
 
     -- Determina l'eccesso di budget con il nuovo componente
     SET eccesso = (tot_componenti + (NEW.prezzo * NEW.quantita)) - budget_progetto;

@@ -6,6 +6,7 @@
 
 ### ANY UTENTE THAT TRIES TO APPLY FOR A PROFILE AND DOES NOT HAVE THE NECESSARY COMPETENZA / LIVELLO IS DISCARDED AND ERROR-PROMPTED AT PHP RUNTIME, MEANING ONLY ACCEPTABLE UTENTI ARE EVER INSERTED IN PARTECIPANTE (business rule n.9)
 - ### PARTECIPANTE.stato = rifiutato → A QUALIFIED UTENTE DENIED BY CREATORE
+- ### BUT SHOULD IT BE PHP-RUNTIME OR DB-LEVEL????????????????????????????????????????
 
 
 ### the budget of a hardware project must be >= the sum of the price of all its components
@@ -13,6 +14,52 @@
 ### must handle the case for hardware projects where if the creator inserts/deletes a component, or updates the quantity/price of an existing component, then the project's budget has to reflect that change
 - php-side must notify creator of budget change before he finalises operation for any of the above
 - can still manually adjust budget, as long as it stays >= sum component cost
+
+
+### Authentication and Security Code Check: must also be implemented in the application layer. DO NOT ALLOW NEW USERS TO REGISTER AS ADMINS, ONLY CREATORS!!!! FOR EXAM JUST ADD A PREEXISTING ADMIN MANUALLY FROM A DEMO SQL FILE ES. bostarter-demo.sql
+- When registering a new user, who is going to also be a
+
+### Reward Selection: The financing procedure accepts a reward code, assuming frontend handles the reward selection
+
+
+
+### i think KEEP triggers for componenti, but add related stored procedures to perform php-side actions like insert/delete/update components
+- sp_componente_insert(...)
+- sp_componente_delete(...)
+- sp_componente_update(...)
+
+
+
+#### Operazioni che riguardano TUTTI gli utenti:
+- [x] Autenticazione/registrazione sulla piattaforma
+- [x] Inserimento delle proprie skill di curriculum
+- [x] Visualizzazione dei progetti disponibili
+- [x] Finanziamento di un progetto (aperto). Un utente può finanziare anche il progetto di cui è creatore
+- [ ] Scelta della reward a valle del finanziamento di un progetto
+- [x] Inserimento di un commento relativo ad un progetto
+- [x] Inserimento di una candidatura per un profilo richiesto per la realizzazione di un progetto software
+
+#### Operazioni che riguardano SOLO gli amministratori:
+- [ ] Inserimento di una nuova stringa nella lista delle competenze
+- [ ] In fase di autenticazione, oltre a username e password, viene richiesto anche il codice di sicurezza
+
+#### Operazioni che riguardano SOLO i creatori:
+- [ ] Inserimento di un nuovo progetto
+- [ ] Inserimento delle reward per un progetto
+- [ ] Inserimento di una risposta ad un commento
+- [ ] Inserimento di un profilo - solo per la realizzazione di un progetto software
+- [ ] Accettazione o meno di una candidatura
+
+
+
+
+
+
+
+
+
+
+
 
 # ANALISI DEI REQUISITI
 ---
@@ -577,6 +624,12 @@ In seguito viene riportato il codice SQL completo utilizzato per la generazione 
 
 ```sql
 bostarter-init.sql
+```
+
+il codice per la demo con popolamento di dati finti: 
+
+```sql
+bostarter-demo.sql
 ```
 
 ed il codice JavaScript relativo alla gestione del logging della piattaforma:
