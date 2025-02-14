@@ -3,13 +3,12 @@
 #todo 
 - [ ] review carefully the redundancy cost analysis of `nr_progetti`
 
-## FOR NORMALIZZAZIONE PROVE THAT TABLES AT LEAST 3FN USING THE NORMALIZATION ALGORITHM FROM SLIDES [[DB08S6_Normalizzazione.pdf]]
-- each table needs algorithm applied
-- use letters for attributes then convert back to attributes in final version
-
-
-- ### ANY UTENTE THAT TRIES TO APPLY FOR A PROFILE AND DOES NOT HAVE THE NECESSARY COMPETENZA / LIVELLO IS DISCARDED AND ERROR-PROMPTED AT PHP RUNTIME, MEANING ONLY ACCEPTABLE UTENTI ARE EVER INSERTED IN PARTECIPANTE (business rule n.9)
+### ANY UTENTE THAT TRIES TO APPLY FOR A PROFILE AND DOES NOT HAVE THE NECESSARY COMPETENZA / LIVELLO IS DISCARDED AND ERROR-PROMPTED AT PHP RUNTIME, MEANING ONLY ACCEPTABLE UTENTI ARE EVER INSERTED IN PARTECIPANTE (business rule n.9)
 - ### PARTECIPANTE.stato = rifiutato → A QUALIFIED UTENTE DENIED BY CREATORE
+
+
+### the budget of a hardware project must be >= the sum of the price of all its components
+
 
 # ANALISI DEI REQUISITI
 ---
@@ -375,7 +374,7 @@ Osservando i costi di entrambi scenari, risulta che **includere `nr_progetti` si
 
 **N.B.** Anche se ci fosse per l'ultima operazione un indice efficiente che tenga traccia dell'associazione tra progetti e i creatori di essi, allora l'assenza della ridondanza comporterebbe un costo di 3 (basta porre $NC_{\text{read}}=2$ invece che $10$), che è comunque **2x più costoso rispetto all'utilizzo della ridondanza** (costo di $1.5$). Tenendo questa considerazione a mente, man mano che **la piattaforma cresce e più utenti creatori creano e gestiscono più progetti**, la differenza (di 2x) diventa sempre più notevole, e pertanto **converrà comunque mantenere la ridondanza**.
 
-**Includendo `nr_progetti`**, l'operazione è immediata, dovendo semplicemente leggere l'attributo `CREATORE.nr_progetti` dell'utente. Infatti, per $Op_{3}$, il costo è 10 volte minore tenendo conto di `nr_progetti`, ed il costo in memoria associato è trascurabile (tenendo conto la tabella di volumi fornita nella traccia), che presuppone in media 2 progetti per utente, e 5 utenti sulla piattaforma. Volendo ottimizzare ulteriormente il costo in memoria di `nr_progetti`, lo si può rappresentare in MySQL come un `TINYINT UNSIGNED`, che ha un costo di 1 byte e può rappresentare valori compresi in $[0,255]$ (valori negativi non hanno senso in questo contesto).
+**Includendo `nr_progetti`**, l'operazione è immediata, dovendo semplicemente leggere l'attributo `CREATORE.nr_progetti` dell'utente. Infatti, per $Op_{3}$, il costo è 10 volte minore tenendo conto di `nr_progetti`, ed il costo in memoria associato è trascurabile (tenendo conto la tabella di volumi fornita nella traccia), che presuppone in media 2 progetti per utente, e 5 utenti sulla piattaforma. Volendo ottimizzare ulteriormente il costo in memoria di `nr_progetti`, lo si può rappresentare in MySQL come un `TINYINT UNSIGNED`, che ha un costo di 1 byte e può rappresentare valori compresi in $[0,255]$ (valori negativi non hanno senso in questo contesto). In pratica però non ha senso un'ottimizzazione del genere, dunque lo rappresento come un
 
 **Escludendo `nr_progetti`**, l'operazione, a differenza dello scenario di sopra, non ha accesso a `CREATORE.nr_progetti`, e deve pertanto scandire ogni progetto nella tabella `PROGETTO`, effettivamente leggendo ogni entry (10 in tutto), e verificando su ciascuna se l'email del creatore combacia con quella inserita nella query.
 
@@ -573,11 +572,11 @@ Ogni utente passa inizialmente per la pagina di login, `index.php`, se dispone d
 In seguito viene riportato il codice SQL completo utilizzato per la generazione della base di dati **BOSTARTER** e delle relative funzionalità (procedure, viste, trigger):
 
 ```sql
-bostarter_db_init.sql here
+bostarter-init.sql
 ```
 
 ed il codice JavaScript relativo alla gestione del logging della piattaforma:
 
 ```js
-bostarter_mongodb_logging.js here
+bostarter_mongodb_logging.js
 ```
