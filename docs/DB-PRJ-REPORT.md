@@ -3,50 +3,22 @@
 #todo 
 - [ ] MAKE SURE TO CHECK FOR AND FIX ALL TODO'S IN SQL AND PHP!!!
 - [ ] consider creating indexes for performance → which indexes are most commonly queried?
-
-### ANY UTENTE THAT TRIES TO APPLY FOR A PROFILE AND DOES NOT HAVE THE NECESSARY COMPETENZA / LIVELLO IS DISCARDED AND ERROR-PROMPTED AT PHP RUNTIME, MEANING ONLY ACCEPTABLE UTENTI ARE EVER INSERTED IN PARTECIPANTE (business rule n.9)
-- ### PARTECIPANTE.stato = rifiutato → A QUALIFIED UTENTE DENIED BY CREATORE
-- ### BUT SHOULD IT BE PHP-RUNTIME OR DB-LEVEL????????????????????????????????????????
+- [ ] document in functionality section of report that data consistency checks are made both at db-level and php-level for multi-layer security
+- [ ] document that in traduzione logica SKILL_PROFILO absorbed PROFILO_PROGETTO so to avoid update issues of profiles required skill since before profiles were global but thats a silly design so switched to profiles being local to projects
+- [ ] **learn how to handle php-side sql's signal state 45000**
+- [ ] TEST ALL THE BLOODY STORED PROCEDURES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
 ### the budget of a hardware project must be >= the sum of the price of all its components
 
-### must handle the case for hardware projects where if the creator inserts/deletes a component, or updates the quantity/price of an existing component, then the project's budget has to reflect that change
+### if creator hardware projects inserts/deletes/updates component, then the project's budget has to reflect that change
 - php-side must notify creator of budget change before he finalises operation for any of the above
 - can still manually adjust budget, as long as it stays >= sum component cost
 
-
 ### Authentication and Security Code Check: must also be implemented in the application layer. DO NOT ALLOW NEW USERS TO REGISTER AS ADMINS, ONLY CREATORS!!!! FOR EXAM JUST ADD A PREEXISTING ADMIN MANUALLY FROM A DEMO SQL FILE ES. bostarter-demo.sql
-- When registering a new user, who is going to also be a
-
-### Reward Selection: The financing procedure accepts a reward code, assuming frontend handles the reward selection
 
 
-### i think KEEP triggers for componenti, but add related stored procedures to perform php-side actions like insert/delete/update components
-- sp_componente_insert(...)
-- sp_componente_delete(...)
-- sp_componente_update(...)
-
-### learn how to handle php-side sql's signal state 45000
-
-
-#### Operazioni che riguardano SOLO i creatori:
-- [ ] Inserimento di un nuovo progetto
-- [ ] Inserimento delle reward per un progetto
-- [ ] Insert/delete/update componenti per progetti hardware
-- [ ] Insert/delete update profili per progetti software
-- [ ] Inserimento di una risposta ad un commento
-- [ ] Inserimento di un profilo - solo per la realizzazione di un progetto software
-- [ ] Accettazione o meno di una candidatura
-
-
-
-
-
-
-
-
-
+### finanziamento.codice_reward is defined at php-level when the user chooses finanziamento.importo and BEFORE the finanziamento record is submitted
 
 
 
@@ -448,11 +420,9 @@ Osservando i costi di entrambi scenari, risulta che **includere `nr_progetti` si
 
 **SKILL_CURRICULUM**(<u>email_utente</u>, <u>competenza</u>, livello_effettivo)
 
-**SKILL_PROFILO**(<u>nome_profilo</u>, <u>competenza</u>, livello_richiesto)
+**SKILL_PROFILO**(<u>nome_profilo</u>, <u>competenza</u>, <u>nome_progetto</u>, livello_richiesto)
 
-**PARTECIPANTE**(<u>email_utente</u>, <u>nome_progetto</u>, stato)
-
-**PROFILO_PROGETTO**(<u>nome_progetto</u>, <u>nome_profilo</u>)
+**PARTECIPANTE**(<u>email_utente</u>, <u>nome_progetto</u>, <u>nome_profilo</u>, stato)
 
 ## **LISTA DEI VINCOLI INTER-RELAZIONALI**
 
@@ -472,12 +442,11 @@ Osservando i costi di entrambi scenari, risulta che **includere `nr_progetti` si
 **COMPONENTE**.nome_progetto                   → **PROGETTO**.nome
 **FINANZIAMENTO**.nome_progetto              → **PROGETTO**.nome
 **PARTECIPANTE**.nome_progetto                 → **PROGETTO**.nome
-**PROFILO_PROGETTO**.nome_progetto       → **PROGETTO**.nome
 
 **FINANZIAMENTO**.codice_reward                → **REWARD**.codice
 
 **SKILL_PROFILO**.nome_profilo                     → **PROFILO**.nome_profilo
-**PROFILO_PROGETTO**.nome_profilo           → **PROFILO**.nome_profilo
+**PARTECIPANTE**.nome_profilo                     → **PROFILO**.nome_profilo
 
 **SKILL_CURRICULUM**.competenza             → **SKILL**.competenza
 **SKILL_PROFILO**.competenza                      → **SKILL**.competenza
@@ -573,23 +542,21 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 - **3FN: ✅** / **FNBC: ✅**
 
 #### `SKILL_PROFILO`
-- **R**(<u>nome_profilo</u>, <u>competenza</u>, livello_richiesto)
-- **F** = {nome_profilo, competenza → livello_richiesto}
+- **R**(<u>nome_profilo</u>, <u>competenza</u>, <u>nome_progetto</u>, livello_richiesto)
+- **F** = {nome_profilo, competenza, nome_progetto → livello_richiesto}
 - **3FN: ✅** / **FNBC: ✅**
 
 #### `PARTECIPANTE`
-- **R**(<u>email_utente</u>, <u>nome_progetto</u>, stato)
-- **F** = {email_utente, nome_progetto → stato}
-- **3FN: ✅** / **FNBC: ✅**
-
-#### `PROFILO_PROGETTO`
-- **R**(<u>nome_progetto</u>, <u>nome_profilo</u>)
-- **F** = DF Banale
+- **R**(<u>email_utente</u>, <u>nome_progetto</u>, <u>nome_profilo</u> stato)
+- **F** = {email_utente, nome_progetto, nome_profilo → stato}
 - **3FN: ✅** / **FNBC: ✅**
 
 # FUNZIONALITÀ
 ---
 # seriously reevaluate how to structure this section
+
+# pls mention stored procedures when referencing php actions
+
 ## REGISTRAZIONE UTENTE
 
 Ogni utente passa inizialmente per la pagina di login, `index.php`, se dispone di un account esistente sulla piattaforma (email e password) allora può autenticarsi, altrimenti clicca su Registra e continua con la procedura per creare il proprio account.

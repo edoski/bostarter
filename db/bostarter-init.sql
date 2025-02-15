@@ -241,8 +241,9 @@ CREATE TABLE SKILL_PROFILO
 (
     nome_profilo      VARCHAR(100) NOT NULL,
     competenza        VARCHAR(100) NOT NULL,
+    nome_progetto     VARCHAR(100) NOT NULL,
     livello_richiesto TINYINT      NOT NULL CHECK ( livello_richiesto BETWEEN 0 AND 5 ), -- Business Rule #2
-    PRIMARY KEY (nome_profilo, competenza),
+    PRIMARY KEY (nome_profilo, competenza, nome_progetto),
     CONSTRAINT fk_skprof_profilo
         FOREIGN KEY (nome_profilo)
             REFERENCES PROFILO (nome_profilo)
@@ -251,6 +252,11 @@ CREATE TABLE SKILL_PROFILO
     CONSTRAINT fk_skprof_skill
         FOREIGN KEY (competenza)
             REFERENCES SKILL (competenza)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+    CONSTRAINT fk_skprof_progetto
+        FOREIGN KEY (nome_progetto)
+            REFERENCES PROGETTO (nome)
             ON DELETE CASCADE
             ON UPDATE CASCADE
 ) ENGINE = InnoDB
@@ -261,8 +267,10 @@ CREATE TABLE PARTECIPANTE
 (
     email_utente  VARCHAR(100) NOT NULL,
     nome_progetto VARCHAR(100) NOT NULL,
+    nome_profilo  VARCHAR(100) NOT NULL,
+    competenza    VARCHAR(100) NOT NULL,
     stato         ENUM ('accettato','rifiutato','potenziale') DEFAULT 'potenziale',
-    PRIMARY KEY (email_utente, nome_progetto),
+    PRIMARY KEY (email_utente, nome_progetto, nome_profilo, competenza),
     CONSTRAINT fk_part_utente
         FOREIGN KEY (email_utente)
             REFERENCES UTENTE (email)
@@ -272,24 +280,15 @@ CREATE TABLE PARTECIPANTE
         FOREIGN KEY (nome_progetto)
             REFERENCES PROGETTO (nome)
             ON DELETE CASCADE
-            ON UPDATE CASCADE
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
-
--- 17. PROFILO_PROGETTO
-CREATE TABLE PROFILO_PROGETTO
-(
-    nome_progetto VARCHAR(100) NOT NULL,
-    nome_profilo  VARCHAR(100) NOT NULL,
-    PRIMARY KEY (nome_progetto, nome_profilo),
-    CONSTRAINT fk_pproj_progetto
-        FOREIGN KEY (nome_progetto)
-            REFERENCES PROGETTO (nome)
-            ON DELETE CASCADE
             ON UPDATE CASCADE,
-    CONSTRAINT fk_pproj_profilo
+    CONSTRAINT fk_part_profilo
         FOREIGN KEY (nome_profilo)
             REFERENCES PROFILO (nome_profilo)
+            ON DELETE CASCADE
+            ON UPDATE CASCADE,
+    CONSTRAINT fk_part_skill
+        FOREIGN KEY (competenza)
+            REFERENCES SKILL (competenza)
             ON DELETE CASCADE
             ON UPDATE CASCADE
 ) ENGINE = InnoDB
@@ -387,7 +386,6 @@ END//
 
 -- (ALL) Finanziamento di un progetto aperto da parte di un utente (anche creatore)
 CREATE PROCEDURE sp_finanzia_progetto(
-    IN p_data DATE,
     IN p_email VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
     IN p_codice_reward VARCHAR(50), -- Si presuppone che il codice sia scelto dall'utente al livello di interfaccia
@@ -404,8 +402,8 @@ BEGIN
     WHERE nome = p_nome_progetto;
 
     IF stato_progetto = 'aperto' THEN
-        INSERT INTO FINANZIAMENTO (data, email_utente, nome_progetto, codice_reward, importo)
-        VALUES (p_data, p_email, p_nome_progetto, p_codice_reward, p_importo);
+        INSERT INTO FINANZIAMENTO (email_utente, nome_progetto, codice_reward, importo)
+        VALUES (p_email, p_nome_progetto, p_codice_reward, p_importo);
     ELSE
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'Il progetto non è aperto per finanziamenti';
@@ -417,13 +415,12 @@ END//
 CREATE PROCEDURE sp_inserisci_commento(
     IN p_email VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
-    IN p_data DATE,
     IN p_testo TEXT
 )
 BEGIN
     START TRANSACTION;
-    INSERT INTO COMMENTO (email_utente, nome_progetto, data, testo)
-    VALUES (p_email, p_nome_progetto, p_data, p_testo);
+    INSERT INTO COMMENTO (email_utente, nome_progetto, testo)
+    VALUES (p_email, p_nome_progetto, p_testo);
     COMMIT;
 END//
 
@@ -463,15 +460,54 @@ BEGIN
 END//
 
 -- (ALL) Inserimento di una candidatura a un progetto software
--- TODO: EVALUATE IF USER QUALIFICATION CHECK IS DONE HERE OR AT PHP-LEVEL
 CREATE PROCEDURE sp_inserisci_candidatura(
     IN p_email VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100)
+    IN p_nome_progetto VARCHAR(100),
+    IN p_nome_profilo VARCHAR(100),
+    IN p_competenza VARCHAR(100)
 )
 BEGIN
     START TRANSACTION;
-    INSERT INTO PARTECIPANTE (email_utente, nome_progetto, stato)
-    VALUES (p_email, p_nome_progetto, 'potenziale');
+    -- Controllo che il progetto sia di tipo software
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO_SOFTWARE
+                   WHERE nome_progetto = p_nome_progetto) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROGETTO NON DI TIPO SOFTWARE';
+    END IF;
+
+    -- Controllo che il profilo per quel progetto esista
+    IF NOT EXISTS (SELECT 1
+                   FROM SKILL_PROFILO
+                   WHERE nome_profilo = p_nome_profilo
+                     AND nome_progetto = p_nome_progetto
+                     AND competenza = p_competenza) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROFILO NON ESISTENTE';
+    END IF;
+
+    -- Controllo che l'utente non sia il creatore del progetto
+    IF EXISTS (SELECT 1
+               FROM PROGETTO
+               WHERE nome = p_nome_progetto
+                 AND email_creatore = p_email) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: UTENTE CREATORE DEL PROGETTO';
+    END IF;
+
+    -- Controllo che l'utente non abbia già una candidatura per quella competenza
+    IF EXISTS (SELECT 1
+               FROM PARTECIPANTE
+               WHERE email_utente = p_email
+                 AND nome_progetto = p_nome_progetto
+                 AND nome_profilo = p_nome_profilo
+                 AND competenza = p_competenza) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: CANDIDATURA INSERITA PRECEDENTEMENTE';
+    END IF;
+
+    INSERT INTO PARTECIPANTE (email_utente, nome_progetto, nome_profilo, competenza)
+    VALUES (p_email, p_nome_progetto, p_nome_profilo, p_competenza);
     COMMIT;
 END//
 
@@ -482,7 +518,6 @@ CREATE PROCEDURE sp_inserisci_competenza(
 )
 BEGIN
     START TRANSACTION;
-
     -- Controllo che l'admin sia l'utente che esegue la procedura
     IF NOT EXISTS (SELECT 1
                    FROM ADMIN
@@ -493,6 +528,385 @@ BEGIN
 
     INSERT INTO SKILL (competenza)
     VALUES (p_competenza);
+    COMMIT;
+END//
+
+-- (CREATORE) Inserimento di un nuovo progetto (nr_progetti incrementato via trg_incrementa_progetti_creati)
+CREATE PROCEDURE sp_inserisci_progetto(
+    IN p_nome VARCHAR(100),
+    IN p_email_creatore VARCHAR(100),
+    IN p_descrizione TEXT,
+    IN p_budget DECIMAL(10, 2),
+    IN p_data_limite DATE,
+    IN p_tipo ENUM ('software','hardware') -- Tipo di progetto, definito a livello di interfaccia
+)
+BEGIN
+    START TRANSACTION;
+    -- Controllo che l'utente sia un creatore
+    IF NOT EXISTS (SELECT 1
+                   FROM CREATORE
+                   WHERE email_utente = p_email_creatore) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: UTENTE NON CREATORE';
+    END IF;
+
+    INSERT INTO PROGETTO (nome, email_creatore, descrizione, budget, data_limite)
+    VALUES (p_nome, p_email_creatore, p_descrizione, p_budget, p_data_limite);
+
+    -- Insert in tabella specifica in base al tipo di progetto
+    IF p_tipo = 'software' THEN
+        INSERT INTO PROGETTO_SOFTWARE (nome_progetto)
+        VALUES (p_nome);
+    ELSEIF p_tipo = 'hardware' THEN
+        INSERT INTO PROGETTO_HARDWARE (nome_progetto)
+        VALUES (p_nome);
+    END IF;
+    COMMIT;
+END//
+
+-- (CREATORE) Inserimento di una reward per un progetto
+CREATE PROCEDURE sp_inserisci_reward(
+    IN p_codice VARCHAR(50),
+    IN p_nome_progetto VARCHAR(100),
+    IN p_email_creatore VARCHAR(100),
+    IN p_descrizione TEXT,
+    IN p_foto MEDIUMBLOB,
+    IN p_min_importo DECIMAL(10, 2)
+)
+BEGIN
+    START TRANSACTION;
+    -- Controllo che l'utente sia il creatore del progetto
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO
+                   WHERE nome = p_nome_progetto
+                     AND email_creatore = p_email_creatore) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: UTENTE NON CREATORE';
+    END IF;
+
+    INSERT INTO REWARD (codice, nome_progetto, descrizione, foto, min_importo)
+    VALUES (p_codice, p_nome_progetto, p_descrizione, p_foto, p_min_importo);
+    COMMIT;
+END//
+
+-- (CREATORE) Inserimento di una risposta a un commento
+CREATE PROCEDURE sp_inserisci_risposta(
+    IN p_commento_id INT,
+    IN p_email_creatore VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100),
+    IN p_risposta TEXT
+)
+BEGIN
+    START TRANSACTION;
+    -- Controllo che l'utente sia creatore del progetto
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO
+                   WHERE nome = p_nome_progetto
+                     AND email_creatore = p_email_creatore) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: UTENTE NON CREATORE DEL PROGETTO';
+    END IF;
+
+    -- Controllo che esista il commento
+    IF NOT EXISTS (SELECT 1
+                   FROM COMMENTO
+                   WHERE id = p_commento_id) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: COMMENTO NON ESISTENTE';
+    END IF;
+
+    -- Controllo che il commento non abbia già una risposta
+    IF EXISTS (SELECT 1
+               FROM COMMENTO
+               WHERE id = p_commento_id
+                 AND risposta IS NOT NULL) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: COMMENTO CONTIENE RISPOSTA';
+    END IF;
+
+    UPDATE COMMENTO
+    SET risposta = p_risposta
+    WHERE id = p_commento_id;
+    COMMIT;
+END//
+
+-- (CREATORE) Accettazione o rifiuto di una candidatura a un progetto
+CREATE PROCEDURE sp_aggiorna_candidatura(
+    IN p_email_creatore VARCHAR(100),
+    IN p_email_candidato VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100),
+    IN p_nome_profilo VARCHAR(100),
+    IN p_competenza VARCHAR(100),
+    IN p_nuovo_stato ENUM ('accettato','rifiutato')
+)
+BEGIN
+    START TRANSACTION;
+    -- Controllo che l'utente sia il creatore del progetto
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO
+                   WHERE nome = p_nome_progetto
+                     AND email_creatore = p_email_creatore) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: UTENTE NON CREATORE DEL PROGETTO';
+    END IF;
+
+    -- Controllo che la candidatura esista
+    IF NOT EXISTS (SELECT 1
+                   FROM PARTECIPANTE
+                   WHERE email_utente = p_email_candidato
+                     AND nome_progetto = p_nome_progetto
+                     AND nome_profilo = p_nome_profilo
+                     AND competenza = p_competenza
+                     AND stato = 'potenziale') THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: CANDIDATURA NON ESISTENTE';
+    END IF;
+
+    UPDATE PARTECIPANTE
+    SET stato = p_nuovo_stato
+    WHERE email_utente = p_email_candidato
+      AND nome_progetto = p_nome_progetto
+      AND nome_profilo = p_nome_profilo
+      AND competenza = p_competenza;
+    COMMIT;
+END//
+
+-- (CREATOR) Inserimento di un componente per un progetto hardware
+-- trg_aggiorna_budget_componente_insert si occupa di aggiornare il budget del progetto
+CREATE PROCEDURE sp_componente_insert(
+    IN p_nome_componente VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100),
+    IN p_descrizione TEXT,
+    IN p_quantita INT,
+    IN p_prezzo DECIMAL(10, 2),
+    IN p_email_creatore VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    -- Controllo che il progetto sia di tipo hardware
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO_HARDWARE
+                   WHERE nome_progetto = p_nome_progetto) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROGETTO NON DI TIPO HARDWARE';
+    END IF;
+
+    -- Controllo che l'utente sia il creatore del progetto
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO
+                   WHERE nome = p_nome_progetto
+                     AND email_creatore = p_email_creatore) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: UTENTE NON CREATORE DEL PROGETTO';
+    END IF;
+
+    INSERT INTO COMPONENTE (nome_componente, nome_progetto, descrizione, quantita, prezzo)
+    VALUES (p_nome_componente, p_nome_progetto, p_descrizione, p_quantita, p_prezzo);
+    COMMIT;
+END//
+
+-- (CREATOR) Rimozione di un componente per un progetto hardware
+-- trg_aggiorna_budget_componente_delete si occupa di aggiornare il budget del progetto
+CREATE PROCEDURE sp_componente_delete(
+    IN p_nome_componente VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100),
+    IN p_email_creatore VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    -- Controllo che il progetto sia di tipo hardware
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO_HARDWARE
+                   WHERE nome_progetto = p_nome_progetto) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROGETTO NON DI TIPO HARDWARE';
+    END IF;
+
+    -- Controllo che l'utente sia il creatore del progetto
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO
+                   WHERE nome = p_nome_progetto
+                     AND email_creatore = p_email_creatore) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: UTENTE NON CREATORE DEL PROGETTO';
+    END IF;
+    DELETE
+    FROM COMPONENTE
+    WHERE nome_componente = p_nome_componente
+      AND nome_progetto = p_nome_progetto;
+    COMMIT;
+END//
+
+-- (CREATOR) Aggiornamento di un componente per un progetto hardware
+-- trg_aggiorna_budget_componente_update si occupa di aggiornare il budget del progetto
+CREATE PROCEDURE sp_componente_update(
+    IN p_nome_componente VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100),
+    IN p_descrizione TEXT,
+    IN p_quantita INT,
+    IN p_prezzo DECIMAL(10, 2),
+    IN p_email_creatore VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    -- Controllo che il progetto sia di tipo hardware
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO_HARDWARE
+                   WHERE nome_progetto = p_nome_progetto) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROGETTO NON DI TIPO HARDWARE';
+    END IF;
+
+    -- Controllo che l'utente sia il creatore del progetto
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO
+                   WHERE nome = p_nome_progetto
+                     AND email_creatore = p_email_creatore) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: UTENTE NON CREATORE DEL PROGETTO';
+    END IF;
+
+    UPDATE COMPONENTE
+    SET descrizione = p_descrizione,
+        quantita    = p_quantita,
+        prezzo      = p_prezzo
+    WHERE nome_componente = p_nome_componente
+      AND nome_progetto = p_nome_progetto;
+    COMMIT;
+END//
+
+-- (CREATOR) Inserimento di un profilo per un progetto
+CREATE PROCEDURE sp_profilo_insert(
+    IN p_nome_profilo VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100),
+    IN p_email_creatore VARCHAR(100),
+    IN p_competenza VARCHAR(100),
+    IN p_livello_richiesto TINYINT
+)
+BEGIN
+    START TRANSACTION;
+    -- Controllo che il progetto sia di tipo software
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO_SOFTWARE
+                   WHERE nome_progetto = p_nome_progetto) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROGETTO NON DI TIPO SOFTWARE';
+    END IF;
+
+    -- Controllo che l'utente sia il creatore del progetto
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO
+                   WHERE nome = p_nome_progetto
+                     AND email_creatore = p_email_creatore) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: UTENTE NON CREATORE DEL PROGETTO';
+    END IF;
+
+    -- Inserimento del profilo se non esiste
+    IF NOT EXISTS (SELECT 1 FROM PROFILO WHERE nome_profilo = p_nome_profilo) THEN
+        INSERT INTO PROFILO (nome_profilo) VALUES (p_nome_profilo);
+    END IF;
+
+    -- Inserimento del profilo nel progetto se non esiste
+    IF NOT EXISTS (SELECT 1
+                   FROM SKILL_PROFILO
+                   WHERE nome_profilo = p_nome_profilo
+                     AND nome_progetto = p_nome_progetto
+                     AND competenza = p_competenza) THEN
+        INSERT INTO SKILL_PROFILO (nome_profilo, competenza, nome_progetto, livello_richiesto)
+        VALUES (p_nome_profilo, p_competenza, p_nome_progetto, p_livello_richiesto);
+    END IF;
+    COMMIT;
+END//
+
+-- (CREATOR) Aggiornamento di un profilo per un progetto
+CREATE PROCEDURE sp_profilo_update(
+    IN p_nome_profilo VARCHAR(100),
+    IN p_competenza VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100),
+    IN p_email_creatore VARCHAR(100),
+    IN p_nuovo_livello_richiesto TINYINT
+)
+BEGIN
+    START TRANSACTION;
+    -- Controllo che il progetto sia di tipo software
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO_SOFTWARE
+                   WHERE nome_progetto = p_nome_progetto) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROGETTO NON DI TIPO SOFTWARE';
+    END IF;
+
+    -- Controllo che l'utente sia il creatore del progetto
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO
+                   WHERE nome = p_nome_progetto
+                     AND email_creatore = p_email_creatore) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: UTENTE NON CREATORE DEL PROGETTO';
+    END IF;
+
+    -- Controllo che il profilo esista
+    IF NOT EXISTS (SELECT 1
+                   FROM SKILL_PROFILO
+                   WHERE nome_profilo = p_nome_profilo
+                     AND competenza = p_competenza
+                     AND nome_progetto = p_nome_progetto) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROFILO NON ESISTENTE';
+    END IF;
+
+    -- Aggiornamento del livello richiesto
+    UPDATE SKILL_PROFILO
+    SET livello_richiesto = p_nuovo_livello_richiesto
+    WHERE nome_profilo = p_nome_profilo
+      AND competenza = p_competenza
+      AND nome_progetto = p_nome_progetto;
+    COMMIT;
+END//
+
+-- (CREATOR) Rimozione di un profilo per un progetto
+CREATE PROCEDURE sp_profilo_delete(
+    IN p_nome_profilo VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100),
+    IN p_email_creatore VARCHAR(100),
+    IN p_competenza VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    -- Controllo che il progetto sia di tipo software
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO_SOFTWARE
+                   WHERE nome_progetto = p_nome_progetto) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROGETTO NON DI TIPO SOFTWARE';
+    END IF;
+
+    -- Controllo che l'utente sia il creatore del progetto
+    IF NOT EXISTS (SELECT 1
+                   FROM PROGETTO
+                   WHERE nome = p_nome_progetto
+                     AND email_creatore = p_email_creatore) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: UTENTE NON CREATORE DEL PROGETTO';
+    END IF;
+
+    -- Controllo che il profilo esista
+    IF NOT EXISTS (SELECT 1
+                   FROM SKILL_PROFILO
+                   WHERE nome_profilo = p_nome_profilo
+                     AND competenza = p_competenza
+                     AND nome_progetto = p_nome_progetto) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROFILO NON ESISTENTE';
+    END IF;
+
+    -- Rimozione del profilo
+    DELETE
+    FROM SKILL_PROFILO
+    WHERE nome_profilo = p_nome_profilo
+      AND competenza = p_competenza
+      AND nome_progetto = p_nome_progetto;
     COMMIT;
 END//
 
@@ -536,8 +950,9 @@ LIMIT 3;
 -- TRIGGERS
 -- ==================================================
 
--- Trigger per aggiornare l'affidabilità di un creatore quando crea un progetto
 DELIMITER //
+
+-- Trigger per aggiornare l'affidabilità di un creatore quando crea un progetto
 CREATE TRIGGER trg_update_affidabilita_prog
     AFTER INSERT
     ON PROGETTO
@@ -571,10 +986,8 @@ BEGIN
     SET affidabilita = new_aff
     WHERE email_utente = NEW.email_creatore;
 END//
-DELIMITER ;
 
 -- Trigger per aggiornare l'affidabilità di un creatore quando un progetto da lui creato viene finanziato
-DELIMITER //
 CREATE TRIGGER trg_update_affidabilita_fin
     AFTER INSERT
     ON FINANZIAMENTO
@@ -615,10 +1028,8 @@ BEGIN
     SET affidabilita = new_aff
     WHERE email_utente = email;
 END//
-DELIMITER ;
 
 -- Trigger per cambiare lo stato di un progetto in 'chiuso' quando il budget è stato raggiunto
-DELIMITER //
 CREATE TRIGGER trg_update_stato_progetto
     AFTER INSERT
     ON FINANZIAMENTO
@@ -646,10 +1057,8 @@ BEGIN
         WHERE nome = NEW.nome_progetto;
     END IF;
 END//
-DELIMITER ;
 
 -- Trigger per aumentare il numero di progetti creati da un creatore
-DELIMITER //
 CREATE TRIGGER trg_incrementa_progetti_creati
     AFTER INSERT
     ON PROGETTO
@@ -661,7 +1070,6 @@ BEGIN
 END//
 
 -- Trigger per aggiornare il budget di un progetto hardware quando un componente viene aggiunto
-DELIMITER //
 CREATE TRIGGER trg_aggiorna_budget_componente_insert
     BEFORE INSERT
     ON COMPONENTE
@@ -701,10 +1109,8 @@ BEGIN
         WHERE nome = NEW.nome_progetto;
     END IF;
 END //
-DELIMITER ;
 
 -- Trigger per aggiornare il budget di un progetto hardware quando un componente viene rimosso
-DELIMITER //
 CREATE TRIGGER trg_aggiorna_budget_componente_delete
     BEFORE DELETE
     ON COMPONENTE
@@ -745,7 +1151,6 @@ BEGIN
 END //
 
 -- Trigger per aggiornare il budget di un progetto hardware quando un componente viene aggiornato
-DELIMITER //
 CREATE TRIGGER trg_aggiorna_budget_componente_update
     BEFORE UPDATE
     ON COMPONENTE
@@ -791,14 +1196,89 @@ BEGIN
     SET budget = budget + eccesso
     WHERE nome = NEW.nome_progetto;
 END //
+
+-- Trigger per rifiutare automaticamente eventuali candidature se il livello_richiesto del relativo profilo viene aumentato
+CREATE TRIGGER trg_rifiuta_candidature_profilo_update
+    AFTER UPDATE
+    ON SKILL_PROFILO
+    FOR EACH ROW
+BEGIN
+    UPDATE PARTECIPANTE P
+    SET stato = 'rifiutato'
+    WHERE P.nome_profilo = NEW.nome_profilo
+      AND P.stato = 'potenziale'
+      AND P.nome_progetto IN (SELECT nome_progetto
+                              FROM SKILL_PROFILO
+                              WHERE nome_profilo = NEW.nome_profilo
+                                AND competenza = NEW.competenza)
+      AND NOT EXISTS (SELECT 1
+                      FROM SKILL_CURRICULUM SC
+                      WHERE SC.email_utente = P.email_utente
+                        AND SC.competenza = NEW.competenza
+                        AND SC.livello_effettivo >= NEW.livello_richiesto);
+END//
+
+-- Trigger per rifiutare automaticamente candidature se il livello_effettivo non è sufficiente rispetto al livello_richiesto
+CREATE TRIGGER trg_rifiuta_candidatura_livello_effettivo_insufficiente
+    BEFORE INSERT
+    ON PARTECIPANTE
+    FOR EACH ROW
+BEGIN
+    -- Controllo che il progetto sia ancora aperto
+    IF (SELECT stato FROM PROGETTO WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: PROGETTO CHIUSO';
+    END IF;
+
+    -- Controllo che il livello effettivo sia sufficiente per il profilo richiesto
+    IF EXISTS (SELECT 1
+               FROM SKILL_PROFILO SP
+                        LEFT JOIN SKILL_CURRICULUM SC -- LEFT JOIN così se l'utente non ha la skill, il livello effettivo è NULL e viene considerato insufficiente
+                                  ON SP.competenza = SC.competenza AND SC.email_utente = NEW.email_utente
+               WHERE SP.nome_profilo = NEW.nome_profilo
+                   AND SC.livello_effettivo IS NULL
+                  OR SC.livello_effettivo < SP.livello_richiesto) THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: LIVELLO EFFETTIVO NON SUFFICIENTE PER IL PROFILO';
+    END IF;
+END//
+
+-- Trigger per rifiutare automaticamente le candidature se il progetto viene chiuso
+CREATE TRIGGER trg_rimuovi_candidature_progetto_chiuso
+    AFTER UPDATE
+    ON PROGETTO
+    FOR EACH ROW
+BEGIN
+    IF NEW.stato = 'chiuso' THEN
+        UPDATE PARTECIPANTE
+        SET stato = 'rifiutato'
+        WHERE nome_progetto = NEW.nome
+          AND stato = 'potenziale'
+          AND nome_progetto IN (SELECT nome FROM PROGETTO WHERE stato = 'chiuso');
+    END IF;
+END//
+
+-- Trigger per rimuovere automaticamente le candidature se il profilo viene rimosso dal progetto
+CREATE TRIGGER trg_rimuovi_candidature_profilo_rimosso_da_progetto
+    AFTER DELETE
+    ON SKILL_PROFILO
+    FOR EACH ROW
+BEGIN
+    DELETE
+    FROM PARTECIPANTE
+    WHERE nome_profilo = OLD.nome_profilo
+      AND nome_progetto = OLD.nome_progetto;
+END//
+
 DELIMITER ;
 
 -- ==================================================
 -- EVENTI
 -- ==================================================
 
--- Evento per chiudere automaticamente i progetti scaduti, eseguito ogni giorno
 DELIMITER //
+
+-- Evento per chiudere automaticamente i progetti scaduti, eseguito ogni giorno
 CREATE EVENT ev_chiudi_progetti_scaduti
     ON SCHEDULE EVERY 1 DAY
     DO
@@ -808,4 +1288,5 @@ CREATE EVENT ev_chiudi_progetti_scaduti
         WHERE stato = 'aperto'
           AND data_limite < CURDATE();
     END//
+
 DELIMITER ;
