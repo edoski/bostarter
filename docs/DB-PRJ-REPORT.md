@@ -2,29 +2,41 @@
 ---
 #todo 
 - [ ] MAKE SURE TO CHECK FOR AND FIX ALL TODO'S IN SQL AND PHP!!!
-- [ ] consider creating indexes for performance → which indexes are most commonly queried?
-- [ ] document in functionality section of report that data consistency checks are made both at db-level and php-level for multi-layer security
-- [ ] document that in traduzione logica SKILL_PROFILO absorbed PROFILO_PROGETTO so to avoid update issues of profiles required skill since before profiles were global but thats a silly design so switched to profiles being local to projects
-- [ ] **learn how to handle php-side sql's signal state 45000**
-- [ ] TEST ALL THE BLOODY STORED PROCEDURES!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-
-### the budget of a hardware project must be >= the sum of the price of all its components
-
-### if creator hardware projects inserts/deletes/updates component, then the project's budget has to reflect that change
-- php-side must notify creator of budget change before he finalises operation for any of the above
-- can still manually adjust budget, as long as it stays >= sum component cost
-
-### Authentication and Security Code Check: must also be implemented in the application layer. DO NOT ALLOW NEW USERS TO REGISTER AS ADMINS, ONLY CREATORS!!!! FOR EXAM JUST ADD A PREEXISTING ADMIN MANUALLY FROM A DEMO SQL FILE ES. bostarter-demo.sql
-
-
-### finanziamento.codice_reward is defined at php-level when the user chooses finanziamento.importo and BEFORE the finanziamento record is submitted
+## consult [[DB-PRJ-REPORT#5. RIFLESSIONI]]
 
 
 
-# ANALISI DEI REQUISITI
+# INDICE
 ---
-## **DECOMPOSIZIONE DEL TESTO**
+### 1.  **[[DB-PRJ-REPORT#1. ANALISI DEI REQUISITI|Analisi dei Requisiti]]**
+- 1.1. [[DB-PRJ-REPORT#1.1. **DECOMPOSIZIONE DEL TESTO**|Decomposizione del Testo]]
+- 1.2. [[DB-PRJ-REPORT#**1.2. LISTA DELLE OPERAZIONI**|Lista delle Operazioni]]
+- 1.3. [[#**1.3. GLOSSARIO DEI DATI**|Glossario dei Dati]]
+### 2. **[[#2. PROGETTAZIONE CONCETTUALE|Progettazione Concettuale]]**
+- 2.1. [[#**2.1. DIAGRAMMA E-R**|Diagramma E-R]]
+- 2.2. [[#**2.2. DIZIONARIO DELLE ENTITÀ**|Dizionario delle Entità]]
+- 2.3. [[#**2.3. DIZIONARIO DELLE RELAZIONI**|Dizionario delle Relazioni]]
+- 2.4. [[#**2.4. BUSINESS RULES**|Business Rules]]
+### 3. **[[#3. PROGETTAZIONE LOGICA|Progettazione Logica]]**
+- 3.1. [[#**3.1. ANALISI DELLE RIDONDANZE**|Analisi delle Ridondanze]]
+- 3.2. [[#**3.2. LISTA DELLE TABELLE**|Lista delle Tabelle]]
+- 3.3. [[#**3.3. LISTA DEI VINCOLI INTER-RELAZIONALI**|Lista dei Vincoli Inter-relazionali]]
+### 4. **[[#4. NORMALIZZAZIONE|Normalizzazione]]**
+- 4.1. [[#4.1. ANALISI|Analisi (3FN e FNBC)]]
+### 5. **[[#5. RIFLESSIONI|Riflessioni]]**
+...
+### 6. **[[#6. FUNZIONALITÀ|Funzionalità]]**
+...
+### 7. **[[#7. APPENDICE|Appendice]]**
+- 7.1. [[#7.1. Inizializzazione DB|Inizializzazione DB]]
+- 7.2. [[#7.2. Popolamento DB|Popolamento DB]]
+- 7.3. [[#7.3. Testing DB|Testing DB]]
+- 7.4. [[#7.3. Logging DB|Logging DB]]
+
+# 1. ANALISI DEI REQUISITI
+---
+## 1.1. **DECOMPOSIZIONE DEL TESTO**
 
 #### `UTENTE`
 - Tutti gli utenti della piattaforma dispongono di: **email** (univoca), **nickname**, **password**, **nome**, **cognome**, **anno di nascita**, e un **luogo di nascita**. Inoltre, ogni utente può indicare le proprie skill di curriculum
@@ -89,7 +101,7 @@
 - Si vuole tenere traccia di **tutti gli eventi che occorrono nella piattaforma**, relativamente **all’inserimento di nuovi dati** (es. nuovi utenti, nuovi progetti, etc)
 - Tali eventi vanno inseriti, sotto forma di **messaggi di testo**, **all’interno di un log**, implementato in un’ apposita **collezione MongoDB**
 
-## **LISTA DELLE OPERAZIONI**
+## **1.2. LISTA DELLE OPERAZIONI**
 
 #### Operazioni che riguardano TUTTI gli utenti:
 - Autenticazione/registrazione sulla piattaforma
@@ -103,15 +115,17 @@
 #### Operazioni che riguardano SOLO gli amministratori:
 - Inserimento di una nuova stringa nella lista delle competenze
 - In fase di autenticazione, oltre a username e password, viene richiesto anche il codice di sicurezza
+- Cancellazione di commenti
 
 #### Operazioni che riguardano SOLO i creatori:
 - Inserimento di un nuovo progetto
 - Inserimento delle reward per un progetto
-- Inserimento di una risposta ad un commento
-- Inserimento di un profilo - solo per la realizzazione di un progetto software
+- Inserimento/cancellazione di una risposta ad un commento
+- Inserimento/cancellazione/aggiornamento di un profilo per un progetto software
 - Accettazione o meno di una candidatura
+- Inserimento/cancellazione/aggiornamento di componenti per un progetto hardware
 
-## **GLOSSARIO DEI DATI**
+## **1.3. GLOSSARIO DEI DATI**
 
 | **TERMINE**             | **DESCRIZIONE**                                                                                                                                                                                                                                     | **SINONIMI** | **COLLEGAMENTI**                                                                      |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ | ------------------------------------------------------------------------------------- |
@@ -129,12 +143,12 @@
 | **COMMENTO**            | Un commento fatto da un qualunque tipo di utente per un progetto hardware/software. Può contenere al massimo una risposta da parte dell'utente creatore.                                                                                            |              | UTENTE, PROGETTO GENERICO                                                             |
 | **PARTECIPANTE**        | Un potenziale o effettivo partecipante ad un progetto software. Qualunque utente che non è creatore del progetto software può candidarsi ad esso se dispone del profilo e livelli necessari, e può essere accettato/rifiutato dall'utente creatore. | Candidato    | UTENTE, PROGETTO SOFTWARE                                                             |
 
-# PROGETTAZIONE CONCETTUALE
+# 2. PROGETTAZIONE CONCETTUALE
 ---
-## **DIAGRAMMA E-R**
+## **2.1. DIAGRAMMA E-R**
 ![[DB-PRJ-ERD.png]]
 
-## **DIZIONARIO DELLE ENTITÀ**
+## **2.2. DIZIONARIO DELLE ENTITÀ**
 
 | **ENTITÀ**            | **DESCRIZIONE**                                                                                                                            | **ATTRIBUTI**                                                                   | **IDENTIFICATORE**                |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- | --------------------------------- |
@@ -152,7 +166,7 @@
 | **SKILL**             | Una o più competenze richieste/disponibili sulla piattaforma per progetti software. La lista di competenze è gestita dagli amministratori. | competenza                                                                      | competenza                        |
 | **FINANZIAMENTO**     | Un finanziamento economico fatto da un utente, verso un progetto, associato ad una reward.                                                 | data, email_utente, nome_progetto, codice_reward, importo                       | data, email_utente, nome_progetto |
 
-## **DIZIONARIO DELLE RELAZIONI**
+## **2.3. DIZIONARIO DELLE RELAZIONI**
 
 | **RELAZIONI**              | **DESCRIZIONE**                                                                                                                                                            | **COMPONENTI**                | **ATTRIBUTI**     |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------- | ----------------- |
@@ -172,7 +186,7 @@
 
 **N.B.** **PARTECIPANTE**.stato → enum: {"accettato", "rifiutato", "potenziale"}
 
-## **BUSINESS RULES**
+## **2.4. BUSINESS RULES**
 
 |         | **REGOLE DI VINCOLO**                                                                                                                                                                                     |
 | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -187,9 +201,9 @@
 | **9.**  | La piattaforma consente ad un utente di inserire una candidatura su un profilo **SOLO se, per ogni skill richiesta da un profilo, l’utente dispone di un livello superiore o uguale** al valore richiesto |
 | **10.** | La **reward** ottenuta da un **finanziamento** dipende dal suo **importo** (confronto dinamico fra FINANZIAMENTO.importo e REWARD.min_importo)                                                            |
 
-# PROGETTAZIONE LOGICA
+# 3. PROGETTAZIONE LOGICA
 ---
-## **ANALISI DELLE RIDONDANZE**
+## **3.1. ANALISI DELLE RIDONDANZE**
 
 Si vuole valutare se la seguente ridondanza: **campo `nr_progetti`** relativo ad un utente creatore debba essere **tenuta o eliminata**, sulla base delle seguenti operazioni:
 
@@ -228,12 +242,12 @@ $Op_{1}$: **Aggiungere (write)** un nuovo progetto ad un utente creatore esisten
 #### Includendo `nr_progetti`
 
 **Logica**
-1. Incrementa di uno il numero di progetti gestiti dall'utente creatore
-2. Crea un nuovo progetto
+8. Incrementa di uno il numero di progetti gestiti dall'utente creatore
+9. Crea un nuovo progetto
 	- Una entry per il progetto
 	- Una o più entry per le foto del progetto
 	- Una o più entry per le reward del progetto
-3. Inserisci una entry nella tabella relativa al tipo di progetto (software/hardware)
+10. Inserisci una entry nella tabella relativa al tipo di progetto (software/hardware)
 	- IF software → Una o più entry per i profili richiesti
 	- IF hardware → Una o più entry per le componenti richieste
 
@@ -285,8 +299,8 @@ $Op_{2}$: **Visualizzare (read)** tutti i progetti e tutti i finanziamenti **(1 
 #### Includendo `nr_progetti`
 
 **Logica**
-1. Leggi l'intera tabella `PROGETTO`
-2. Leggi l'intera tabella `FINANZIAMENTO`
+11. Leggi l'intera tabella `PROGETTO`
+12. Leggi l'intera tabella `FINANZIAMENTO`
 
 **Procedura**
 - 10 `SELECT` in `PROGETTO`
@@ -319,7 +333,7 @@ $Op_{3}$: **Contare (read)** il numero di progetti associati ad uno specifico ut
 #### Includendo `nr_progetti`
 
 **Logica**
-1. Leggi l'attributo `nr_progetti` dell'utente.
+13. Leggi l'attributo `nr_progetti` dell'utente.
 
 **Procedura** (assumendo che per "associati" si intenda progetti creati da un utente)
 - 1 `SELECT` in `CREATORE`
@@ -339,8 +353,8 @@ c_{1}(Op_{3})=3\cdot 0.5\cdot (2\cdot 0+1)=1.5
 #### Escludendo `nr_progetti`
 
 **Logica** (assumendo l'assenza di un indice efficiente)
-1. Leggi l'intera tabella `PROGETTO`
-2. Filtra laddove l'email del creatore del progetto corrente non corrisponde all'email del creatore per cui si sta facendo la query
+14. Leggi l'intera tabella `PROGETTO`
+15. Filtra laddove l'email del creatore del progetto corrente non corrisponde all'email del creatore per cui si sta facendo la query
 
 **Procedura**
 - 2 `SELECT` in `PROGETTO`, avendo scandito **10 entry**
@@ -390,7 +404,7 @@ Osservando i costi di entrambi scenari, risulta che **includere `nr_progetti` si
 
 **Escludendo `nr_progetti`**, l'operazione, a differenza dello scenario di sopra, non ha accesso a `CREATORE.nr_progetti`, e deve pertanto scandire ogni progetto nella tabella `PROGETTO`, effettivamente leggendo ogni entry (10 in tutto), e verificando su ciascuna se l'email del creatore combacia con quella inserita nella query.
 
-## **LISTA DELLE TABELLE**
+## **3.2. LISTA DELLE TABELLE**
 
 **UTENTE**(<u>email</u>, password, nickname, nome, cognome, anno_nascita, luogo_nascita)
 
@@ -424,7 +438,7 @@ Osservando i costi di entrambi scenari, risulta che **includere `nr_progetti` si
 
 **PARTECIPANTE**(<u>email_utente</u>, <u>nome_progetto</u>, <u>nome_profilo</u>, stato)
 
-## **LISTA DEI VINCOLI INTER-RELAZIONALI**
+## **3.3. LISTA DEI VINCOLI INTER-RELAZIONALI**
 
 **ADMIN**.email_utente                                       → **UTENTE**.email
 **CREATORE**.email_utente                                → **UTENTE**.email
@@ -451,23 +465,21 @@ Osservando i costi di entrambi scenari, risulta che **includere `nr_progetti` si
 **SKILL_CURRICULUM**.competenza             → **SKILL**.competenza
 **SKILL_PROFILO**.competenza                      → **SKILL**.competenza
 
-# NORMALIZZAZIONE
+# 4. NORMALIZZAZIONE
 ---
+## 4.1. ANALISI
+
 In questa sezione viene analizzato lo schema logico prodotto sulla base della terza, e FNBC forma normale.
 
-## 3FN
-
+### 3FN
 Solo se per ogni dipendenza funzionale X→Y:
 - X è una superchiave dello schema
 **Oppure**
 - Y appartiene ad una chiave candidata dello schema
 
-## FNBC
-
+### FNBC
 Solo se per ogni dipendenza funzionale X→Y:
 - X è una superchiave dello schema
-
-## ANALISI
 
 Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Normale Boyce & Codd**.
 
@@ -551,11 +563,37 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 - **F** = {email_utente, nome_progetto, nome_profilo → stato}
 - **3FN: ✅** / **FNBC: ✅**
 
-# FUNZIONALITÀ
+# 5. RIFLESSIONI
 ---
-# seriously reevaluate how to structure this section
+## INSERT HERE REFLECTIONS FROM TODO
 
-# pls mention stored procedures when referencing php actions
+### [[DB-PRJ-REPORT#TODO]]
+
+- budget proj hardware >= somma componenti
+	- new triggers to automatically adjust budget based on insert/delete/update of components
+		- php notification of change in budget before operation finalised
+	- can still manually adjust budget, as long as it stays >= sum component cost
+
+- multi-layer security check → redundant security > single line of defense php-level
+
+- profiles were global when PROFILO_PROGETTO was separate from SKILL_PROFILO, so I removed PROFILO_PROGETTO and added nome_progetto to PK of SKILL_PROFILO
+	- Otherwise updates for livello_richiesto were problematic due to profiles being global and thus multiple proj might reference the same profilo but have different livello_richiesto
+
+- Authentication and Security Code Check: must also be implemented in the application layer. DO NOT ALLOW NEW USERS TO REGISTER AS ADMINS, ONLY CREATORS!!!! FOR EXAM JUST ADD A PREEXISTING ADMIN MANUALLY FROM A DEMO SQL FILE ES. bostarter-demo.sql
+
+- finanziamento.codice_reward is defined at php-level when the user chooses finanziamento.importo and BEFORE the finanziamento record is submitted
+
+- use of sql signal state 45000 to be able to notice at php-level any db issues
+
+- testing stored procedures via dedicated sql testing file
+
+- creating indexes for the most frequently queried data
+
+# 6. FUNZIONALITÀ
+---
+## seriously reevaluate how to structure this section
+
+## mention stored procedures when referencing php actions
 
 ## REGISTRAZIONE UTENTE
 
@@ -572,24 +610,34 @@ Ogni utente passa inizialmente per la pagina di login, `index.php`, se dispone d
 
 ## LOGGING (MongoDB)
 
-# for each table of MySQL create a dedicated MongoDB collection of the same name and log there whenever modification to the MySQL table is made. In essence just need to add a mongodb call at the end of each function in php logging whatever data and variables where passed as argument
+## for each table of MySQL create a dedicated MongoDB collection of the same name and log there whenever modification to the MySQL table is made. In essence just need to add a mongodb call at the end of each function in php logging whatever data and variables where passed as argument
 
-# Appendice
+# 7. APPENDICE
 ---
+## 7.1. Inizializzazione DB
 In seguito viene riportato il codice SQL completo utilizzato per la generazione della base di dati **BOSTARTER** e delle relative funzionalità (procedure, viste, trigger):
 
 ```sql
 bostarter-init.sql
 ```
 
-il codice per la demo con popolamento di dati finti: 
+## 7.2. Popolamento DB
+Il codice per la demo con popolamento di dati finti: 
 
 ```sql
 bostarter-demo.sql
 ```
 
-ed il codice JavaScript relativo alla gestione del logging della piattaforma:
+## 7.3. Testing DB
+Il codice per testare le operazioni previste: 
+
+```sql
+bostarter-testing.sql
+```
+
+## 7.4. Logging DB
+Il codice JavaScript relativo alla gestione del logging della piattaforma:
 
 ```js
-bostarter_mongodb_logging.js
+bostarter-mongodb-logging.js
 ```

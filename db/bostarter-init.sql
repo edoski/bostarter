@@ -65,7 +65,7 @@ CREATE TABLE PROGETTO
     budget           DECIMAL(10, 2) NOT NULL CHECK ( budget > 0 ),
     stato            ENUM ('aperto','chiuso') DEFAULT 'aperto',
     data_inserimento DATE           NOT NULL  DEFAULT CURRENT_DATE,
-    data_limite      DATE           NOT NULL CHECK ( data_limite > CURRENT_DATE ),
+    data_limite      DATE           NOT NULL,
     PRIMARY KEY (nome),
     CONSTRAINT fk_progetto_creatore
         FOREIGN KEY (email_creatore)
@@ -1268,6 +1268,17 @@ BEGIN
     FROM PARTECIPANTE
     WHERE nome_profilo = OLD.nome_profilo
       AND nome_progetto = OLD.nome_progetto;
+END//
+
+-- Trigger per verificare che la data limite di un progetto sia successiva a oggi
+CREATE TRIGGER trg_check_data_limite_insert
+    BEFORE INSERT ON PROGETTO
+    FOR EACH ROW
+BEGIN
+    IF NEW.data_limite <= CURRENT_DATE() THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'ERRORE: data_limite DEVE ESSERE SUCCESSIVA A OGGI';
+    END IF;
 END//
 
 DELIMITER ;
