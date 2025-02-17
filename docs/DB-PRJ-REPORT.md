@@ -1,42 +1,73 @@
 # TODO
 ---
-#todo 
-- [ ] MAKE SURE TO CHECK FOR AND FIX ALL TODO'S IN SQL AND PHP!!!
+- [ ] connect mongodb to php
+- [ ] FIGURE OUT DIR STRUCTURE, ESPECIALLY SINCE SQL FILES ARE ALL IN A DIFFERENT PLACE RN
+	- [ ] BUT I THINK IT'S OKAY, MAYBE AT THE END JUST COPY PASTE PHP FILES FROM HTDOCS INTO /PHP/ HERE
+	- [ ] OR MAYBE SEE IN PHP STORM HOW TO LINK HTDOCS TO /PHP/ HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	- [ ] in README and in report & presentation and explain how to setup and run project..... hmmm maybe docker cool but idk
 
-## consult [[DB-PRJ-REPORT#5. RIFLESSIONI]]
+## [[DB-PRJ-REPORT#5. RIFLESSIONI]]
 
+
+## review the login SP with the OUT if it makes sense for it to have OUT parameters or not
+
+
+## REFLECT -- TODO GENERICHE: Insieme di controlli generici per tutte le stored procedure principali ladove necessario
+- basically these are fills for SP's where there is not already abstraction present, these are 1-off type helper sp's repeated here and there
+
+
+## go into the trigger jungle and fix it all up and format it
+- check if the hardware project budget triggers for components correct
+- see if need profilo or skill_profilo triggers needed
+
+
+
+
+bostarter/
+ ┣ config.php
+ ┣ index.php
+ ┣ login.php
+ ┣ register.php
+ ┣ dashboard.php
+ ┣ new_project.php
+ ┣ sp_invoke.php
+ ┗ includes/
+    ┣ header.php
+    ┗ footer.php
 
 
 # INDICE
 ---
-### 1.  **[[DB-PRJ-REPORT#1. ANALISI DEI REQUISITI|Analisi dei Requisiti]]**
-- 1.1. [[DB-PRJ-REPORT#1.1. **DECOMPOSIZIONE DEL TESTO**|Decomposizione del Testo]]
-- 1.2. [[DB-PRJ-REPORT#**1.2. LISTA DELLE OPERAZIONI**|Lista delle Operazioni]]
-- 1.3. [[#**1.3. GLOSSARIO DEI DATI**|Glossario dei Dati]]
-### 2. **[[#2. PROGETTAZIONE CONCETTUALE|Progettazione Concettuale]]**
-- 2.1. [[#**2.1. DIAGRAMMA E-R**|Diagramma E-R]]
-- 2.2. [[#**2.2. DIZIONARIO DELLE ENTITÀ**|Dizionario delle Entità]]
-- 2.3. [[#**2.3. DIZIONARIO DELLE RELAZIONI**|Dizionario delle Relazioni]]
-- 2.4. [[#**2.4. BUSINESS RULES**|Business Rules]]
-### 3. **[[#3. PROGETTAZIONE LOGICA|Progettazione Logica]]**
-- 3.1. [[#**3.1. ANALISI DELLE RIDONDANZE**|Analisi delle Ridondanze]]
-- 3.2. [[#**3.2. LISTA DELLE TABELLE**|Lista delle Tabelle]]
-- 3.3. [[#**3.3. LISTA DEI VINCOLI INTER-RELAZIONALI**|Lista dei Vincoli Inter-relazionali]]
-### 4. **[[#4. NORMALIZZAZIONE|Normalizzazione]]**
-- 4.1. [[#4.1. ANALISI|Analisi (3FN e FNBC)]]
-### 5. **[[#5. RIFLESSIONI|Riflessioni]]**
+### **1.  [[DB-PRJ-REPORT#1. ANALISI DEI REQUISITI|Analisi dei Requisiti]]**
+- **1.1. [[DB-PRJ-REPORT#1.1. DECOMPOSIZIONE DEL TESTO**|Decomposizione del Testo]]**
+- **1.2. [[DB-PRJ-REPORT#1.2. LISTA DELLE OPERAZIONI**|Lista delle Operazioni]]**
+- **1.3. [[#1.3. GLOSSARIO DEI DATI**|Glossario dei Dati]]**
+### **2. [[#2. PROGETTAZIONE CONCETTUALE|Progettazione Concettuale]]**
+- **2.1. [[#2.1. DIAGRAMMA E-R**|Diagramma E-R]]**
+- **2.2. [[#2.2. DIZIONARIO DELLE ENTITÀ**|Dizionario delle Entità]]**
+- **2.3. [[#2.3. DIZIONARIO DELLE RELAZIONI**|Dizionario delle Relazioni]]**
+- **2.4. [[#2.4. BUSINESS RULES**|Business Rules]]**
+### **3. [[#3. PROGETTAZIONE LOGICA|Progettazione Logica]]**
+- **3.1. [[#3.1. ANALISI DELLE RIDONDANZE**|Analisi delle Ridondanze]]**
+- **3.2. [[#3.2. LISTA DELLE TABELLE**|Lista delle Tabelle]]**
+- **3.3. [[#3.3. LISTA DEI VINCOLI INTER-RELAZIONALI**|Lista dei Vincoli Inter-relazionali]]**
+### **4. [[#4. NORMALIZZAZIONE|Normalizzazione]]**
+- **4.1. [[#4.1. ANALISI|Analisi (3FN e FNBC)]]**
+### **5. [[#5. RIFLESSIONI|Riflessioni]]**
 ...
-### 6. **[[#6. FUNZIONALITÀ|Funzionalità]]**
-...
-### 7. **[[#7. APPENDICE|Appendice]]**
-- 7.1. [[#7.1. Inizializzazione DB|Inizializzazione DB]]
-- 7.2. [[#7.2. Popolamento DB|Popolamento DB]]
-- 7.3. [[#7.3. Testing DB|Testing DB]]
-- 7.4. [[#7.3. Logging DB|Logging DB]]
+### **6. [[#6. FUNZIONALITÀ|Funzionalità]]**
+- **6.1. [[#**6.1. BACKEND (MySQL)**|BACKEND (MySQL)]]**
+- **6.2. [[#**6.2. FRONTEND (PHP)**|FRONTEND (PHP)]]**
+- **6.3. [[#**6.3. LOGGING (MongoDB)**|LOGGING (MongoDB)]]**
+### **7. [[#7. APPENDICE|Appendice]]**
+- **7.1. [[#7.1. Inizializzazione DB|Inizializzazione DB]]**
+- **7.2. [[#7.2. Popolamento DB|Popolamento DB]]**
+- **7.3. [[#7.3. Testing DB|Testing DB]]**
+- **7.4. [[#7.3. Logging DB|Logging DB]]**
 
-# 1. ANALISI DEI REQUISITI
+# **1. ANALISI DEI REQUISITI**
 ---
-## 1.1. **DECOMPOSIZIONE DEL TESTO**
+## **1.1. DECOMPOSIZIONE DEL TESTO**
 
 #### `UTENTE`
 - Tutti gli utenti della piattaforma dispongono di: **email** (univoca), **nickname**, **password**, **nome**, **cognome**, **anno di nascita**, e un **luogo di nascita**. Inoltre, ogni utente può indicare le proprie skill di curriculum
@@ -143,7 +174,7 @@
 | **COMMENTO**            | Un commento fatto da un qualunque tipo di utente per un progetto hardware/software. Può contenere al massimo una risposta da parte dell'utente creatore.                                                                                            |              | UTENTE, PROGETTO GENERICO                                                             |
 | **PARTECIPANTE**        | Un potenziale o effettivo partecipante ad un progetto software. Qualunque utente che non è creatore del progetto software può candidarsi ad esso se dispone del profilo e livelli necessari, e può essere accettato/rifiutato dall'utente creatore. | Candidato    | UTENTE, PROGETTO SOFTWARE                                                             |
 
-# 2. PROGETTAZIONE CONCETTUALE
+# **2. PROGETTAZIONE CONCETTUALE**
 ---
 ## **2.1. DIAGRAMMA E-R**
 ![[DB-PRJ-ERD.png]]
@@ -201,7 +232,7 @@
 | **9.**  | La piattaforma consente ad un utente di inserire una candidatura su un profilo **SOLO se, per ogni skill richiesta da un profilo, l’utente dispone di un livello superiore o uguale** al valore richiesto |
 | **10.** | La **reward** ottenuta da un **finanziamento** dipende dal suo **importo** (confronto dinamico fra FINANZIAMENTO.importo e REWARD.min_importo)                                                            |
 
-# 3. PROGETTAZIONE LOGICA
+# **3. PROGETTAZIONE LOGICA**
 ---
 ## **3.1. ANALISI DELLE RIDONDANZE**
 
@@ -426,7 +457,7 @@ Osservando i costi di entrambi scenari, risulta che **includere `nr_progetti` si
 
 **COMPONENTE**(<u>nome_componente</u>, <u>nome_progetto</u>, descrizione, quantità, prezzo)
 
-**PROFILO**(<u>nome_profilo</u>)
+**PROFILO**(<u>nome_profilo</u>, <u>nome_progetto</u>)
 
 **SKILL**(<u>competenza</u>)
 
@@ -456,6 +487,7 @@ Osservando i costi di entrambi scenari, risulta che **includere `nr_progetti` si
 **COMPONENTE**.nome_progetto                   → **PROGETTO**.nome
 **FINANZIAMENTO**.nome_progetto              → **PROGETTO**.nome
 **PARTECIPANTE**.nome_progetto                 → **PROGETTO**.nome
+**PROFILO**.nome_progetto                             → **PROGETTO**.nome
 
 **FINANZIAMENTO**.codice_reward                → **REWARD**.codice
 
@@ -465,9 +497,9 @@ Osservando i costi di entrambi scenari, risulta che **includere `nr_progetti` si
 **SKILL_CURRICULUM**.competenza             → **SKILL**.competenza
 **SKILL_PROFILO**.competenza                      → **SKILL**.competenza
 
-# 4. NORMALIZZAZIONE
+# **4. NORMALIZZAZIONE**
 ---
-## 4.1. ANALISI
+## **4.1. ANALISI**
 
 In questa sezione viene analizzato lo schema logico prodotto sulla base della terza, e FNBC forma normale.
 
@@ -534,7 +566,7 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 - **3FN: ✅** / **FNBC: ✅**
 
 #### `PROFILO`
-- **R**(<u>nome_profilo</u>)
+- **R**(<u>nome_profilo</u>, <u>nome_progetto</u>)
 - **F** = DF Banale
 - **3FN: ✅** / **FNBC: ✅**
 
@@ -563,7 +595,7 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 - **F** = {email_utente, nome_progetto, nome_profilo → stato}
 - **3FN: ✅** / **FNBC: ✅**
 
-# 5. RIFLESSIONI
+# **5. RIFLESSIONI**
 ---
 ## INSERT HERE REFLECTIONS FROM TODO
 
@@ -579,7 +611,7 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 - profiles were global when PROFILO_PROGETTO was separate from SKILL_PROFILO, so I removed PROFILO_PROGETTO and added nome_progetto to PK of SKILL_PROFILO
 	- Otherwise updates for livello_richiesto were problematic due to profiles being global and thus multiple proj might reference the same profilo but have different livello_richiesto
 
-- Authentication and Security Code Check: must also be implemented in the application layer. DO NOT ALLOW NEW USERS TO REGISTER AS ADMINS, ONLY CREATORS!!!! FOR EXAM JUST ADD A PREEXISTING ADMIN MANUALLY FROM A DEMO SQL FILE ES. bostarter-demo.sql
+- Authentication and Security Code Check: must also be implemented in the application layer. DO NOT ALLOW NEW USERS TO REGISTER AS ADMINS, ONLY CREATORS!!!! FOR EXAM JUST ADD A PREEXISTING ADMIN MANUALLY FROM A DEMO SQL FILE ES. bostarter_demo.sql
 
 - finanziamento.codice_reward is defined at php-level when the user chooses finanziamento.importo and BEFORE the finanziamento record is submitted
 
@@ -587,57 +619,123 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 - testing stored procedures via dedicated sql testing file
 
-- creating indexes for the most frequently queried data
+- the use of business fields / client-facing fields as PK for the tables (es. PROGETTO.nome) is not ideal because it may be subject to change (es. project owner may decide to rename the project at some point), so I think it would've been better to use something like an ID that is not subject to change for the db to reference as PK. However I opted not to so as to be faithful to the traccia
 
-# 6. FUNZIONALITÀ
+- was considering the possibility for a creator to delete his own project (sp_progetto_delete) but that would add significant complexity and considerations to make both db-level and real-life-level because
+	- db-level would mean having to also wipe all FK mentioning, 1 problem example is the rewards tied to a user after he finances project → if project is wiped all his rewards would also be wiped unless add new table that does not include project name as PK, this only introduces more complexity to system
+	- real-life-level there is the implication of fraud, can a creator just decide to delete the project and run away with all the financing of the users? no obviously
+- **This has led to my realisation that a clear picture of the operations needed to be done before he starts designing the db is crucial**
+- I have opted not to implement this as it was not required in the traccia and doing so would require restructuring the db schema and i am already a bit far into sql
+
+- I initially had a ridiculous amount of stored procedures that far exceeded what was requested in the list of operations of the traccia, but cut down significantly as it wouldve made the system, though more realistic, far too complex beyond the scope of the project. The most complex of which were always sp_X_update procedures
+	- **scope creep in check... do not implement what was not asked of you to implement**
+		- another example was originally wanting to containerise the project with docker, or use laravel framework for php... all great things but not required and would add significant overhead in complexity
+
+- lots of SPs have common logic checks, I decided to modularise this by abstracting out the common logic checks into secondary helper SP's to improve readability and maintainability of the code
+
+- With my main init file having grown to >1300 lines I decided to split it up into separate sql files (1 for schemas, 1 for SPs, 1 for triggers, 1 for events?) to make it more maintainable and invoke all of them sequentially and automatically through the SOURCE command in a main init file
+
+- while the existence check for the project might seem redundant from a pure data-integrity standpoint, it is valuable for providing a better, more controlled error response and enforcing additional business logic. EXAMPLE: The check for the project’s closed state is absolutely necessary for comments and financing operations because it’s not covered by the foreign key constraints.
+
+# **6. FUNZIONALITÀ**
 ---
-## seriously reevaluate how to structure this section
+## **6.1. BACKEND (MySQL)**
 
-## mention stored procedures when referencing php actions
+### add whole list for the sp's and associated relevant triggers
+- all the checks and utils
 
-## REGISTRAZIONE UTENTE
+-- UTENTE:
+--  sp_utente_registra
+--  sp_utente_login
+
+-- SKILL_CURRICULUM:
+--  sp_skill_curriculum_insert
+
+-- PROGETTO:
+--  sp_visualizza_progetti
+--  sp_progetto_insert
+
+-- FINANZIAMENTO:
+--  sp_finanziamento_insert
+
+-- COMMENTO:
+--  sp_commento_insert
+--  sp_commento_delete
+--  sp_commento_risposta_insert
+--  sp_commento_risposta_delete
+
+-- PARTECIPANTE:
+--  sp_partecipante_utente_insert
+--  sp_partecipante_creatore_update
+
+-- SKILL:
+--  sp_skill_insert
+
+-- REWARD:
+--  sp_reward_insert
+
+-- COMPONENTE:
+--  sp_componente_insert
+--  sp_componente_delete
+--  sp_componente_update
+
+-- PROFILO:
+--  sp_profilo_insert
+--  sp_profilo_delete
+
+-- SKILL_PROFILO:
+--  sp_skill_profilo_insert
+--  sp_skill_profilo_delete
+--  sp_skill_profilo_update
+
+-- FOTO:
+--  sp_foto_insert
+--  sp_foto_delete
+
+## **6.2. FRONTEND (PHP)**
+
+
+
+### mention stored procedures when referencing php functions
+
+
+
+
+### REGISTRAZIONE UTENTE
 
 Ogni utente passa inizialmente per la pagina di login, `index.php`, se dispone di un account esistente sulla piattaforma (email e password) allora può autenticarsi, altrimenti clicca su Registra e continua con la procedura per creare il proprio account.
+In fase di login l'utente può anche autenticarsi come amministratore se dispone del codice di sicurezza proprio.
 
-## PER OGNI UTENTE
-#### QUANDO...
+## **6.3. LOGGING (MongoDB)**
 
-## PER IL DOCENTE
-#### QUANDO...
+### for each table of MySQL create a dedicated MongoDB collection of the same name and log there whenever modification to the MySQL table is made. In essence just need to add a mongodb call at the end of each function in php logging whatever data and variables where passed as argument
 
-## PER LO STUDENTE
-#### QUANDO...
-
-## LOGGING (MongoDB)
-
-## for each table of MySQL create a dedicated MongoDB collection of the same name and log there whenever modification to the MySQL table is made. In essence just need to add a mongodb call at the end of each function in php logging whatever data and variables where passed as argument
-
-# 7. APPENDICE
+# **7. APPENDICE**
 ---
-## 7.1. Inizializzazione DB
-In seguito viene riportato il codice SQL completo utilizzato per la generazione della base di dati **BOSTARTER** e delle relative funzionalità (procedure, viste, trigger):
+## **7.1. Inizializzazione DB**
+In seguito viene riportato il codice SQL completo utilizzato per la generazione della base di dati **BOSTARTER** e delle relative funzionalità (procedure, viste, trigger, eventi):
 
 ```sql
-bostarter-init.sql
+bostarter_init.sql
 ```
 
-## 7.2. Popolamento DB
-Il codice per la demo con popolamento di dati finti: 
+## **7.2. Popolamento DB**
+Il codice SQL per la demo con popolamento di dati fittizi: 
 
 ```sql
-bostarter-demo.sql
+bostarter_demo.sql
 ```
 
-## 7.3. Testing DB
-Il codice per testare le operazioni previste: 
+## **7.3. Testing DB**
+Il codice SQL per testare le operazioni previste: 
 
 ```sql
 bostarter-testing.sql
 ```
 
-## 7.4. Logging DB
+## **7.4. Logging DB**
 Il codice JavaScript relativo alla gestione del logging della piattaforma:
 
 ```js
-bostarter-mongodb-logging.js
+bostarter-logging.js
 ```
