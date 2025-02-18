@@ -1,28 +1,20 @@
 # TODO
 ---
 - [ ] connect mongodb to php
-- [ ] FIGURE OUT DIR STRUCTURE, ESPECIALLY SINCE SQL FILES ARE ALL IN A DIFFERENT PLACE RN
-	- [ ] BUT I THINK IT'S OKAY, MAYBE AT THE END JUST COPY PASTE PHP FILES FROM HTDOCS INTO /PHP/ HERE
-	- [ ] OR MAYBE SEE IN PHP STORM HOW TO LINK HTDOCS TO /PHP/ HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	- [ ] in README and in report & presentation and explain how to setup and run project..... hmmm maybe docker cool but idk
+- [ ] env vars for mysql and php?
+- [ ] PASTE FULL SQL INIT FILE TO [[#**7.1. Inizializzazione DB**]]
+- [ ] in README and in report & presentation and explain how to setup and run project..... hmmm maybe docker cool but idk
 
 ## [[DB-PRJ-REPORT#5. RIFLESSIONI]]
 
 
-## review the login SP with the OUT if it makes sense for it to have OUT parameters or not
-
-
-## REFLECT -- TODO GENERICHE: Insieme di controlli generici per tutte le stored procedure principali ladove necessario
-- basically these are fills for SP's where there is not already abstraction present, these are 1-off type helper sp's repeated here and there
-
-
-## go into the trigger jungle and fix it all up and format it
-- check if the hardware project budget triggers for components correct
-- see if need profilo or skill_profilo triggers needed
+## write bash script if there is any setup to do w php?
 
 
 
 
+
+## keep track of website structure
 bostarter/
  ┣ config.php
  ┣ index.php
@@ -31,7 +23,7 @@ bostarter/
  ┣ dashboard.php
  ┣ new_project.php
  ┣ sp_invoke.php
- ┗ includes/
+ ┗ components/
     ┣ header.php
     ┗ footer.php
 
@@ -62,8 +54,7 @@ bostarter/
 ### **7. [[#7. APPENDICE|Appendice]]**
 - **7.1. [[#7.1. Inizializzazione DB|Inizializzazione DB]]**
 - **7.2. [[#7.2. Popolamento DB|Popolamento DB]]**
-- **7.3. [[#7.3. Testing DB|Testing DB]]**
-- **7.4. [[#7.3. Logging DB|Logging DB]]**
+- **7.3. [[#7.3. Logging DB|Logging DB]]**
 
 # **1. ANALISI DEI REQUISITI**
 ---
@@ -597,6 +588,8 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 # **5. RIFLESSIONI**
 ---
+## select the most important ones here to add to presentation (eg. deffo slide for importance of db robust structure and clarity of sp's)
+
 ## INSERT HERE REFLECTIONS FROM TODO
 
 ### [[DB-PRJ-REPORT#TODO]]
@@ -633,16 +626,19 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 - lots of SPs have common logic checks, I decided to modularise this by abstracting out the common logic checks into secondary helper SP's to improve readability and maintainability of the code
 
-- With my main init file having grown to >1300 lines I decided to split it up into separate sql files (1 for schemas, 1 for SPs, 1 for triggers, 1 for events?) to make it more maintainable and invoke all of them sequentially and automatically through the SOURCE command in a main init file
+- With my main init file having grown to >1700 lines I decided to document it with very clear segmentations to make it clearer and more maintainable
 
 - while the existence check for the project might seem redundant from a pure data-integrity standpoint, it is valuable for providing a better, more controlled error response and enforcing additional business logic. EXAMPLE: The check for the project’s closed state is absolutely necessary for comments and financing operations because it’s not covered by the foreign key constraints.
 
+- originally sillily stored plaintext pwd in db, switched to hashed pwds which required modifying sp_utente_login on db and handling pwd hashing on php application layer
+
 # **6. FUNZIONALITÀ**
 ---
-## **6.1. BACKEND (MySQL)**
+## prolly just scrap everything here and do a more dynamic description like user login/register section, home.php section, statistiche.php section etc
 
-### add whole list for the sp's and associated relevant triggers
-- all the checks and utils
+
+
+## **6.1. BACKEND (MySQL)**
 
 -- UTENTE:
 --  sp_utente_registra
@@ -720,22 +716,15 @@ bostarter_init.sql
 ```
 
 ## **7.2. Popolamento DB**
-Il codice SQL per la demo con popolamento di dati fittizi: 
+Il codice SQL per la demo con popolamento di dati fittizi, usando le stored procedures per testare il loro funzionamento: 
 
 ```sql
 bostarter_demo.sql
 ```
 
-## **7.3. Testing DB**
-Il codice SQL per testare le operazioni previste: 
-
-```sql
-bostarter-testing.sql
-```
-
-## **7.4. Logging DB**
+## **7.3. Logging DB**
 Il codice JavaScript relativo alla gestione del logging della piattaforma:
 
 ```js
-bostarter-logging.js
+bostarter_logging.js
 ```
