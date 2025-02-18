@@ -1,5 +1,5 @@
 -- ==================================================
--- DATABASE
+--                  BOSTARTER INIT
 -- ==================================================
 
 DROP DATABASE IF EXISTS BOSTARTER;
@@ -57,9 +57,9 @@ CREATE TABLE CREATORE
 -- 4. PROGETTO
 CREATE TABLE PROGETTO
 (
-    nome             VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome) >= 5 ),         -- Minimo 5 caratteri
+    nome             VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome) >= 3 ), -- Minimo 3 caratteri
     email_creatore   VARCHAR(100)   NOT NULL,
-    descrizione      TEXT           NOT NULL CHECK ( LENGTH(descrizione) >= 10 ), -- Minimo 10 caratteri
+    descrizione      TEXT           NOT NULL CHECK ( LENGTH(descrizione) >= 3 ),
     budget           DECIMAL(10, 2) NOT NULL CHECK ( budget > 0 ),
     stato            ENUM ('aperto','chiuso') DEFAULT 'aperto',
     data_inserimento DATE           NOT NULL  DEFAULT CURRENT_DATE,
@@ -119,7 +119,7 @@ CREATE TABLE REWARD
 (
     codice        VARCHAR(50)    NOT NULL,
     nome_progetto VARCHAR(100)   NOT NULL,
-    descrizione   TEXT           NOT NULL CHECK ( LENGTH(descrizione) >= 10 ), -- Minimo 10 caratteri
+    descrizione   TEXT           NOT NULL CHECK ( LENGTH(descrizione) >= 3 ), -- Minimo 3 caratteri
     foto          MEDIUMBLOB     NOT NULL,
     min_importo   DECIMAL(10, 2) NOT NULL CHECK ( min_importo > 0 ),
     PRIMARY KEY (codice, nome_progetto),
@@ -134,9 +134,9 @@ CREATE TABLE REWARD
 -- 9. COMPONENTE
 CREATE TABLE COMPONENTE
 (
-    nome_componente VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome_componente) >= 5 ), -- Minimo 5 caratteri
+    nome_componente VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome_componente) >= 3 ), -- Minimo 3 caratteri
     nome_progetto   VARCHAR(100)   NOT NULL,
-    descrizione     TEXT           NOT NULL CHECK ( LENGTH(descrizione) >= 10 ),    -- Minimo 10 caratteri
+    descrizione     TEXT           NOT NULL CHECK ( LENGTH(descrizione) >= 3 ),     -- Minimo 3 caratteri
     quantita        INT            NOT NULL CHECK ( quantita > 0 ),                 -- Business Rule #3
     prezzo          DECIMAL(10, 2) NOT NULL CHECK ( prezzo > 0 ),
     PRIMARY KEY (nome_componente, nome_progetto),
@@ -151,7 +151,7 @@ CREATE TABLE COMPONENTE
 -- 10. PROFILO
 CREATE TABLE PROFILO
 (
-    nome_profilo  VARCHAR(100) NOT NULL CHECK ( LENGTH(nome_profilo) >= 5 ), -- Minimo 5 caratteri
+    nome_profilo  VARCHAR(100) NOT NULL CHECK ( LENGTH(nome_profilo) >= 3 ), -- Minimo 3 caratteri
     nome_progetto VARCHAR(100) NOT NULL,
     PRIMARY KEY (nome_profilo, nome_progetto),
     CONSTRAINT fk_profilo_progetto
@@ -165,7 +165,7 @@ CREATE TABLE PROFILO
 -- 11. SKILL
 CREATE TABLE SKILL
 (
-    competenza VARCHAR(100) NOT NULL CHECK ( LENGTH(competenza) >= 5 ), -- Minimo 5 caratteri
+    competenza VARCHAR(100) NOT NULL CHECK ( LENGTH(competenza) >= 3 ), -- Minimo 3 caratteri
     PRIMARY KEY (competenza)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -204,8 +204,8 @@ CREATE TABLE COMMENTO
     email_utente  VARCHAR(100) NOT NULL,
     nome_progetto VARCHAR(100) NOT NULL,
     data          DATE         NOT NULL DEFAULT CURRENT_DATE,
-    testo         TEXT         NOT NULL CHECK ( LENGTH(testo) >= 10 ), -- Minimo 10 caratteri
-    risposta      TEXT         NULL,                                   -- Business Rule #8
+    testo         TEXT         NOT NULL CHECK ( LENGTH(testo) >= 3 ), -- Minimo 3 caratteri
+    risposta      TEXT         NULL,                                  -- Business Rule #8
     PRIMARY KEY (id),
     CONSTRAINT fk_com_utente
         FOREIGN KEY (email_utente)
@@ -717,9 +717,7 @@ CREATE PROCEDURE sp_utente_registra(
     IN p_cognome VARCHAR(50),
     IN p_anno_nascita INT,
     IN p_luogo_nascita VARCHAR(50),
-    IN p_is_creatore BOOLEAN, -- Definito a livello di interfaccia (checkbox)
-    IN p_is_admin BOOLEAN, -- Definito a livello di interfaccia (checkbox)
-    IN p_codice_sicurezza VARCHAR(100) -- Codice di sicurezza per admin
+    IN p_is_creatore BOOLEAN -- Definito a livello di interfaccia
 )
 BEGIN
     START TRANSACTION; -- Uso di transazione per garantire l'integrità dei dati
@@ -730,39 +728,32 @@ BEGIN
         INSERT INTO CREATORE (email_utente)
         VALUES (p_email);
     END IF;
-
-    IF p_is_admin THEN
-        IF p_codice_sicurezza IS NULL THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'ERRORE: CODICE DI SICUREZZA ADMIN MANCANTE';
-        END IF;
-        INSERT INTO ADMIN (email_utente, codice_sicurezza)
-        VALUES (p_email, p_codice_sicurezza);
-    END IF;
     COMMIT;
 END//
 
 -- (ALL) Login di un utente
 CREATE PROCEDURE sp_utente_login(
     IN p_email VARCHAR(100),
-    IN p_password VARCHAR(255),
     IN p_codice_sicurezza VARCHAR(100),
     OUT p_nickname_out VARCHAR(50),
-    OUT p_email_out VARCHAR(100)
+    OUT p_email_out VARCHAR(100),
+    OUT p_password_hash_out VARCHAR(255)
 )
 BEGIN
     START TRANSACTION;
-    -- (ALL) Controllo che esista un utente con le credenziali fornite
-    IF NOT EXISTS (SELECT 1
-                   FROM UTENTE
-                   WHERE email = p_email
-                     AND password = p_password) THEN
+    -- (ALL) Controllo che l'utente esista
+    IF NOT EXISTS (SELECT 1 FROM UTENTE WHERE email = p_email) THEN
         SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'ERRORE: CREDEZIALI NON VALIDE';
+            SET MESSAGE_TEXT = 'ERRORE: EMAIL NON VALIDA';
     END IF;
 
-    -- (ADMIN) Controlla il codice di sicurezza se l'utente è un admin
-    IF p_codice_sicurezza IS NOT NULL THEN
+    -- Controllo se l'utente è un admin
+    IF EXISTS (SELECT 1 FROM ADMIN WHERE email_utente = p_email) THEN
+        -- Se l'utente è un admin, controllo che il codice di sicurezza sia presente e corretto
+        IF p_codice_sicurezza IS NULL OR TRIM(p_codice_sicurezza) = '' THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'ERRORE: CODICE DI SICUREZZA ADMIN MANCANTE';
+        END IF;
         IF NOT EXISTS (SELECT 1
                        FROM ADMIN
                        WHERE email_utente = p_email
@@ -772,8 +763,9 @@ BEGIN
         END IF;
     END IF;
 
-    SELECT nickname, email
-    INTO p_nickname_out, p_email_out
+    -- Se i controlli passano, restituisco i dati dell'utente
+    SELECT nickname, email, password
+    INTO p_nickname_out, p_email_out, p_password_hash_out
     FROM UTENTE
     WHERE email = p_email;
     COMMIT;
@@ -1650,8 +1642,7 @@ BEGIN
                         LEFT JOIN SKILL_CURRICULUM SC -- LEFT JOIN così se l'utente non ha la skill, il livello effettivo è NULL e viene considerato insufficiente
                                   ON SP.competenza = SC.competenza AND SC.email_utente = NEW.email_utente
                WHERE SP.nome_profilo = NEW.nome_profilo
-                   AND SC.livello_effettivo IS NULL
-                  OR SC.livello_effettivo < SP.livello_richiesto) THEN
+                 AND (SC.livello_effettivo IS NULL OR SC.livello_effettivo < SP.livello_richiesto)) THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'ERRORE: LIVELLO EFFETTIVO NON SUFFICIENTE PER IL PROFILO';
     END IF;
