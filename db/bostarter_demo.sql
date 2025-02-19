@@ -72,7 +72,7 @@ CALL sp_skill_insert('Django', 'alice@example.com');
 CALL sp_skill_insert('Flask', 'alice@example.com');
 
 -- ==================================================
--- SKILL_CURRICULUM (ALL)
+-- SKILL_CURRICULUM INSERTION (ALL)
 -- ==================================================
 CALL sp_skill_curriculum_insert('alice@example.com', 'PHP', 5);
 CALL sp_skill_curriculum_insert('alice@example.com', 'MySQL', 4);
@@ -91,8 +91,10 @@ CALL sp_skill_curriculum_insert('judy@example.com', 'Python', 4);
 CALL sp_skill_curriculum_insert('karen@example.com', 'Ruby', 4);
 CALL sp_skill_curriculum_insert('leo@example.com', 'React', 3);
 CALL sp_skill_curriculum_insert('mike@example.com', 'Angular', 4);
+CALL sp_skill_curriculum_insert('mike@example.com', 'CSS', 5);
 CALL sp_skill_curriculum_insert('nancy@example.com', 'Node.js', 5);
 CALL sp_skill_curriculum_insert('oscar@example.com', 'Django', 4);
+CALL sp_skill_curriculum_insert('oscar@example.com', 'SQL', 5);
 
 -- ==================================================
 -- PROGETTO INSERTION (CREATORE)
@@ -210,14 +212,14 @@ CALL sp_partecipante_creatore_update('grace@example.com', 'judy@example.com', 'P
                                      'accettato');
 
 -- For ProgettoEpsilon:
-# CALL sp_partecipante_utente_insert('mike@example.com', 'ProgettoEpsilon', 'Designer', 'CSS');
-# CALL sp_partecipante_creatore_update('karen@example.com', 'mike@example.com', 'ProgettoEpsilon', 'Designer', 'CSS',
-#                                      'accettato');
+CALL sp_partecipante_utente_insert('mike@example.com', 'ProgettoEpsilon', 'Designer', 'CSS');
+CALL sp_partecipante_creatore_update('karen@example.com', 'mike@example.com', 'ProgettoEpsilon', 'Designer', 'CSS',
+                                     'accettato');
 
 -- For ProgettoIota:
-# CALL sp_partecipante_utente_insert('oscar@example.com', 'ProgettoIota', 'Manager', 'SQL');
-# CALL sp_partecipante_creatore_update('grace@example.com', 'oscar@example.com', 'ProgettoIota', 'Manager', 'SQL',
-#                                      'accettato');
+CALL sp_partecipante_utente_insert('oscar@example.com', 'ProgettoIota', 'Manager', 'SQL');
+CALL sp_partecipante_creatore_update('grace@example.com', 'oscar@example.com', 'ProgettoIota', 'Manager', 'SQL',
+                                     'accettato');
 
 -- ==================================================
 -- FINANZIAMENTO OPERATIONS (ALL)
