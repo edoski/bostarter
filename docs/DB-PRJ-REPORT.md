@@ -3,30 +3,61 @@
 - [ ] connect mongodb to php
 - [ ] env vars for mysql and php?
 - [ ] PASTE FULL SQL INIT FILE TO [[#**7.1. Inizializzazione DB**]]
-- [ ] in README and in report & presentation and explain how to setup and run project..... hmmm maybe docker cool but idk
+- [ ] in README and in report & presentation and explain how to setup and run project..... bash script for php too? ........... hmmm maybe docker cool but idk
 
 ## [[DB-PRJ-REPORT#5. RIFLESSIONI]]
 
 
-## write bash script if there is any setup to do w php?
+
+## DO JAVADOC COMMENTS FOR HELPER SP'S AND ALL OTHER THINGS LIKE VIEWS, TRIGGERS EVENTS ETC
 
 
 
+## REMEMBER FOR HW PROJECTS WHEN USER ADDS COMPONENTS PRICE/QUANTITY HE MUST BE ALERTED IF THEIR SUM EXCEEDS THE PROJECT BUDGET AND TO CONFIRM ADD THEM OR NOT → MAKE SURE THE BUDGET RECALCULATION TRIGGERS ARE CORRECT
 
+
+## at php level whenever a COMPONENTE IS UPDATE WITH sp_componente_budget and the desc or name remain unchanged, assume that the user is only updating quantity and/or price
+- **same might apply to profilo and livello_richiesto**
+- if user does supply new name and/or desc. then override default behaviour of maintaining prev name and/or desc
+- it's either this or write separate sp's updating each attribute
+
+
+
+## add a bunch more fake data to bostarter_demo.sql pls at least enough to fill the views in statistiche.php
+
+
+## MAKE SURE ALL JAVADOC STYLE COMMENTS FOR DB ARE CORRECT
+
+
+## for mongodb add a error collection which just logs any sql signal state 45000 errors triggered
+
+
+## add FAQ page covering some of your design choices for operations like some bullets in [[#**5. RIFLESSIONI**]]????
+- maybe this can be my homepage?
+- and homepage can be like a kinda welcome + how-to/guide for user explaining navbar and what each page contains
+- AND DISPLAY ALL THEIR INFO IN A CARD AS BIO LIKE NAME, SURNAME, EMAIL, NICKNAME, ETC
 
 ## keep track of website structure
+```
 bostarter/
- ┣ config.php
- ┣ index.php
- ┣ login.php
- ┣ register.php
- ┣ dashboard.php
- ┣ new_project.php
- ┣ sp_invoke.php
- ┗ components/
-    ┣ header.php
-    ┗ footer.php
-
+├── actions/
+│   ├── login_handler.php
+│   ├── logout.php
+│   └── register_handler.php
+├── components/
+│   ├── footer.php
+│   └── header.php
+├── config/
+├── public/
+│   ├── lib/
+│   ├── home.php
+│   ├── index.php
+│   ├── login.php
+│   ├── progetti.php
+│   ├── register.php
+│   ├── skill.php
+│   └── statistiche.php
+```
 
 # INDICE
 ---
@@ -54,7 +85,7 @@ bostarter/
 ### **7. [[#7. APPENDICE|Appendice]]**
 - **7.1. [[#7.1. Inizializzazione DB|Inizializzazione DB]]**
 - **7.2. [[#7.2. Popolamento DB|Popolamento DB]]**
-- **7.3. [[#7.3. Logging DB|Logging DB]]**
+- **7.3. [[#7.3. Script|Script]]**
 
 # **1. ANALISI DEI REQUISITI**
 ---
@@ -599,6 +630,9 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 		- php notification of change in budget before operation finalised
 	- can still manually adjust budget, as long as it stays >= sum component cost
 
+- additional triggers for handling partecipazioni in the event of any skill profilo update, and automatic rejection of any user whose skill is inferior to requested level BY NEVER EVEN INSERTING THEM IN THE PARTECIPANTE TABLE AT ALL (see trg_rifiuta_candidatura_livello_effettivo_insufficiente)
+	- fundamental point at the end because PARTECIPANTE.stato = 'rifiutato' IS ONLY APPLICABLE TO THOSE WHOSE SKILL >= REQUESTED, BUT THE PROJECT CREATOR EXPLICITLY REFUSED THEM
+
 - multi-layer security check → redundant security > single line of defense php-level
 
 - profiles were global when PROFILO_PROGETTO was separate from SKILL_PROFILO, so I removed PROFILO_PROGETTO and added nome_progetto to PK of SKILL_PROFILO
@@ -610,7 +644,7 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 - use of sql signal state 45000 to be able to notice at php-level any db issues
 
-- testing stored procedures via dedicated sql testing file
+- testing stored procedures via dedicated sql demo fake data file
 
 - the use of business fields / client-facing fields as PK for the tables (es. PROGETTO.nome) is not ideal because it may be subject to change (es. project owner may decide to rename the project at some point), so I think it would've been better to use something like an ID that is not subject to change for the db to reference as PK. However I opted not to so as to be faithful to the traccia
 
@@ -627,6 +661,7 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 - lots of SPs have common logic checks, I decided to modularise this by abstracting out the common logic checks into secondary helper SP's to improve readability and maintainability of the code
 
 - With my main init file having grown to >1700 lines I decided to document it with very clear segmentations to make it clearer and more maintainable
+	- highlight importance of clear structure, documentation, and necessity of transmitting clearly the purpose/intent of the SP etc
 
 - while the existence check for the project might seem redundant from a pure data-integrity standpoint, it is valuable for providing a better, more controlled error response and enforcing additional business logic. EXAMPLE: The check for the project’s closed state is absolutely necessary for comments and financing operations because it’s not covered by the foreign key constraints.
 
@@ -641,14 +676,16 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 ## **6.1. BACKEND (MySQL)**
 
 -- UTENTE:
---  sp_utente_registra
+--  sp_utente_register
 --  sp_utente_login
 
 -- SKILL_CURRICULUM:
 --  sp_skill_curriculum_insert
+--  sp_skill_curriculum_selectAll
+--  sp_skill_curriculum_selectDiff
 
 -- PROGETTO:
---  sp_visualizza_progetti
+--  sp_progetto_selectAll
 --  sp_progetto_insert
 
 -- FINANZIAMENTO:
@@ -666,6 +703,7 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 -- SKILL:
 --  sp_skill_insert
+--  sp_skill_selectAll
 
 -- REWARD:
 --  sp_reward_insert
@@ -690,17 +728,27 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 ## **6.2. FRONTEND (PHP)**
 
+### **AUTENTICAZIONE UTENTE**
 
+Il landing page della piattaforma, `index.php`, verifica se l'utente si è già autenticato controllando la variabile di sessione `$_SESSION['user_email']` e se sì allora viene reindirizzato alla homepage, `home.php`, altrimenti viene reindirizzato alla pagina di login, `login.php` per autenticarsi.
 
-### mention stored procedures when referencing php functions
+Se dispone di un account esistente sulla piattaforma (email e password) allora può autenticarsi, altrimenti clicca su Registra e continua con la procedura per creare il proprio account. In fase di login l'utente può anche autenticarsi come amministratore se dispone del codice di sicurezza proprio.
 
+![[login.png]]
 
+La struttura della pagina di registrazione è molto simile a quella di login per mantenere un look consistente e prevedibile per l'utente, con la sola differenza che contiene alcuni campi aggiuntivi per i propri dati personali.
 
+![[register.png]]
 
-### REGISTRAZIONE UTENTE
+In fase di registrazione, l'utente ha la possibilità di segnarsi come un creatore della piattaforma, cliccando sulla checkbox sopra al submit button della registrazione. In tal caso, verrà inserito nel DB anche come `CREATORE`.
 
-Ogni utente passa inizialmente per la pagina di login, `index.php`, se dispone di un account esistente sulla piattaforma (email e password) allora può autenticarsi, altrimenti clicca su Registra e continua con la procedura per creare il proprio account.
-In fase di login l'utente può anche autenticarsi come amministratore se dispone del codice di sicurezza proprio.
+### **HOMEPAGE**
+
+### **STATISTICHE**
+
+### **SKILL**
+
+### **PROGETTI**
 
 ## **6.3. LOGGING (MongoDB)**
 
@@ -722,9 +770,32 @@ Il codice SQL per la demo con popolamento di dati fittizi, usando le stored proc
 bostarter_demo.sql
 ```
 
-## **7.3. Logging DB**
-Il codice JavaScript relativo alla gestione del logging della piattaforma:
+## **7.3. Script**
+Di seguito anche un breve script che invoca i due file di sopra, per inizializzare il DB e popolare la piattaforma con i dati fittizi. Mi raccomando per il corretto funzionamento di sovrascrivere la variabile `MYSQL_PASS` con la propria password:
+```sh
+#!/bin/bash
+# init_demo.sh
 
-```js
-bostarter_logging.js
+MYSQL_USER="root"
+MYSQL_PASS= <LA TUA PASSWORD>
+MYSQL_HOST="localhost"
+
+mysql -u "$MYSQL_USER" -p"$MYSQL_PASS" -h "$MYSQL_HOST" < bostarter_init.sql
+
+if [  $? -eq 0 ]; then
+    echo "-- OK: bostarter_init.sql --"
+else
+    echo "-- ERRORE: bostarter_init.sql --"
+fi
+
+mysql -u "$MYSQL_USER" -p"$MYSQL_PASS" -h "$MYSQL_HOST" BOSTARTER < bostarter_demo.sql
+
+if [  $? -eq 0 ]; then
+    echo "-- OK: bostarter_demo.sql --"
+else
+    echo "-- ERRORE: bostarter_demo.sql --"
+fi
+
+echo "-- BOSTARTER INIZIALIZZATO --"
+
 ```

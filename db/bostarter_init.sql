@@ -249,8 +249,8 @@ CREATE TABLE SKILL_PROFILO
     livello_richiesto TINYINT      NOT NULL CHECK ( livello_richiesto BETWEEN 0 AND 5 ), -- Business Rule #2
     PRIMARY KEY (nome_profilo, competenza, nome_progetto),
     CONSTRAINT fk_skprof_profilo
-        FOREIGN KEY (nome_profilo)
-            REFERENCES PROFILO (nome_profilo)
+        FOREIGN KEY (nome_profilo, nome_progetto)
+            REFERENCES PROFILO (nome_profilo, nome_progetto)
             ON DELETE CASCADE
             ON UPDATE CASCADE,
     CONSTRAINT fk_skprof_skill
@@ -286,8 +286,8 @@ CREATE TABLE PARTECIPANTE
             ON DELETE CASCADE
             ON UPDATE CASCADE,
     CONSTRAINT fk_part_profilo
-        FOREIGN KEY (nome_profilo)
-            REFERENCES PROFILO (nome_profilo)
+        FOREIGN KEY (nome_profilo, nome_progetto)
+            REFERENCES PROFILO (nome_profilo, nome_progetto)
             ON DELETE CASCADE
             ON UPDATE CASCADE,
     CONSTRAINT fk_part_skill
@@ -679,7 +679,7 @@ BEGIN
     IF NOT p_is_insert AND NOT EXISTS (SELECT 1
                                        FROM FOTO
                                        WHERE nome_progetto = p_nome_progetto
-                                         AND id = p_foto_id) THEN
+                                         AND foto = p_foto_id) THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'ERRORE: FOTO NON ESISTENTE';
     END IF;
@@ -695,9 +695,9 @@ DELIMITER ;
 -- Vengono divise in base alla tabella di riferimento, con la seguente sintassi generale...
 
 -- NOME_TABELLA:
---  sp_nome_procedura_{insert|delete|update} o altre azioni specifiche
+--  sp_nome_tabella_{insert|delete|update|select} o altre azioni specifiche
 
--- Al di sopra della definizione di ogni stored procedure principale, si documenta la funzione di esse e che tipo di utente può utilizzarle (in parentesi).
+-- Al di sopra della definizione di ogni stored procedure principale, si documenta la funzione di esse e che tipo di utente può utilizzarle.
 -- L'interno di ogni stored procedure è diviso in tre parti:
 --  1. Controllo dei parametri in input (il controllo assistito dalle stored procedure "helper")
 --  2. Operazioni sul database relative
@@ -705,11 +705,24 @@ DELIMITER ;
 DELIMITER //
 
 -- UTENTE:
---  sp_utente_registra
+--  sp_utente_register
 --  sp_utente_login
 
--- (ALL) Registrazione di un utente con o senza ruolo di creatore
-CREATE PROCEDURE sp_utente_registra(
+/*
+*  PROCEDURE: sp_utente_register
+*  PURPOSE: Registrazione di un utente con o senza ruolo di creatore.
+*  USED BY: UTENTE, CREATORE
+*
+*  @param IN p_email - Email dell'utente
+*  @param IN p_password - Password dell'utente
+*  @param IN p_nickname - Nickname dell'utente
+*  @param IN p_nome - Nome dell'utente
+*  @param IN p_cognome - Cognome dell'utente
+*  @param IN p_anno_nascita - Anno di nascita dell'utente
+*  @param IN p_luogo_nascita - Luogo di nascita dell'utente
+*  @param IN p_is_creatore - Flag che indica se l'utente è un creatore
+*/
+CREATE PROCEDURE sp_utente_register(
     IN p_email VARCHAR(100),
     IN p_password VARCHAR(255),
     IN p_nickname VARCHAR(50),
@@ -720,6 +733,11 @@ CREATE PROCEDURE sp_utente_registra(
     IN p_is_creatore BOOLEAN -- Definito a livello di interfaccia
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION -- Gestione delle eccezioni, rollback e propagazione dell'errore
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION; -- Uso di transazione per garantire l'integrità dei dati
     INSERT INTO UTENTE (email, password, nickname, nome, cognome, anno_nascita, luogo_nascita)
     VALUES (p_email, p_password, p_nickname, p_nome, p_cognome, p_anno_nascita, p_luogo_nascita);
@@ -731,7 +749,18 @@ BEGIN
     COMMIT;
 END//
 
--- (ALL) Login di un utente
+/*
+*  PROCEDURE: sp_utente_login
+*  PURPOSE: Login di un utente, restituisce i dati dell'utente se esiste.
+*  USED BY: ALL
+*
+*  @param IN p_email - Email dell'utente
+*  @param IN p_codice_sicurezza - Codice di sicurezza dell'utente (solo per admin)
+*
+*  @param OUT p_nickname_out - Nickname dell'utente
+*  @param OUT p_email_out - Email dell'utente
+*  @param OUT p_password_hash_out - Hash della password dell'utente
+*/
 CREATE PROCEDURE sp_utente_login(
     IN p_email VARCHAR(100),
     IN p_codice_sicurezza VARCHAR(100),
@@ -740,6 +769,11 @@ CREATE PROCEDURE sp_utente_login(
     OUT p_password_hash_out VARCHAR(255)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- (ALL) Controllo che l'utente esista
     IF NOT EXISTS (SELECT 1 FROM UTENTE WHERE email = p_email) THEN
@@ -773,31 +807,100 @@ END//
 
 -- SKILL_CURRICULUM:
 --  sp_skill_curriculum_insert
+--  sp_skill_curriculum_selectAll
+--  sp_skill_curriculum_selectDiff
 
--- (ALL) Inserimento di skill in un curriculum utente
+/*
+*  PROCEDURE: sp_skill_curriculum_insert
+*  PURPOSE: Inserimento di una skill in un curriculum utente.
+*  USED BY: ALL
+*
+*  @param IN p_email - Email dell'utente
+*  @param IN p_competenza - Competenza da inserire nel curriculum
+*  @param IN p_livello - Livello della competenza da inserire (da 0 a 5)
+*/
 CREATE PROCEDURE sp_skill_curriculum_insert(
     IN p_email VARCHAR(100),
     IN p_competenza VARCHAR(100),
     IN p_livello TINYINT
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     INSERT INTO SKILL_CURRICULUM (email_utente, competenza, livello_effettivo)
     VALUES (p_email, p_competenza, p_livello);
     COMMIT;
 END//
 
+/*
+*  PROCEDURE: sp_skill_curriculum_selectAll
+*  PURPOSE: Visualizzazione di tutte le skill di un utente.
+*  USED BY: ALL
+*
+*  @param IN p_email - Email dell'utente
+*/
+CREATE PROCEDURE sp_skill_curriculum_selectAll(
+    IN p_email VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    SELECT competenza, livello_effettivo
+    FROM SKILL_CURRICULUM
+    WHERE email_utente = p_email;
+    COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_skill_curriculum_selectDiff
+*  PURPOSE: Visualizzazione delle skill di cui un utente non dispone.
+*  USED BY: ALL
+*
+*  @param IN p_email - Email dell'utente
+*/
+CREATE PROCEDURE sp_skill_curriculum_selectDiff(
+    IN p_email VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    SELECT competenza
+    FROM SKILL
+    WHERE competenza NOT IN (SELECT competenza
+                             FROM SKILL_CURRICULUM
+                             WHERE email_utente = p_email);
+    COMMIT;
+END//
+
 -- PROGETTO:
---  sp_visualizza_progetti
+--  sp_progetto_selectAll
 --  sp_progetto_insert
 
--- (ALL) Visualizzazione dei progetti disponibili
-CREATE PROCEDURE sp_visualizza_progetti()
+/*
+*  PROCEDURE: sp_progetto_selectAll
+*  PURPOSE: Visualizzazione di tutti i progetti disponibili.
+*  USED BY: ALL
+*/
+CREATE PROCEDURE sp_progetto_selectAll()
 BEGIN
     SELECT * FROM PROGETTO;
 END//
 
--- (CREATORE) Inserimento di un nuovo progetto (nr_progetti incrementato via trg_incrementa_progetti_creati)
+/*
+*  PROCEDURE: sp_progetto_insert
+*  PURPOSE: Inserimento di un nuovo progetto da parte di un creatore.
+*  USED BY: CREATORE
+*  NOTE: Il campo CREATORE.nr_progetti_creati viene incrementato tramite trigger (trg_incrementa_progetti_creati) dopo l'inserimento del progetto.
+*
+*  @param IN p_nome - Nome del progetto
+*  @param IN p_email_creatore - Email del creatore del progetto
+*  @param IN p_descrizione - Descrizione del progetto
+*  @param IN p_budget - Budget del progetto
+*  @param IN p_data_limite - Data limite per il progetto
+*  @param IN p_tipo - Tipo di progetto (software o hardware)
+*/
 CREATE PROCEDURE sp_progetto_insert(
     IN p_nome VARCHAR(100),
     IN p_email_creatore VARCHAR(100),
@@ -807,6 +910,11 @@ CREATE PROCEDURE sp_progetto_insert(
     IN p_tipo ENUM ('software','hardware') -- Tipo di progetto, definito a livello di interfaccia (checkbox)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che l'utente sia un creatore
     CALL sp_util_is_utente_creatore(p_email_creatore);
@@ -834,14 +942,32 @@ END//
 -- FINANZIAMENTO:
 --  sp_finanziamento_insert
 
--- (ALL) Finanziamento di un progetto aperto da parte di un utente (anche creatore)
+/*
+*  PROCEDURE: sp_finanziamento_insert
+*  PURPOSE: Finanziamento di un progetto da parte di un utente.
+*  USED BY: ALL
+*  NOTE:
+*   - Il progetto deve essere aperto
+*   - Il codice del reward è scelto dall'utente al livello di interfaccia al momento del finanziamento, in base all'importo scelto
+*   - Anche il creatore può finanziare il proprio progetto
+*
+*  @param IN p_email - Email dell'utente
+*  @param IN p_nome_progetto - Nome del progetto
+*  @param IN p_codice_reward - Codice del reward scelto dall'utente
+*  @param IN p_importo - Importo del finanziamento
+*/
 CREATE PROCEDURE sp_finanziamento_insert(
     IN p_email VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
-    IN p_codice_reward VARCHAR(50), -- Si presuppone che il codice sia scelto dall'utente al livello di interfaccia
+    IN p_codice_reward VARCHAR(50), -- Scelto al livello di interfaccia
     IN p_importo DECIMAL(10, 2)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che il progetto sia aperto
     IF NOT EXISTS (SELECT 1
@@ -864,13 +990,26 @@ END//
 --  sp_commento_risposta_insert
 --  sp_commento_risposta_delete
 
--- (ALL) Inserimento di un commento a un progetto
+/*
+*  PROCEDURE: sp_commento_insert
+*  PURPOSE: Inserimento di un commento a un progetto esistente.
+*  USED BY: ALL
+*
+*  @param IN p_email_autore - Email dell'autore del commento
+*  @param IN p_nome_progetto - Nome del progetto
+*  @param IN p_testo - Testo del commento
+*/
 CREATE PROCEDURE sp_commento_insert(
     IN p_email_autore VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
     IN p_testo TEXT
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. Esista il progetto
@@ -882,14 +1021,27 @@ BEGIN
     COMMIT;
 END//
 
--- (ALL) Cancellazione di un commento a un progetto
-DELIMITER //
+/*
+*  PROCEDURE: sp_commento_delete
+*  PURPOSE: Cancellazione di un commento a un progetto esistente.
+*  USED BY: ALL
+*  NOTE: L'utente può cancellare solo i propri commenti, mentre un admin può cancellare qualsiasi commento.
+*
+*  @param IN p_id - ID del commento da cancellare
+*  @param IN p_email - Email dell'utente (autore del commento o admin)
+*  @param IN p_nome_progetto - Nome del progetto del quale fa parte il commento
+*/
 CREATE PROCEDURE sp_commento_delete(
     IN p_id INT,
     IN p_email VARCHAR(100),
     IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. Esista il progetto
@@ -904,7 +1056,16 @@ BEGIN
     COMMIT;
 END//
 
--- (CREATORE) Inserimento di una risposta a un commento
+/*
+*  PROCEDURE: sp_commento_risposta_insert
+*  PURPOSE: Inserimento di una risposta a un commento esistente.
+*  USED BY: CREATORE
+*
+*  @param IN p_commento_id - ID del commento a cui rispondere
+*  @param IN p_email_creatore - Email del creatore del progetto
+*  @param IN p_nome_progetto - Nome del progetto del quale fa parte il commento
+*  @param IN p_risposta - Testo della risposta
+*/
 CREATE PROCEDURE sp_commento_risposta_insert(
     IN p_commento_id INT,
     IN p_email_creatore VARCHAR(100),
@@ -912,6 +1073,11 @@ CREATE PROCEDURE sp_commento_risposta_insert(
     IN p_risposta TEXT
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. Esista il progetto
@@ -927,13 +1093,27 @@ BEGIN
     COMMIT;
 END//
 
--- (CREATORE) Cancellazione di una risposta a un commento
+/*
+*  PROCEDURE: sp_commento_risposta_delete
+*  PURPOSE: Cancellazione di una risposta a un commento esistente.
+*  USED BY: CREATORE
+*  NOTE: Sia il creatore che un admin possono cancellare le risposte ai commenti del progetto suo (creatore).
+*
+*  @param IN p_commento_id - ID del commento con risposta da cancellare
+*  @param IN p_email_creatore - Email del creatore del progetto
+*  @param IN p_nome_progetto - Nome del progetto del quale fa parte il commento
+*/
 CREATE PROCEDURE sp_commento_risposta_delete(
     IN p_commento_id INT,
     IN p_email_creatore VARCHAR(100),
     IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. Esista il progetto
@@ -953,7 +1133,21 @@ END//
 --  sp_partecipante_utente_insert
 --  sp_partecipante_creatore_update
 
--- (ALL) Inserimento di una candidatura a un progetto software
+/*
+*  PROCEDURE: sp_partecipante_utente_insert
+*  PURPOSE: Inserimento di una candidatura a un progetto software da parte di un utente.
+*  USED BY: ALL
+*  NOTE:
+*   - L'utente non può candidarsi a un progetto di cui è creatore, e non può candidarsi più di una volta per la stessa competenza.
+*   - Utenti che non dispongono della competenza richiesta non possono candidarsi.
+*   - Utenti che non dispongono del livello richiesto per la competenza non possono candidarsi e vengono automaticamente rifiutati
+*     senza mai essere inseriti nella tabella PARTECIPANTE (vedi trigger trg_rifiuta_candidatura_livello_effettivo_insufficiente).
+*
+*  @param IN p_email - Email dell'utente che si candida
+*  @param IN p_nome_progetto - Nome del progetto interessato
+*  @param IN p_nome_profilo - Nome del profilo richiesto per il progetto
+*  @param IN p_competenza - Competenza richiesta per il profilo del progetto
+*/
 CREATE PROCEDURE sp_partecipante_utente_insert(
     IN p_email VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
@@ -961,6 +1155,11 @@ CREATE PROCEDURE sp_partecipante_utente_insert(
     IN p_competenza VARCHAR(100)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. Il progetto sia di tipo software
@@ -975,7 +1174,19 @@ BEGIN
     COMMIT;
 END//
 
--- (CREATORE) Accettazione o rifiuto di una candidatura a un progetto
+/*
+*  PROCEDURE: sp_partecipante_creatore_update
+*  PURPOSE: Accettazione o rifiuto di una candidatura a un progetto software da parte del creatore.
+*  USED BY: CREATORE
+*  NOTE: Solo il creatore, in quanto tale, può accettare o rifiutare una candidatura.
+*
+*  @param IN p_email_creatore - Email del creatore del progetto
+*  @param IN p_email_candidato - Email del candidato
+*  @param IN p_nome_progetto - Nome del progetto interessato
+*  @param IN p_nome_profilo - Nome del profilo richiesto per il progetto
+*  @param IN p_competenza - Competenza richiesta per il profilo del progetto
+*  @param IN p_nuovo_stato - Nuovo stato della candidatura (accettato o rifiutato)
+*/
 CREATE PROCEDURE sp_partecipante_creatore_update(
     IN p_email_creatore VARCHAR(100),
     IN p_email_candidato VARCHAR(100),
@@ -985,6 +1196,11 @@ CREATE PROCEDURE sp_partecipante_creatore_update(
     IN p_nuovo_stato ENUM ('accettato','rifiutato')
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. Il progetto sia di tipo software
@@ -1006,13 +1222,26 @@ END//
 
 -- SKILL:
 --  sp_skill_insert
+--  sp_skill_selectAll
 
--- (ADMIN) Inserimento di una nuova stringa nella lista delle competenze
+/*
+*  PROCEDURE: sp_skill_insert
+*  PURPOSE: Inserimento di una competenza nella lista delle competenze disponibili.
+*  USED BY: ADMIN
+*
+*  @param IN p_competenza - Competenza/skill da inserire
+*  @param IN p_email - Email dell'utente admin che esegue la procedura
+*/
 CREATE PROCEDURE sp_skill_insert(
     IN p_competenza VARCHAR(100),
     IN p_email VARCHAR(100)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che l'admin sia l'utente che esegue la procedura
     CALL sp_util_is_utente_admin(p_email);
@@ -1023,10 +1252,37 @@ BEGIN
     COMMIT;
 END//
 
+/*
+*  PROCEDURE: sp_skill_selectAll
+*  PURPOSE: Visualizzazione di tutte le competenze disponibili nel sistema.
+*  USED BY: ALL
+*/
+CREATE PROCEDURE sp_skill_selectAll()
+BEGIN
+    START TRANSACTION;
+    SELECT competenza
+    FROM SKILL;
+    COMMIT;
+END//
+
 -- REWARD:
 --  sp_reward_insert
 
--- (CREATORE) Inserimento di una reward per un progetto
+/*
+*  PROCEDURE: sp_reward_insert
+*  PURPOSE: Inserimento di una reward per un progetto.
+*  USED BY: CREATORE
+*  NOTE:
+*    - p_codice è un codice univoco per la reward, definito dal creatore al momento dell'inserimento
+*    - p_min_importo è l'importo minimo per il quale un finanziatore è eleggibile alla reward quando effettua un finanziamento
+*
+*  @param IN p_codice - Codice della reward definito dal creatore
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene la reward
+*  @param IN p_email_creatore - Email del creatore del progetto che inserisce la reward
+*  @param IN p_descrizione - Descrizione della reward
+*  @param IN p_foto - Foto della reward
+*  @param IN p_min_importo - Importo minimo per essere eleggibili alla reward
+*/
 CREATE PROCEDURE sp_reward_insert(
     IN p_codice VARCHAR(50),
     IN p_nome_progetto VARCHAR(100),
@@ -1036,6 +1292,11 @@ CREATE PROCEDURE sp_reward_insert(
     IN p_min_importo DECIMAL(10, 2)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. Il progetto esista
@@ -1054,8 +1315,23 @@ END//
 --  sp_componente_delete
 --  sp_componente_update
 
--- (CREATOR) Inserimento di un componente per un progetto hardware
--- trg_aggiorna_budget_componente_insert si occupa di aggiornare il budget del progetto
+/*
+*  PROCEDURE: sp_componente_insert
+*  PURPOSE: Inserimento di un componente per un progetto hardware.
+*  USED BY: CREATORE
+*  NOTE:
+*    - Il prezzo e la quantità del componente vengono definiti dal creatore al momento dell'inserimento.
+*    - Il prezzo e la quantità del componente aggiorneranno il budget del progetto se (prezzo * quantità) > budget attuale del progetto.
+*       - Il budget aumenta della differenza tra il prezzo totale dei componenti e il budget (vedi trigger trg_update_budget_componente_insert).
+*       - Il creatore è notificato a livello di interfaccia del cambio di budget.
+*
+*  @param IN p_nome_componente - Nome del componente da inserire per il progetto hardware
+*  @param IN p_nome_progetto - Nome del progetto hardware
+*  @param IN p_descrizione - Descrizione del componente
+*  @param IN p_quantita - Quantità del componente
+*  @param IN p_prezzo - Prezzo del componente
+*  @param IN p_email_creatore - Email del creatore del progetto che richiede l'inserimento
+*/
 CREATE PROCEDURE sp_componente_insert(
     IN p_nome_componente VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
@@ -1065,6 +1341,11 @@ CREATE PROCEDURE sp_componente_insert(
     IN p_email_creatore VARCHAR(100)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. L'utente sia il creatore del progetto
@@ -1077,14 +1358,27 @@ BEGIN
     COMMIT;
 END//
 
--- (CREATOR) Rimozione di un componente per un progetto hardware
--- trg_aggiorna_budget_componente_delete si occupa di aggiornare il budget del progetto
+/*
+*  PROCEDURE: sp_componente_delete
+*  PURPOSE: Rimozione di un componente per un progetto hardware.
+*  USED BY: CREATORE
+*  NOTE: Il budget del progetto viene aggiornato in base alla quantità e al prezzo del componente rimosso (vedi trigger trg_update_budget_componente_delete).
+*
+*  @param IN p_nome_componente - Nome del componente da rimuovere
+*  @param IN p_nome_progetto - Nome del progetto hardware a cui appartiene il componente
+*  @param IN p_email_creatore - Email del creatore del progetto che richiede la rimozione
+*/
 CREATE PROCEDURE sp_componente_delete(
     IN p_nome_componente VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
     IN p_email_creatore VARCHAR(100)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. L'utente sia il creatore del progetto
@@ -1100,8 +1394,23 @@ BEGIN
     COMMIT;
 END//
 
--- (CREATOR) Aggiornamento di un componente per un progetto hardware
--- trg_aggiorna_budget_componente_update si occupa di aggiornare il budget del progetto
+/*
+*  PROCEDURE: sp_componente_update
+*  PURPOSE: Aggiornamento di un componente per un progetto hardware.
+*  USED BY: CREATORE
+*  NOTE:
+*   - Il budget del progetto viene aggiornato in base alla differenza tra il prezzo e la quantità del componente prima e dopo l'aggiornamento
+*     (vedi trigger trg_update_budget_componente_update).
+*   - Se campi come nome e/o descrizione del componente non sono modificati a livello di interfaccia, non vengono aggiornati e vengono passati
+*     nome e/o descrizione attuali.
+*
+*  @param IN p_nome_componente - Nome del componente da aggiornare
+*  @param IN p_nome_progetto - Nome del progetto hardware a cui appartiene il componente
+*  @param IN p_descrizione - Nuova descrizione del componente
+*  @param IN p_quantita - Nuova quantità del componente
+*  @param IN p_prezzo - Nuovo prezzo del componente
+*  @param IN p_email_creatore - Email del creatore del progetto che richiede l'aggiornamento
+*/
 CREATE PROCEDURE sp_componente_update(
     IN p_nome_componente VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
@@ -1111,6 +1420,11 @@ CREATE PROCEDURE sp_componente_update(
     IN p_email_creatore VARCHAR(100)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. L'utente sia il creatore del progetto
@@ -1132,13 +1446,26 @@ END//
 --  sp_profilo_insert
 --  sp_profilo_delete
 
--- (CREATOR) Inserimento di un profilo per un progetto
+/*
+*  PROCEDURE: sp_profilo_insert
+*  PURPOSE: Inserimento di un profilo per un progetto software.
+*  USED BY: CREATORE
+*
+*  @param IN p_nome_profilo - Nome del profilo da inserire
+*  @param IN p_nome_progetto - Nome del progetto software a cui appartiene il profilo
+*  @param IN p_email_creatore - Email del creatore del progetto che richiede l'inserimento
+*/
 CREATE PROCEDURE sp_profilo_insert(
     IN p_nome_profilo VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
     IN p_email_creatore VARCHAR(100)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. L'utente sia il creatore del progetto
@@ -1151,13 +1478,27 @@ BEGIN
     COMMIT;
 END//
 
--- (CREATOR) Rimozione di un profilo per un progetto
+/*
+*  PROCEDURE: sp_profilo_delete
+*  PURPOSE: Rimozione di un profilo per un progetto software.
+*  USED BY: CREATORE
+*  NOTE: La rimozione del profilo comporta la rimozione (se esiste) del PARTECIPANTE associato a quel profilo.
+*
+*  @param IN p_nome_profilo - Nome del profilo da rimuovere
+*  @param IN p_nome_progetto - Nome del progetto software a cui appartiene il profilo
+*  @param IN p_email_creatore - Email del creatore del progetto che richiede la rimozione
+*/
 CREATE PROCEDURE sp_profilo_delete(
     IN p_nome_profilo VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
     IN p_email_creatore VARCHAR(100)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. L'utente sia il creatore del progetto
@@ -1178,7 +1519,17 @@ END//
 --  sp_skill_profilo_delete
 --  sp_skill_profilo_update
 
--- (CREATOR) Inserimento di una skill per un profilo di un progetto
+/*
+*  PROCEDURE: sp_skill_profilo_insert
+*  PURPOSE: Inserimento di una skill per un profilo di un progetto.
+*  USED BY: CREATORE
+*
+*  @param IN p_nome_profilo - Nome del profilo del progetto software per cui inserire la skill
+*  @param IN p_nome_progetto - Nome del progetto software a cui appartiene il profilo
+*  @param IN p_email_creatore - Email del creatore del progetto che richiede l'inserimento
+*  @param IN p_competenza - Competenza/skill richiesta per il profilo del progetto da inserire
+*  @param IN p_livello_richiesto - Livello richiesto per la competenza nel profilo del progetto (da 0 a 5)
+*/
 CREATE PROCEDURE sp_skill_profilo_insert(
     IN p_nome_profilo VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
@@ -1187,6 +1538,11 @@ CREATE PROCEDURE sp_skill_profilo_insert(
     IN p_livello_richiesto TINYINT
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. L'utente sia il creatore del progetto
@@ -1200,7 +1556,17 @@ BEGIN
     COMMIT;
 END//
 
--- (CREATOR) Rimozione di una skill per un profilo di un progetto
+/*
+*  PROCEDURE: sp_skill_profilo_delete
+*  PURPOSE: Rimozione di una skill per un profilo di un progetto software.
+*  USED BY: CREATORE
+*  NOTE: La rimozione della skill comporta la rimozione (se esiste) del PARTECIPANTE associato a quel profilo e quella skill.
+*
+*  @param IN p_nome_profilo - Nome del profilo del progetto software per cui rimuovere la skill
+*  @param IN p_nome_progetto - Nome del progetto software a cui appartiene il profilo
+*  @param IN p_competenza - Competenza/skill richiesta per il profilo del progetto da rimuovere
+*  @param IN p_email_creatore - Email del creatore del progetto che richiede la rimozione
+*/
 CREATE PROCEDURE sp_skill_profilo_delete(
     IN p_nome_profilo VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
@@ -1208,6 +1574,11 @@ CREATE PROCEDURE sp_skill_profilo_delete(
     IN p_email_creatore VARCHAR(100)
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. L'utente sia il creatore del progetto
@@ -1225,7 +1596,19 @@ BEGIN
     COMMIT;
 END//
 
--- (CREATOR) Aggiornamento di una skill per un profilo di un progetto
+/*
+*  PROCEDURE: sp_skill_profilo_update
+*  PURPOSE: Aggiornamento del livello richiesto di una skill per un profilo di un progetto software.
+*  USED BY: CREATORE
+*  NOTE: Se un PARTECIPANTE potenziale non soddisfa il nuovo livello richiesto, la candidatura viene automaticamente rifiutata
+*        (vedi trigger trg_rifiuta_candidature_skill_profilo_update)
+*
+*  @param IN p_nome_profilo - Nome del profilo del progetto software per cui aggiornare il livello richiesto della skill
+*  @param IN p_competenza - Competenza/skill richiesta per il profilo del progetto da aggiornare
+*  @param IN p_nome_progetto - Nome del progetto software a cui appartiene il profilo
+*  @param IN p_email_creatore - Email del creatore del progetto che richiede l'aggiornamento
+*  @param IN p_nuovo_livello_richiesto - Nuovo livello richiesto per la competenza nel profilo del progetto (da 0 a 5)
+*/
 CREATE PROCEDURE sp_skill_profilo_update(
     IN p_nome_profilo VARCHAR(100),
     IN p_competenza VARCHAR(100),
@@ -1234,6 +1617,11 @@ CREATE PROCEDURE sp_skill_profilo_update(
     IN p_nuovo_livello_richiesto TINYINT
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. L'utente sia il creatore del progetto
@@ -1255,32 +1643,57 @@ END//
 --  sp_foto_insert
 --  sp_foto_delete
 
--- (CREATOR) Aggiunta di una foto a un progetto
+/*
+*  PROCEDURE: sp_foto_insert
+*  PURPOSE: Inserimento di una foto per un progetto.
+*  USED BY: CREATORE
+*
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene la foto
+*  @param IN p_email_creatore - Email del creatore del progetto
+*  @param IN p_foto - Foto da inserire
+*/
 CREATE PROCEDURE sp_foto_insert(
     IN p_nome_progetto VARCHAR(100),
     IN p_email_creatore VARCHAR(100),
-    IN p_foto_id INT,
     IN p_foto MEDIUMBLOB
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. L'utente sia il creatore del progetto
-    CALL sp_foto_check(p_nome_progetto, p_email_creatore, p_foto_id, TRUE);
+    CALL sp_foto_check(p_nome_progetto, p_email_creatore, NULL, TRUE);
 
     -- Se il controllo passa, aggiungo la foto
-    INSERT INTO FOTO (nome_progetto, id, foto)
-    VALUES (p_nome_progetto, p_foto_id, p_foto);
+    INSERT INTO FOTO (nome_progetto, foto)
+    VALUES (p_nome_progetto, p_foto);
     COMMIT;
 END//
 
--- (CREATOR) Rimozione di una foto a un progetto
+/*
+*  PROCEDURE: sp_foto_delete
+*  PURPOSE: Rimozione di una foto per un progetto.
+*  USED BY: CREATORE
+*
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene la foto
+*  @param IN p_email_creatore - Email del creatore del progetto
+*  @param IN p_foto_id - ID della foto da rimuovere
+*/
 CREATE PROCEDURE sp_foto_delete(
     IN p_nome_progetto VARCHAR(100),
     IN p_email_creatore VARCHAR(100),
     IN p_foto_id INT
 )
 BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+        BEGIN
+            ROLLBACK;
+            RESIGNAL;
+        END;
     START TRANSACTION;
     -- Controllo che:
     --  1. L'utente sia il creatore del progetto
@@ -1301,6 +1714,9 @@ DELIMITER ;
 -- VISTE
 -- ==================================================
 
+-- Le 3 seguenti viste sono accessibili a tutti gli utenti autenticati a livello di interfaccia, e non sono accessibili a utenti non autenticati.
+-- Sono visibili nella pagina statistiche.php ("Statistiche" nel navbar).
+
 -- Classifica dei top 3 utenti creatori, in base al loro valore di affidabilità
 CREATE VIEW view_classifica_creatori_affidabilita AS
 SELECT U.nickname
@@ -1312,14 +1728,14 @@ LIMIT 3;
 -- Classifica dei top 3 progetti APERTI che sono più vicini al proprio completamento
 CREATE VIEW view_classifica_progetti_completamento AS
 SELECT P.nome,
-       (P.budget -
-        IFNULL((SELECT SUM(importo) -- Differenza tra il budget e il totale dei finanziamenti per quel progetto
-                FROM FINANZIAMENTO
-                WHERE nome_progetto = P.nome),
-               0)) AS completamento -- Uso di IFNULL per evitare NULL in caso di progetto senza finanziamenti
+       P.budget,
+       IFNULL((SELECT SUM(importo) -- Uso di IFNULL per evitare NULL in caso di progetto senza finanziamenti
+               FROM FINANZIAMENTO
+               WHERE nome_progetto = P.nome),
+              0) AS tot_finanziamenti
 FROM PROGETTO P
 WHERE P.stato = 'aperto'
-ORDER BY completamento
+ORDER BY P.budget - tot_finanziamenti
 LIMIT 3;
 
 -- Classifica dei top 3 utenti, in base al TOTALE di finanziamenti erogati
@@ -1661,18 +2077,6 @@ BEGIN
           AND stato = 'potenziale'
           AND nome_progetto IN (SELECT nome FROM PROGETTO WHERE stato = 'chiuso');
     END IF;
-END//
-
--- Trigger per rimuovere automaticamente le candidature se il profilo viene rimosso dal progetto
-CREATE TRIGGER trg_delete_candidature_profilo_rimosso_da_progetto
-    AFTER DELETE
-    ON PROFILO
-    FOR EACH ROW
-BEGIN
-    DELETE
-    FROM PARTECIPANTE
-    WHERE nome_profilo = OLD.nome_profilo
-      AND nome_progetto = OLD.nome_progetto;
 END//
 
 DELIMITER ;

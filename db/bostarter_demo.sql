@@ -14,16 +14,16 @@ USE BOSTARTER;
 
     Le password sono hashed, ma in plaintext sono: pass{Nome} dove {Nome} è il nome dell'utente.
 
-    Utenti amministratori, essendo privilegiati, non possono essere registrati tramite la procedura sp_utente_registra (usata per utenti normali).
+    Utenti amministratori, essendo privilegiati, non possono essere registrati tramite la procedura sp_utente_register (usata per utenti normali).
     Si presuppone che gli amministratori siano poco numerosi e vengano inseriti manualmente per motivi di sicurezza.
 */
-CALL sp_utente_registra('alice@example.com', '$2y$10$iyV4M0QFH/6jRfhpLQi7o.sQY4psXIIgu0nKcXy9JomlEzUP5OkJG', 'alice', 'Alice', 'Rossi', 1980, 'Milano', FALSE);
+CALL sp_utente_register('alice@example.com', '$2y$10$iyV4M0QFH/6jRfhpLQi7o.sQY4psXIIgu0nKcXy9JomlEzUP5OkJG', 'alice', 'Alice', 'Rossi', 1980, 'Milano', FALSE);
 INSERT INTO ADMIN (email_utente, codice_sicurezza) VALUES ('alice@example.com', 'admincode123');
 
-CALL sp_utente_registra('bob@example.com', '$2y$10$UD3Szzw46Z.YGUVRwnbknOHa4pxJJZin/bd3E50DmeHID1NF/zkvC', 'bob', 'Bob', 'Bianchi', 1985, 'Roma', TRUE);
-CALL sp_utente_registra('charlie@example.com', '$2y$10$MTrRjFubLx0pFikUw9f3q.JUI114hSzHiw5QTEshcmkMb7QFmCpfe', 'charlie', 'Charlie', 'Verdi', 1992, 'Napoli', FALSE);
-CALL sp_utente_registra('diana@example.com', '$2y$10$ekIyDsnc1kxUgYmwggpkxOszcnWxzs3Ar/VQJXLcwc8AVt7l5aCZm', 'diana', 'Diana', 'Neri', 1988, 'Torino', TRUE);
-CALL sp_utente_registra('eric@example.com', '$2y$10$wPdkIxc6GqZtd4DeK6LShOtrkKrjlP11.rgpCghedWvSnw.o2qxNK', 'eric', 'Eric', 'Gialli', 1995, 'Firenze', FALSE);
+CALL sp_utente_register('bob@example.com', '$2y$10$UD3Szzw46Z.YGUVRwnbknOHa4pxJJZin/bd3E50DmeHID1NF/zkvC', 'bob', 'Bob', 'Bianchi', 1985, 'Roma', TRUE);
+CALL sp_utente_register('charlie@example.com', '$2y$10$MTrRjFubLx0pFikUw9f3q.JUI114hSzHiw5QTEshcmkMb7QFmCpfe', 'charlie', 'Charlie', 'Verdi', 1992, 'Napoli', FALSE);
+CALL sp_utente_register('diana@example.com', '$2y$10$ekIyDsnc1kxUgYmwggpkxOszcnWxzs3Ar/VQJXLcwc8AVt7l5aCZm', 'diana', 'Diana', 'Neri', 1988, 'Torino', TRUE);
+CALL sp_utente_register('eric@example.com', '$2y$10$wPdkIxc6GqZtd4DeK6LShOtrkKrjlP11.rgpCghedWvSnw.o2qxNK', 'eric', 'Eric', 'Gialli', 1995, 'Firenze', FALSE);
 
 -- ==================================================
 -- SKILL INSERTION (ADMIN)
