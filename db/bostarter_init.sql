@@ -2208,17 +2208,16 @@ BEGIN
     UPDATE PARTECIPANTE P
     SET stato = 'rifiutato'
     WHERE P.nome_profilo = NEW.nome_profilo
+      AND P.nome_progetto = NEW.nome_progetto
+      AND P.competenza = NEW.competenza
       AND P.stato = 'potenziale'
-      AND P.nome_progetto IN (SELECT nome_progetto
-                              FROM SKILL_PROFILO
-                              WHERE nome_profilo = NEW.nome_profilo
-                                AND competenza = NEW.competenza)
       AND NOT EXISTS (SELECT 1
                       FROM SKILL_CURRICULUM SC
                       WHERE SC.email_utente = P.email_utente
                         AND SC.competenza = NEW.competenza
                         AND SC.livello_effettivo >= NEW.livello_richiesto);
 END//
+
 
 -- Trigger per rifiutare automaticamente candidature se il livello_effettivo non è sufficiente rispetto al livello_richiesto
 CREATE TRIGGER trg_rifiuta_candidatura_livello_effettivo_insufficiente
@@ -2232,12 +2231,14 @@ BEGIN
             SET MESSAGE_TEXT = 'ERRORE: PROGETTO CHIUSO';
     END IF;
 
-    -- Controllo che il livello effettivo sia sufficiente per il profilo richiesto
+    -- Controllo che il livello effettivo sia sufficiente per il profilo
     IF EXISTS (SELECT 1
                FROM SKILL_PROFILO SP
-                        LEFT JOIN SKILL_CURRICULUM SC -- LEFT JOIN così se l'utente non ha la skill, il livello effettivo è NULL e viene considerato insufficiente
+                        LEFT JOIN SKILL_CURRICULUM SC
                                   ON SP.competenza = SC.competenza AND SC.email_utente = NEW.email_utente
                WHERE SP.nome_profilo = NEW.nome_profilo
+                 AND SP.nome_progetto = NEW.nome_progetto
+                 AND SP.competenza = NEW.competenza
                  AND (SC.livello_effettivo IS NULL OR SC.livello_effettivo < SP.livello_richiesto)) THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'ERRORE: LIVELLO EFFETTIVO NON SUFFICIENTE PER IL PROFILO';
@@ -2254,10 +2255,10 @@ BEGIN
         UPDATE PARTECIPANTE
         SET stato = 'rifiutato'
         WHERE nome_progetto = NEW.nome
-          AND stato = 'potenziale'
-          AND nome_progetto IN (SELECT nome FROM PROGETTO WHERE stato = 'chiuso');
+          AND stato = 'potenziale';
     END IF;
 END//
+
 
 DELIMITER ;
 

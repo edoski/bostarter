@@ -8,9 +8,7 @@
 ## [[DB-PRJ-REPORT#5. RIFLESSIONI]]
 
 
-
-## DO JAVADOC COMMENTS FOR HELPER SP'S AND ALL OTHER THINGS LIKE VIEWS, TRIGGERS EVENTS ETC
-
+## maybe add javadoc comments for triggers
 
 
 ## REMEMBER FOR HW PROJECTS WHEN USER ADDS COMPONENTS PRICE/QUANTITY HE MUST BE ALERTED IF THEIR SUM EXCEEDS THE PROJECT BUDGET AND TO CONFIRM ADD THEM OR NOT → MAKE SURE THE BUDGET RECALCULATION TRIGGERS ARE CORRECT
@@ -23,18 +21,14 @@
 
 
 
-## add a bunch more fake data to bostarter_demo.sql pls at least enough to fill the views in statistiche.php
-
-
-## MAKE SURE ALL JAVADOC STYLE COMMENTS FOR DB ARE CORRECT
+## add more fake data to bostarter_demo.sql, and clean file up, also fix for profilo candidatura stuff not working (check all competenze of fake users and richiesti)
 
 
 ## for mongodb add a error collection which just logs any sql signal state 45000 errors triggered
 
 
-## add FAQ page covering some of your design choices for operations like some bullets in [[#**5. RIFLESSIONI**]]????
-- maybe this can be my homepage?
-- and homepage can be like a kinda welcome + how-to/guide for user explaining navbar and what each page contains
+## homepage layout yet to figure out
+- can be like a kinda welcome + how-to/guide for user explaining navbar and what each page contains
 - AND DISPLAY ALL THEIR INFO IN A CARD AS BIO LIKE NAME, SURNAME, EMAIL, NICKNAME, ETC
 
 ## keep track of website structure
