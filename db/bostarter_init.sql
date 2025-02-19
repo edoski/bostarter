@@ -303,18 +303,26 @@ CREATE TABLE PARTECIPANTE
 -- ==================================================
 
 -- In questo blocco vengono definite le stored procedure di controllo ("helper") che verranno utilizzate dalle stored procedure principali ("main").
--- Sono incluse qui solo i controlli che sono comuni a più stored procedure, per evitare duplicazione di codice. Laddove un controllo sia specifico
+-- Sono inclusi qui solo i controlli che sono comuni a più stored procedure, per evitare duplicazione di codice. Laddove un controllo sia specifico
 -- per una sola stored procedure, esso è incluso direttamente all'interno di quella stored procedure principale, e non qui.
 
 -- SINTASSI GENERALE: sp_nome_procedura_check
 
--- L'unica eccezione sono le GENERICHE/UTILS sp_util_* che contengono controlli generici che possono essere utilizzati da più stored procedure principali.
+-- L'unica eccezione sono le GENERICHE/UTILS sp_util_* che contengono controlli generici che possono essere utilizzati da più stored procedure principali e helper.
 
 DELIMITER //
 
 -- GENERICHE/UTILS: Insieme di controlli generici per tutte le stored procedure principali laddove necessario
 
--- Controllo che l'utente sia un admin
+/*
+*  PROCEDURE: sp_util_is_utente_admin
+*  PURPOSE: Verifica se l'utente è un admin.
+*  REFERENCED BY: sp_skill_insert
+*
+*  @param IN p_email - Email dell'utente da controllare
+*
+*  @throws 45000 - ERRORE: UTENTE NON ADMIN
+*/
 CREATE PROCEDURE sp_util_is_utente_admin(
     IN p_email VARCHAR(100)
 )
@@ -327,7 +335,15 @@ BEGIN
     END IF;
 END//
 
--- Controllo che l'utente sia un creatore
+/*
+*  PROCEDURE: sp_util_is_utente_creatore
+*  PURPOSE: Verifica se l'utente è un creatore.
+*  REFERENCED BY: sp_progetto_insert
+*
+*  @param IN p_email - Email dell'utente da controllare
+*
+*  @throws 45000 - ERRORE: UTENTE NON CREATORE
+*/
 CREATE PROCEDURE sp_util_is_utente_creatore(
     IN p_email VARCHAR(100)
 )
@@ -340,7 +356,17 @@ BEGIN
     END IF;
 END//
 
--- Controllo che il progetto esista e sia stato creato dall'utente
+/*
+*  PROCEDURE: sp_util_is_creatore_progetto_owner
+*  PURPOSE: Verifica se l'utente è il creatore del progetto.
+*  REFERENCED BY: sp_skill_profilo_check, sp_profilo_check, sp_componente_check, sp_partecipante_creatore_check, sp_commento_risposta_check,
+*                 sp_foto_check, sp_reward_insert
+*
+*  @param IN p_email - Email dell'utente da controllare
+*  @param IN p_nome_progetto - Nome del progetto da controllare
+*
+*  @throws 45000 - ERRORE: UTENTE NON CREATORE DEL PROGETTO
+*/
 CREATE PROCEDURE sp_util_is_creatore_progetto_owner(
     IN p_email VARCHAR(100),
     IN p_nome_progetto VARCHAR(100)
@@ -355,7 +381,15 @@ BEGIN
     END IF;
 END//
 
--- Controllo che il progetto esista
+/*
+*  PROCEDURE: sp_util_progetto_exists
+*  PURPOSE: Verifica se il progetto esiste.
+*  REFERENCED BY: sp_commento_check, sp_commento_risposta_check, sp_reward_insert
+*
+*  @param IN p_nome_progetto - Nome del progetto da controllare
+*
+*  @throws 45000 - ERRORE: PROGETTO NON ESISTENTE
+*/
 CREATE PROCEDURE sp_util_progetto_exists(
     IN p_nome_progetto VARCHAR(100)
 )
@@ -368,7 +402,15 @@ BEGIN
     END IF;
 END//
 
--- Controllo che il progetto sia di tipo software
+/*
+*  PROCEDURE: sp_util_is_progetto_software
+*  PURPOSE: Verifica se il progetto è di tipo software.
+*  REFERENCED BY: sp_skill_profilo_check, sp_profilo_check, sp_partecipante_check
+*
+*  @param IN p_nome_progetto - Nome del progetto da controllare
+*
+*  @throws 45000 - ERRORE: PROGETTO NON DI TIPO SOFTWARE
+*/
 CREATE PROCEDURE sp_util_is_progetto_software(
     IN p_nome_progetto VARCHAR(100)
 )
@@ -381,7 +423,15 @@ BEGIN
     END IF;
 END//
 
--- Controllo che il progetto sia di tipo hardware
+/*
+*  PROCEDURE: sp_util_is_progetto_hardware
+*  PURPOSE: Verifica se il progetto è di tipo hardware.
+*  REFERENCED BY: sp_componente_check
+*
+*  @param IN p_nome_progetto - Nome del progetto da controllare
+*
+*  @throws 45000 - ERRORE: PROGETTO NON DI TIPO HARDWARE
+*/
 CREATE PROCEDURE sp_util_is_progetto_hardware(
     IN p_nome_progetto VARCHAR(100)
 )
@@ -394,7 +444,16 @@ BEGIN
     END IF;
 END//
 
--- Controllo che il profilo di un progetto esista
+/*
+*  PROCEDURE: sp_util_profilo_exists
+*  PURPOSE: Verifica se il profilo di un progetto esiste.
+*  REFERENCED BY: sp_skill_profilo_check, sp_profilo_check
+*
+*  @param IN p_nome_profilo - Nome del profilo da controllare
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene il profilo
+*
+*  @throws 45000 - ERRORE: PROFILO NON ESISTENTE
+*/
 CREATE PROCEDURE sp_util_profilo_exists(
     IN p_nome_profilo VARCHAR(100),
     IN p_nome_progetto VARCHAR(100)
@@ -409,7 +468,17 @@ BEGIN
     END IF;
 END//
 
--- Controllo che la competenza del profilo di un progetto esista
+/*
+*  PROCEDURE: sp_util_skill_profilo_exists
+*  PURPOSE: Verifica se la competenza richiesta dal profilo di un progetto esiste.
+*  REFERENCED BY: sp_skill_profilo_check, sp_partecipante_check
+*
+*  @param IN p_nome_profilo - Nome del profilo da controllare
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene il profilo
+*  @param IN p_competenza - Competenza richiesta dal profilo
+*
+*  @throws 45000 - ERRORE: COMPETENZA NON PRESENTE NEL PROFILO
+*/
 CREATE PROCEDURE sp_util_skill_profilo_exists(
     IN p_nome_profilo VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
@@ -426,7 +495,15 @@ BEGIN
     END IF;
 END//
 
--- Controllo che il commento esista
+/*
+*  PROCEDURE: sp_util_commento_exists
+*  PURPOSE: Verifica se il commento esiste.
+*  REFERENCED BY: sp_commento_check, sp_commento_risposta_check
+*
+*  @param IN p_id - ID del commento da controllare
+*
+*  @throws 45000 - ERRORE: COMMENTO NON ESISTENTE
+*/
 CREATE PROCEDURE sp_util_commento_exists(
     IN p_id INT
 )
@@ -439,11 +516,22 @@ BEGIN
     END IF;
 END//
 
--- SKILL_PROFILO: sp_skill_profilo_check
+-- SKILL_PROFILO: sp_skill_profilo_check, USATO IN:
 --  sp_skill_profilo_insert
 --  sp_skill_profilo_delete
 --  sp_skill_profilo_update
 
+/*
+*  PROCEDURE: sp_skill_profilo_check
+*  PURPOSE: Controlla la validità di un profilo e di una competenza richiesta.
+*  UTIL: sp_util_is_creatore_progetto_owner, sp_util_is_progetto_software, sp_util_profilo_exists, sp_util_skill_profilo_exists
+*
+*  @param IN p_nome_profilo - Nome del profilo da controllare
+*  @param IN p_email_creatore - Email dell'utente creatore del progetto
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene il profilo
+*  @param IN p_competenza - Competenza richiesta dal profilo
+*  @param IN p_is_insert - Flag per distinguere tra insert, update e delete
+*/
 CREATE PROCEDURE sp_skill_profilo_check(
     IN p_nome_profilo VARCHAR(100),
     IN p_email_creatore VARCHAR(100),
@@ -465,10 +553,20 @@ BEGIN
     END IF;
 END//
 
--- PROFILO: sp_profilo_check
+-- PROFILO: sp_profilo_check, USATO IN:
 --  sp_profilo_insert
 --  sp_profilo_delete
 
+/*
+*  PROCEDURE: sp_profilo_check
+*  PURPOSE: Controlla la validità di un profilo.
+*  UTIL: sp_util_is_creatore_progetto_owner, sp_util_is_progetto_software, sp_util_profilo_exists
+*
+*  @param IN p_nome_profilo - Nome del profilo da controllare
+*  @param IN p_email_creatore - Email dell'utente creatore del progetto
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene il profilo
+*  @param IN p_is_insert - Flag per distinguere tra insert e delete
+*/
 CREATE PROCEDURE sp_profilo_check(
     IN p_nome_profilo VARCHAR(100),
     IN p_email_creatore VARCHAR(100),
@@ -486,11 +584,23 @@ BEGIN
     END IF;
 END//
 
--- COMPONENTE: sp_componente_check
+-- COMPONENTE: sp_componente_check USATO IN:
 --  sp_componente_insert
 --  sp_componente_delete
 --  sp_componente_update
 
+/*
+*  PROCEDURE: sp_componente_check
+*  PURPOSE: Controlla la validità di un componente.
+*  UTIL: sp_util_is_creatore_progetto_owner, sp_util_is_progetto_hardware
+*
+*  @param IN p_nome_componente - Nome del componente da controllare
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene il componente
+*  @param IN p_email_creatore - Email dell'utente creatore del progetto
+*  @param IN p_is_insert - Flag per distinguere tra insert, update e delete
+*
+*  @throws 45000 - ERRORE: COMPONENTE NON ESISTENTE (+ altri throw specifici dalle sp_util utilizzate)
+*/
 CREATE PROCEDURE sp_componente_check(
     IN p_nome_componente VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
@@ -514,11 +624,19 @@ BEGIN
     END IF;
 END//
 
--- PARTECIPANTE: sp_partecipante_check
+-- PARTECIPANTE: sp_partecipante_check USATO IN:
 --  sp_partecipante_creatore_update (sp_partecipante_creatore_check)
 --  sp_partecipante_utente_insert (sp_partecipante_utente_check)
 
--- Controllo generico per entrambe le stored procedure, necessario sia per utente che creatore in ambito partecipante
+/*
+*  PROCEDURE: sp_partecipante_check
+*  PURPOSE: Controlla la validità di un partecipante. I controlli sono comuni a entrambe le stored procedure di seguito.
+*  UTIL: sp_util_is_progetto_software, sp_util_skill_profilo_exists
+*
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene il partecipante
+*  @param IN p_nome_profilo - Nome del profilo richiesto dal partecipante
+*  @param IN p_competenza - Competenza richiesta dal partecipante
+*/
 CREATE PROCEDURE sp_partecipante_check(
     IN p_nome_progetto VARCHAR(100),
     IN p_nome_profilo VARCHAR(100),
@@ -531,7 +649,19 @@ BEGIN
     CALL sp_util_skill_profilo_exists(p_nome_profilo, p_nome_progetto, p_competenza);
 END//
 
--- Controlli specifici necessari per quando un creatore vuole accettare o rifiutare un potenziale partecipante
+/*
+*  PROCEDURE: sp_partecipante_creatore_check
+*  PURPOSE: Controlla la validità di un partecipante. I controlli sono specifici per il creatore del progetto.
+*  UTIL: sp_partecipante_check, sp_util_is_creatore_progetto_owner
+*
+*  @param IN p_email_creatore - Email dell'utente creatore del progetto
+*  @param IN p_email_candidato - Email dell'utente candidato al progetto
+*  @param IN p_nome_progetto - Nome del progetto a cui il partecipante si è candidato
+*  @param IN p_nome_profilo - Nome del profilo richiesto dal partecipante
+*  @param IN p_competenza - Competenza richiesta dal partecipante
+*
+*  @throws 45000 - ERRORE: CANDIDATURA NON ESISTENTE (+ altri throw specifici dalle sp_util utilizzate)
+*/
 CREATE PROCEDURE sp_partecipante_creatore_check(
     IN p_email_creatore VARCHAR(100),
     IN p_email_candidato VARCHAR(100),
@@ -558,7 +688,19 @@ BEGIN
     END IF;
 END//
 
--- Controlli specifici necessari per quando un utente vuole candidarsi a un progetto software
+/*
+*  PROCEDURE: sp_partecipante_utente_check
+*  PURPOSE: Controlla la validità di un partecipante. I controlli sono specifici per l'utente che si candida al progetto software.
+*
+*  @param IN p_email - Email dell'utente che si candida al progetto
+*  @param IN p_nome_progetto - Nome del progetto a cui il partecipante si candida
+*  @param IN p_nome_profilo - Nome del profilo richiesto dal partecipante
+*  @param IN p_competenza - Competenza richiesta dal partecipante
+*
+*  @throws 45000 - ERRORE: UTENTE CREATORE DEL PROGETTO
+*  @throws 45000 - ERRORE: CANDIDATURA INSERITA PRECEDENTEMENTE
+*         (+ altri throw specifici da sp_partecipante_check)
+*/
 CREATE PROCEDURE sp_partecipante_utente_check(
     IN p_email VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
@@ -590,13 +732,24 @@ BEGIN
     END IF;
 END//
 
--- COMMENTO: sp_commento_check
+-- COMMENTO: sp_commento_check e sp_commento_risposta_check USATI IN:
 --  sp_commento_insert (sp_commento_check)
 --  sp_commento_delete (sp_commento_check)
 --  sp_commento_risposta_insert (sp_commento_risposta_check)
 --  sp_commento_risposta_delete (sp_commento_risposta_check)
 
--- Controlli generici per tutte le stored procedure necessari per commento e risposta
+/*
+*  PROCEDURE: sp_commento_check
+*  PURPOSE: Controlla la validità di un commento.
+*  UTIL: sp_util_progetto_exists, sp_util_commento_exists
+*
+*  @param IN p_id - ID del commento da controllare
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene il commento
+*  @param IN p_email_autore - Email dell'autore del commento
+*  @param IN p_is_insert - Flag per distinguere tra insert e delete
+*
+*  @throws 45000 - ERRORE: NON SEI AUTORIZZATO A CANCELLARE QUESTO COMMENTO (+ altri throw specifici dalle sp_util utilizzate)
+*/
 CREATE PROCEDURE sp_commento_check(
     IN p_id INT,
     IN p_nome_progetto VARCHAR(100),
@@ -622,6 +775,21 @@ BEGIN
     END IF;
 END//
 
+/*
+*  PROCEDURE: sp_commento_risposta_check
+*  PURPOSE: Controlla la validità di una risposta a un commento.
+*  UTIL: sp_util_progetto_exists, sp_util_commento_exists, sp_util_is_creatore_progetto_owner
+*
+*  @param IN p_commento_id - ID del commento a cui si vuole rispondere/cancellare la risposta
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene il commento
+*  @param IN p_email_creatore - Email dell'utente creatore del progetto
+*  @param IN p_is_insert - Flag per distinguere tra insert e delete
+*
+*  @throws 45000 - ERRORE: COMMENTO CONTIENE RISPOSTA
+*  @throws 45000 - ERRORE: UTENTE NON CREATORE O ADMIN (CANCELLAZIONE RISPOSTA)
+*  @throws 45000 - ERRORE: COMMENTO NON CONTIENE RISPOSTA
+*          (+ altri throw specifici dalle sp_util utilizzate)
+*/
 CREATE PROCEDURE sp_commento_risposta_check(
     IN p_commento_id INT,
     IN p_nome_progetto VARCHAR(100),
@@ -661,10 +829,22 @@ BEGIN
     END IF;
 END//
 
--- FOTO: sp_foto_check
+-- FOTO: sp_foto_check USATO IN:
 --  sp_foto_insert
 --  sp_foto_delete
 
+/*
+*  PROCEDURE: sp_foto_check
+*  PURPOSE: Controlla la validità di una foto.
+*  UTIL: sp_util_is_creatore_progetto_owner
+*
+*  @param IN p_nome_progetto - Nome del progetto a cui appartiene la foto
+*  @param IN p_email_creatore - Email dell'utente creatore del progetto
+*  @param IN p_foto_id - ID della foto da controllare
+*  @param IN p_is_insert - Flag per distinguere tra insert e delete
+*
+*  @throws 45000 - ERRORE: FOTO NON ESISTENTE (+ altri throw specifici da sp_util_is_creatore_progetto_owner)
+*/
 CREATE PROCEDURE sp_foto_check(
     IN p_nome_progetto VARCHAR(100),
     IN p_email_creatore VARCHAR(100),
@@ -698,7 +878,7 @@ DELIMITER ;
 --  sp_nome_tabella_{insert|delete|update|select} o altre azioni specifiche
 
 -- Al di sopra della definizione di ogni stored procedure principale, si documenta la funzione di esse e che tipo di utente può utilizzarle.
--- L'interno di ogni stored procedure è diviso in tre parti:
+-- L'interno di ogni stored procedure è diviso in due parti principali:
 --  1. Controllo dei parametri in input (il controllo assistito dalle stored procedure "helper")
 --  2. Operazioni sul database relative
 
