@@ -8,6 +8,15 @@
 ## [[DB-PRJ-REPORT#5. RIFLESSIONI]]
 
 
+
+## add candidature.php page? for regular users is to keep track of the candidature he sent, for creatore keep track of the candidature he received for his project
+
+
+## maybe add sp_skill_curriculum_update (to update his livello_effettivo)
+- and sp_skill_curriculum_delete (remove all partecipazioni of user if they were tied to that skill)
+- and sp_skill_update to rename skills globally
+
+
 ## maybe add javadoc comments for triggers
 
 
@@ -18,11 +27,6 @@
 - **same might apply to profilo and livello_richiesto**
 - if user does supply new name and/or desc. then override default behaviour of maintaining prev name and/or desc
 - it's either this or write separate sp's updating each attribute
-
-
-
-## add more fake data to bostarter_demo.sql, and clean file up, also fix for profilo candidatura stuff not working (check all competenze of fake users and richiesti)
-
 
 ## for mongodb add a error collection which just logs any sql signal state 45000 errors triggered
 
@@ -35,6 +39,8 @@
 ```
 bostarter/
 ├── actions/
+│   ├── add_global_skill.php
+│   ├── add_user_skill.php
 │   ├── login_handler.php
 │   ├── logout.php
 │   └── register_handler.php
@@ -42,6 +48,8 @@ bostarter/
 │   ├── footer.php
 │   └── header.php
 ├── config/
+│   ├── config.php
+│   └── sp_invoke.php
 ├── public/
 │   ├── lib/
 │   ├── home.php

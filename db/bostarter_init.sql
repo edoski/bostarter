@@ -316,7 +316,7 @@ DELIMITER //
 
 /*
 *  PROCEDURE: sp_util_is_utente_admin
-*  PURPOSE: Verifica se l'utente è un admin.
+*  PURPOSE: Verifica se l'utente è un admin, lanciando un errore se non lo è.
 *  REFERENCED BY: sp_skill_insert
 *
 *  @param IN p_email - Email dell'utente da controllare
@@ -515,6 +515,24 @@ BEGIN
             SET MESSAGE_TEXT = 'ERRORE: COMMENTO NON ESISTENTE';
     END IF;
 END//
+
+/*
+*  PROCEDURE: sp_util_admin_exists
+*  PURPOSE: Verifica se l'utente è un admin, selezionando 1 se lo è, 0 altrimenti.
+*
+*  @param IN p_email - Email dell'utente da controllare
+*/
+CREATE PROCEDURE sp_util_admin_exists(
+    IN p_email VARCHAR(100)
+)
+BEGIN
+    IF EXISTS (SELECT 1 FROM ADMIN WHERE email_utente = p_email) THEN
+        SELECT TRUE AS is_admin;
+    ELSE
+        SELECT FALSE AS is_admin;
+    END IF;
+END//
+
 
 -- SKILL_PROFILO: sp_skill_profilo_check, USATO IN:
 --  sp_skill_profilo_insert
@@ -1898,7 +1916,7 @@ DELIMITER ;
 -- Sono visibili nella pagina statistiche.php ("Statistiche" nel navbar).
 
 -- Classifica dei top 3 utenti creatori, in base al loro valore di affidabilità
-CREATE VIEW view_classifica_creatori_affidabilita AS
+CREATE OR REPLACE VIEW view_classifica_creatori_affidabilita AS
 SELECT U.nickname
 FROM CREATORE C
          JOIN UTENTE U ON C.email_utente = U.email
@@ -1906,20 +1924,21 @@ ORDER BY affidabilita DESC
 LIMIT 3;
 
 -- Classifica dei top 3 progetti APERTI che sono più vicini al proprio completamento
-CREATE VIEW view_classifica_progetti_completamento AS
-SELECT P.nome,
-       P.budget,
-       IFNULL((SELECT SUM(importo) -- Uso di IFNULL per evitare NULL in caso di progetto senza finanziamenti
-               FROM FINANZIAMENTO
-               WHERE nome_progetto = P.nome),
-              0) AS tot_finanziamenti
+CREATE OR REPLACE VIEW view_classifica_progetti_completamento AS
+SELECT
+    P.nome,
+    P.budget,
+    IFNULL((SELECT SUM(importo)
+            FROM FINANZIAMENTO
+            WHERE nome_progetto = P.nome), 0) AS tot_finanziamenti
 FROM PROGETTO P
 WHERE P.stato = 'aperto'
-ORDER BY P.budget - tot_finanziamenti
+ORDER BY (tot_finanziamenti / budget) DESC
 LIMIT 3;
 
+
 -- Classifica dei top 3 utenti, in base al TOTALE di finanziamenti erogati
-CREATE VIEW view_classifica_utenti_finanziamento AS
+CREATE OR REPLACE VIEW view_classifica_utenti_finanziamento AS
 SELECT U.nickname
 FROM UTENTE U
          JOIN FINANZIAMENTO F ON U.email = F.email_utente
