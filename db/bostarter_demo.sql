@@ -192,9 +192,14 @@ CALL sp_skill_profilo_insert('Manager', 'ProgettoIota', 'grace@example.com', 'SQ
 -- ==================================================
 -- COMMENTO OPERATIONS (ALL)
 -- ==================================================
+
+-- For ProgettoAlpha:
 CALL sp_commento_insert('heidi@example.com', 'ProgettoAlpha', 'I love the concept of Alpha!');
 CALL sp_commento_insert('mike@example.com', 'ProgettoAlpha', 'Great work on Alpha!');
 CALL sp_commento_insert('oscar@example.com', 'ProgettoAlpha', 'Alpha looks promising!');
+CALL sp_commento_risposta_insert(1, 'bob@example.com', 'ProgettoAlpha', 'Great to hear that, Heidi!');
+CALL sp_commento_risposta_insert(2, 'bob@example.com', 'ProgettoAlpha', 'Thanks, Mike!');
+
 CALL sp_commento_insert('judy@example.com', 'ProgettoGamma', 'Gamma is revolutionary!');
 CALL sp_commento_insert('leo@example.com', 'ProgettoDelta', 'Delta seems robust and innovative.');
 CALL sp_commento_insert('frank@example.com', 'ProgettoEta', 'Eta is very impressive!');
@@ -206,6 +211,12 @@ CALL sp_commento_insert('charlie@example.com', 'ProgettoKappa', 'Kappa looks sol
 -- ==================================================
 -- PARTECIPANTE OPERATIONS (ALL)
 -- ==================================================
+
+-- For ProgettoAlpha:
+CALL sp_partecipante_utente_insert('eric@example.com', 'ProgettoAlpha', 'Developer', 'JavaScript');
+CALL sp_partecipante_creatore_update('bob@example.com', 'eric@example.com', 'ProgettoAlpha', 'Developer', 'JavaScript',
+                                     'accettato');
+
 -- For ProgettoGamma:
 CALL sp_partecipante_utente_insert('judy@example.com', 'ProgettoGamma', 'Developer', 'Python');
 CALL sp_partecipante_creatore_update('grace@example.com', 'judy@example.com', 'ProgettoGamma', 'Developer', 'Python',

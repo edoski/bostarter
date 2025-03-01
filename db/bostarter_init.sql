@@ -309,6 +309,7 @@ CREATE TABLE PARTECIPANTE
 -- SINTASSI GENERALE: sp_nome_procedura_check
 
 -- L'unica eccezione sono le GENERICHE/UTILS sp_util_* che contengono controlli generici che possono essere utilizzati da più stored procedure principali e helper.
+--     Le sp_util_*_exists restituiscono TRUE/FALSE a seconda dell'esistenza di un'entità, e sono utilizzate principalmente in php (ma non esclusivamente).
 
 DELIMITER //
 
@@ -533,6 +534,24 @@ BEGIN
     END IF;
 END//
 
+/*
+*  PROCEDURE: sp_util_progetto_owner_exists
+*  PURPOSE: Verifica se l'utente è il creatore del progetto, selezionando TRUE se lo è, FALSE altrimenti.
+*
+*  @param IN p_email - Email dell'utente da controllare
+*  @param IN p_nome_progetto - Nome del progetto da controllare
+*/
+CREATE PROCEDURE sp_util_progetto_owner_exists(
+    IN p_email VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+    IF EXISTS (SELECT 1 FROM PROGETTO WHERE email_creatore = p_email AND nome = p_nome_progetto) THEN
+        SELECT TRUE AS is_owner;
+    ELSE
+        SELECT FALSE AS is_owner;
+    END IF;
+END//
 
 -- SKILL_PROFILO: sp_skill_profilo_check, USATO IN:
 --  sp_skill_profilo_insert
@@ -1054,7 +1073,7 @@ END//
 
 /*
 *  PROCEDURE: sp_skill_curriculum_selectDiff
-*  PURPOSE: Visualizzazione delle skill di cui un utente non dispone.
+*  PURPOSE: Visualizzazione delle skill globali di cui un utente non dispone/non ha inserito nel proprio curriculum.
 *  USED BY: ALL
 *
 *  @param IN p_email - Email dell'utente
@@ -1073,8 +1092,25 @@ BEGIN
 END//
 
 -- PROGETTO:
+--  sp_progetto_select
 --  sp_progetto_selectAll
 --  sp_progetto_insert
+
+/*
+*  PROCEDURE: sp_progetto_select
+*  PURPOSE: Visualizzazione di un progetto specifico.
+*  USED BY: ALL
+*
+*  @param IN p_nome - Nome del progetto
+*/
+CREATE PROCEDURE sp_progetto_select(
+    IN p_nome VARCHAR(100)
+)
+BEGIN
+    SELECT *
+    FROM PROGETTO
+    WHERE nome = p_nome;
+END//
 
 /*
 *  PROCEDURE: sp_progetto_selectAll
@@ -1146,7 +1182,7 @@ END//
 *  USED BY: ALL
 *  NOTE:
 *   - Il progetto deve essere aperto
-*   - Il codice del reward è scelto dall'utente al livello di interfaccia al momento del finanziamento, in base all'importo scelto
+*   - Il codice della reward è scelto dall'utente al livello di interfaccia al momento del finanziamento, in base all'importo scelto
 *   - Anche il creatore può finanziare il proprio progetto
 *
 *  @param IN p_email - Email dell'utente
@@ -1185,6 +1221,7 @@ END//
 -- COMMENTO:
 --  sp_commento_insert
 --  sp_commento_delete
+--  sp_commento_selectAll
 --  sp_commento_risposta_insert
 --  sp_commento_risposta_delete
 
@@ -1209,8 +1246,7 @@ BEGIN
             RESIGNAL;
         END;
     START TRANSACTION;
-    -- Controllo che:
-    --  1. Esista il progetto
+    -- Controllo che esista il progetto
     CALL sp_commento_check(NULL, p_nome_progetto, p_email_autore, TRUE);
 
     -- Se il controllo passa, inserisco il commento
@@ -1252,6 +1288,23 @@ BEGIN
     FROM COMMENTO
     WHERE id = p_id;
     COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_commento_selectAll
+*  PURPOSE: Visualizzazione di tutti i commenti di un progetto.
+*  USED BY: ALL
+*
+*  @param IN p_nome_progetto - Nome del progetto
+*/
+CREATE PROCEDURE sp_commento_selectAll(
+    IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+    SELECT C.id, C.email_utente, U.nickname, C.testo, C.risposta, C.data
+    FROM COMMENTO C
+             JOIN UTENTE U ON U.email = C.email_utente
+    WHERE nome_progetto = p_nome_progetto;
 END//
 
 /*
@@ -1840,6 +1893,7 @@ END//
 -- FOTO:
 --  sp_foto_insert
 --  sp_foto_delete
+--  sp_foto_selectAll
 
 /*
 *  PROCEDURE: sp_foto_insert
@@ -1906,6 +1960,24 @@ BEGIN
     COMMIT;
 END//
 
+/*
+*  PROCEDURE: sp_foto_selectAll
+*  PURPOSE: Visualizzazione di tutte le foto di un progetto.
+*  USED BY: ALL
+*
+*  @param IN p_nome_progetto - Nome del progetto di cui visualizzare le foto
+*/
+CREATE PROCEDURE sp_foto_selectAll(
+    IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    SELECT id, foto
+    FROM FOTO
+    WHERE nome_progetto = p_nome_progetto;
+    COMMIT;
+END//
+
 DELIMITER ;
 
 -- ==================================================
@@ -1925,12 +1997,11 @@ LIMIT 3;
 
 -- Classifica dei top 3 progetti APERTI che sono più vicini al proprio completamento
 CREATE OR REPLACE VIEW view_classifica_progetti_completamento AS
-SELECT
-    P.nome,
-    P.budget,
-    IFNULL((SELECT SUM(importo)
-            FROM FINANZIAMENTO
-            WHERE nome_progetto = P.nome), 0) AS tot_finanziamenti
+SELECT P.nome,
+       P.budget,
+       IFNULL((SELECT SUM(importo)
+               FROM FINANZIAMENTO
+               WHERE nome_progetto = P.nome), 0) AS tot_finanziamenti
 FROM PROGETTO P
 WHERE P.stato = 'aperto'
 ORDER BY (tot_finanziamenti / budget) DESC
