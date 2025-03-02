@@ -173,7 +173,7 @@ CREATE TABLE SKILL
 -- 12. FINANZIAMENTO
 CREATE TABLE FINANZIAMENTO
 (
-    data          DATE           NOT NULL DEFAULT CURRENT_DATE,
+    data          DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     email_utente  VARCHAR(100)   NOT NULL,
     nome_progetto VARCHAR(100)   NOT NULL,
     codice_reward VARCHAR(50)    NOT NULL,
@@ -203,7 +203,7 @@ CREATE TABLE COMMENTO
     id            INT          NOT NULL AUTO_INCREMENT,
     email_utente  VARCHAR(100) NOT NULL,
     nome_progetto VARCHAR(100) NOT NULL,
-    data          DATE         NOT NULL DEFAULT CURRENT_DATE,
+    data          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     testo         TEXT         NOT NULL CHECK ( LENGTH(testo) >= 3 ), -- Minimo 3 caratteri
     risposta      TEXT         NULL,                                  -- Business Rule #8
     PRIMARY KEY (id),
@@ -309,7 +309,8 @@ CREATE TABLE PARTECIPANTE
 -- SINTASSI GENERALE: sp_nome_procedura_check
 
 -- L'unica eccezione sono le GENERICHE/UTILS sp_util_* che contengono controlli generici che possono essere utilizzati da più stored procedure principali e helper.
---     Le sp_util_*_exists restituiscono TRUE/FALSE a seconda dell'esistenza di un'entità, e sono utilizzate principalmente in php (ma non esclusivamente).
+--     Le stored procedure che fanno SQLSTATE SIGNAL sono utilizzate all'interno delle stored procedure principali per lanciare un errore specifico.
+--     Le stored procedure che restituiscono TRUE/FALSE sono utilizzate al livello di applicazione/php per fare controlli condizionali.
 
 DELIMITER //
 
@@ -527,11 +528,13 @@ CREATE PROCEDURE sp_util_admin_exists(
     IN p_email VARCHAR(100)
 )
 BEGIN
+    START TRANSACTION;
     IF EXISTS (SELECT 1 FROM ADMIN WHERE email_utente = p_email) THEN
         SELECT TRUE AS is_admin;
     ELSE
         SELECT FALSE AS is_admin;
     END IF;
+    COMMIT;
 END//
 
 /*
@@ -546,11 +549,49 @@ CREATE PROCEDURE sp_util_progetto_owner_exists(
     IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
+    START TRANSACTION;
     IF EXISTS (SELECT 1 FROM PROGETTO WHERE email_creatore = p_email AND nome = p_nome_progetto) THEN
         SELECT TRUE AS is_owner;
     ELSE
         SELECT FALSE AS is_owner;
     END IF;
+    COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_util_progetto_finanziamenti_sum
+*  PURPOSE: Restituisce la somma degli importi dei finanziamenti ricevuti da un progetto.
+*
+*  @param IN p_nome_progetto - Nome del progetto da controllare
+*/
+CREATE PROCEDURE sp_util_progetto_finanziamenti_sum(
+    IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    SELECT SUM(importo) AS totale_finanziamenti
+    FROM FINANZIAMENTO
+    WHERE nome_progetto = p_nome_progetto;
+    COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_util_progetto_type
+*  PURPOSE: Restituisce il tipo di progetto (software/hardware).
+*
+*  @param IN p_nome_progetto - Nome del progetto da controllare
+*/
+CREATE PROCEDURE sp_util_progetto_type(
+    IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    IF EXISTS (SELECT 1 FROM PROGETTO_SOFTWARE WHERE nome_progetto = p_nome_progetto) THEN
+        SELECT 'SOFTWARE' AS tipo_progetto;
+    ELSE
+        SELECT 'HARDWARE' AS tipo_progetto;
+    END IF;
+    COMMIT;
 END//
 
 -- SKILL_PROFILO: sp_skill_profilo_check, USATO IN:
@@ -892,7 +933,7 @@ BEGIN
     -- Controllo che l'utente sia il creatore del progetto
     CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
 
-    -- Controllo che la foto esista (solo per update e delete)
+    -- Controllo che la foto esista (solo per delete)
     IF NOT p_is_insert AND NOT EXISTS (SELECT 1
                                        FROM FOTO
                                        WHERE nome_progetto = p_nome_progetto
@@ -908,7 +949,7 @@ DELIMITER ;
 -- STORED PROCEDURES (MAIN)
 -- ==================================================
 
--- In questo blocco vengono definite le stored procedure principali, che implementano le funzionalità richieste dal sistema, con qualche aggiunta mia.
+-- In questo blocco vengono definite le stored procedure principali ("main"). Implementano le funzionalità richieste dal sistema, con qualche aggiunta.
 -- Vengono divise in base alla tabella di riferimento, con la seguente sintassi generale...
 
 -- NOME_TABELLA:

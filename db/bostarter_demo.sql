@@ -109,14 +109,6 @@ CALL sp_progetto_insert('ProgettoDelta', 'ivan@example.com', 'Hardware project D
                         '2026-03-31', 'hardware');
 CALL sp_progetto_insert('ProgettoEpsilon', 'karen@example.com', 'Software project Epsilon description', 12000.00,
                         '2026-05-31', 'software');
-CALL sp_progetto_insert('ProgettoZeta', 'nancy@example.com', 'Hardware project Zeta description', 7000.00, '2026-07-31',
-                        'hardware');
-CALL sp_progetto_insert('ProgettoEta', 'bob@example.com', 'Software project Eta description', 9000.00, '2026-09-30',
-                        'software');
-CALL sp_progetto_insert('ProgettoTheta', 'diana@example.com', 'Hardware project Theta description', 6500.00,
-                        '2026-11-30', 'hardware');
-CALL sp_progetto_insert('ProgettoIota', 'grace@example.com', 'Software project Iota description', 11000.00,
-                        '2027-01-31', 'software');
 CALL sp_progetto_insert('ProgettoKappa', 'ivan@example.com', 'Hardware project Kappa description', 7500.00,
                         '2027-03-31', 'hardware');
 
@@ -133,14 +125,6 @@ CALL sp_reward_insert('RWD4', 'ProgettoDelta', 'ivan@example.com', 'Reward for h
                       180.00);
 CALL sp_reward_insert('RWD5', 'ProgettoEpsilon', 'karen@example.com', 'Reward for early supporters of Epsilon',
                       x'0D0E0F', 130.00);
-CALL sp_reward_insert('RWD6', 'ProgettoZeta', 'nancy@example.com', 'Reward for hardware supporters of Zeta', x'101112',
-                      170.00);
-CALL sp_reward_insert('RWD7', 'ProgettoEta', 'bob@example.com', 'Reward for early supporters of Eta', x'131415',
-                      120.00);
-CALL sp_reward_insert('RWD8', 'ProgettoTheta', 'diana@example.com', 'Reward for hardware supporters of Theta',
-                      x'161718', 160.00);
-CALL sp_reward_insert('RWD9', 'ProgettoIota', 'grace@example.com', 'Reward for early supporters of Iota', x'191A1B',
-                      140.00);
 CALL sp_reward_insert('RWD10', 'ProgettoKappa', 'ivan@example.com', 'Reward for hardware supporters of Kappa',
                       x'1C1D1E', 150.00);
 
@@ -157,10 +141,6 @@ CALL sp_componente_delete('Comp2', 'ProgettoBeta', 'diana@example.com');
 -- For ProgettoDelta:
 CALL sp_componente_insert('Comp4', 'ProgettoDelta', 'Durable metal casing', 30, 200.00, 'ivan@example.com');
 CALL sp_componente_insert('Comp5', 'ProgettoDelta', 'High precision sensors', 15, 350.00, 'ivan@example.com');
-
--- For ProgettoTheta:
-CALL sp_componente_insert('Comp6', 'ProgettoTheta', 'Robust wiring', 200, 0.20, 'diana@example.com');
-CALL sp_componente_insert('Comp7', 'ProgettoTheta', 'Advanced cooling system', 5, 500.00, 'diana@example.com');
 
 -- For ProgettoKappa:
 CALL sp_componente_insert('Comp8', 'ProgettoKappa', 'Ergonomic design parts', 50, 25.00, 'ivan@example.com');
@@ -181,14 +161,6 @@ CALL sp_skill_profilo_insert('Developer', 'ProgettoGamma', 'grace@example.com', 
 CALL sp_profilo_insert('Designer', 'ProgettoEpsilon', 'karen@example.com');
 CALL sp_skill_profilo_insert('Designer', 'ProgettoEpsilon', 'karen@example.com', 'CSS', 4);
 
--- For ProgettoEta:
-CALL sp_profilo_insert('Tester', 'ProgettoEta', 'bob@example.com');
-CALL sp_skill_profilo_insert('Tester', 'ProgettoEta', 'bob@example.com', 'JavaScript', 3);
-
--- For ProgettoIota:
-CALL sp_profilo_insert('Manager', 'ProgettoIota', 'grace@example.com');
-CALL sp_skill_profilo_insert('Manager', 'ProgettoIota', 'grace@example.com', 'SQL', 5);
-
 -- ==================================================
 -- COMMENTO OPERATIONS (ALL)
 -- ==================================================
@@ -202,10 +174,6 @@ CALL sp_commento_risposta_insert(2, 'bob@example.com', 'ProgettoAlpha', 'Thanks,
 
 CALL sp_commento_insert('judy@example.com', 'ProgettoGamma', 'Gamma is revolutionary!');
 CALL sp_commento_insert('leo@example.com', 'ProgettoDelta', 'Delta seems robust and innovative.');
-CALL sp_commento_insert('frank@example.com', 'ProgettoEta', 'Eta is very impressive!');
-CALL sp_commento_insert('karen@example.com', 'ProgettoIota', 'Iota has a lot of potential.');
-CALL sp_commento_insert('nancy@example.com', 'ProgettoZeta', 'Zeta is a game changer!');
-CALL sp_commento_insert('eric@example.com', 'ProgettoTheta', 'Theta is so creative!');
 CALL sp_commento_insert('charlie@example.com', 'ProgettoKappa', 'Kappa looks solid and well-planned.');
 
 -- ==================================================
@@ -227,11 +195,6 @@ CALL sp_partecipante_utente_insert('mike@example.com', 'ProgettoEpsilon', 'Desig
 CALL sp_partecipante_creatore_update('karen@example.com', 'mike@example.com', 'ProgettoEpsilon', 'Designer', 'CSS',
                                      'accettato');
 
--- For ProgettoIota:
-CALL sp_partecipante_utente_insert('oscar@example.com', 'ProgettoIota', 'Manager', 'SQL');
-CALL sp_partecipante_creatore_update('grace@example.com', 'oscar@example.com', 'ProgettoIota', 'Manager', 'SQL',
-                                     'accettato');
-
 -- ==================================================
 -- FINANZIAMENTO OPERATIONS (ALL)
 -- ==================================================
@@ -241,7 +204,4 @@ CALL sp_finanziamento_insert('diana@example.com', 'ProgettoAlpha', 'RWD1', 200.0
 CALL sp_finanziamento_insert('frank@example.com', 'ProgettoGamma', 'RWD3', 300.00);
 CALL sp_finanziamento_insert('heidi@example.com', 'ProgettoDelta', 'RWD4', 350.00);
 CALL sp_finanziamento_insert('leo@example.com', 'ProgettoEpsilon', 'RWD5', 400.00);
-CALL sp_finanziamento_insert('mike@example.com', 'ProgettoZeta', 'RWD6', 450.00);
-CALL sp_finanziamento_insert('judy@example.com', 'ProgettoTheta', 'RWD8', 500.00);
-CALL sp_finanziamento_insert('oscar@example.com', 'ProgettoIota', 'RWD9', 550.00);
 CALL sp_finanziamento_insert('nancy@example.com', 'ProgettoKappa', 'RWD10', 600.00);
