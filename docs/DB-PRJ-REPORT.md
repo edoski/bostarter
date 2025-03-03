@@ -4,12 +4,123 @@
 - [ ] env vars for mysql and php?
 - [ ] PASTE FULL SQL INIT FILE TO [[#**7.1. Inizializzazione DB**]]
 - [ ] in README and in report & presentation and explain how to setup and run project..... bash script for php too? ........... hmmm maybe docker cool but idk
+- [ ] export to pdf using pandoc
+	- [ ] potentially need to fix mismatching links text for correct rendering
+	- [ ] ensure clickable links for ToC
 
 ## [[DB-PRJ-REPORT#5. RIFLESSIONI]]
 
+## review entire progettazione logica section fr
+## redo screenshots of funzionalità section once website complete
 
 
-## add candidature.php page? for regular users is to keep track of the candidature he sent, for creatore keep track of the candidature he received for his project
+## make fake data for projects more recent and show one which is closed due to past data limite
+
+
+
+## GO THROUGH ALL PHP FILES AND SEE IF THEY HAVE COMMON CONDITIONAL CHECKS THAT I CAN ABSTRACT INTO checks.php
+- can even make a whole dedicated directory like checks/ and within it i can have primitive_check.php which contains functions that do primitive checks (e.g. checkAuth() for if user login → single purpose / fundamental and basic checks) and then I can have other php files like commento_check.php which is a combination of custom checks and composite primitive checks (e.g. checkAuth() followed by check if specific $\_POST vars set etc)
+
+
+## keep track of which of them has been implemented in php (this is effective project progress tracking) and where/how
+### MAIN
+- [x] sp_utente_register
+	- register_handler.php
+- [x] sp_utente_login
+	- login_handler.php
+- [x] sp_utente_select
+	- home.php
+
+- [x] sp_skill_curriculum_insert
+	- skill_curriculum_insert.php
+- [x] sp_skill_curriculum_selectAll
+	- skill.php
+- [x] sp_skill_curriculum_selectDiff
+	- skill.php
+
+- [x] sp_progetto_select
+	- progetto_dettagli.php
+- [x] sp_progetto_selectAll
+	- progetti.php
+- [x] sp_progetto_selectByCreatore
+	- home.php
+- [ ] sp_progetto_insert
+
+- [ ] sp_finanziamento_insert
+- [x] sp_finanziamento_selectAllByProgetto
+	- progetti.php
+- [x] sp_finanziamento_selectAllByUtente
+	- home.php
+
+- [x] sp_commento_insert
+	- commento_insert.php
+- [x] sp_commento_delete
+	- commento_delete.php
+- [x] sp_commento_selectAll
+	- progetto_dettagli.php
+- [x] sp_commento_risposta_insert
+	- commento_risposta_insert.php
+- [x] sp_commento_risposta_delete
+	- commento_risposta_delete.php
+
+- [ ] sp_partecipante_utente_insert
+- [ ] sp_partecipante_creatore_update
+
+- [x] sp_skill_insert
+	- skill_insert.php
+- [x] sp_skill_selectAll
+	- skill.php
+
+- [ ] sp_reward_insert
+
+- [ ] sp_componente_insert
+- [ ] sp_componente_delete
+- [ ] sp_componente_update
+
+- [ ] sp_profilo_insert
+- [ ] sp_profilo_delete
+
+- [ ] sp_skill_profilo_insert
+- [ ] sp_skill_profilo_delete
+- [ ] sp_skill_profilo_update
+
+- [ ] sp_foto_insert
+- [ ] sp_foto_delete
+- [x] sp_foto_selectAll
+	- progetto_dettagli.php
+
+## progetto_dettagli.php
+- this is where all the comments will be loaded, where a user can add a comment, where the creatore can reply to those comments
+	- add creatore capability to reply to comments using alr defined sp
+- regular user can see all project details and finance project
+	- project financing button "Finanzia" leads to progetto_finanzia.php which relies on actions/finanziamento_insert.php
+- creator can edit project details in here (budget, desc, profili, componenti, etc)
+	- profili / componenti should lead to separate page like profilo_dettagli.php componente_dettagli.php
+- add a dynamic green bar which shows how much of project has been financed compared to total budget required (copy paste from progetti.php)
+- clean up the other attributes too like in progetti.php
+- ### candidature has its own section beneath fotos
+	- for all users, it is a horizontal scrollbar (if overflow) showing all the available profiles for the project + any taken profiles and by who (nickname only)
+		- Pending and rejected profiles are not shown here, and for pending profiles unless one candidate is accepted by the creator, the profile will remain visible as open for all users
+		- all users who are not the creator can click on the profilo and it will open the specific profilo_dettagli.php page for that profile of that project
+
+
+
+## profilo_dettagli.php
+- Similar structure to progetto_dettagli.php, regular users can see all info related to profile, along with their level of skills (if available) for the selected profile.
+	- If the user meets all the criteria then he is allowed to press on button to apply ($\_SESSION\['success'] back to progetto_dettagli.php)
+	- Otherwise, the apply button is greyed out, and anyways even if user forces submit of application, sp and triggers handle automatic rejection ($\_SESSION\['error'] back to progetto_dettagli.php)
+- for creatore of project only display at bottom section to edit profile in any way or delete it, and also a log from PARTECIPANTE (maybe create sp for this) of all the attempted (qualifiable) applications
+
+## progetto_profili.php
+- page available to creator of project only (add check at top php script with sp)
+- here he can manage all the profiles of his project, delete, update (relocate profilo_dettagli.php), insert any profile (relocate new_profilo.php which uses actions/profilo_insert.php)
+
+## new_profilo.php
+- creator of project page only
+- page to define and insert for one of his projects (he selects from checkbox) a new profile with custom name and competenze with required level
+
+
+## maybe rewards.php page in navbar which displays all the rewards a user has collected
 
 
 ## maybe add sp_skill_curriculum_update (to update his livello_effettivo)
@@ -17,10 +128,8 @@
 - and sp_skill_update to rename skills globally
 
 
-## maybe add javadoc comments for triggers
-
-
-## REMEMBER FOR HW PROJECTS WHEN USER ADDS COMPONENTS PRICE/QUANTITY HE MUST BE ALERTED IF THEIR SUM EXCEEDS THE PROJECT BUDGET AND TO CONFIRM ADD THEM OR NOT → MAKE SURE THE BUDGET RECALCULATION TRIGGERS ARE CORRECT
+## REMEMBER FOR HW PROJECTS 
+- WHEN USER ADDS COMPONENTS PRICE/QUANTITY HE MUST BE ALERTED IF THEIR SUM EXCEEDS THE PROJECT BUDGET AND TO CONFIRM ADD THEM OR NOT → MAKE SURE THE BUDGET RECALCULATION TRIGGERS ARE CORRECT
 
 
 ## at php level whenever a COMPONENTE IS UPDATE WITH sp_componente_budget and the desc or name remain unchanged, assume that the user is only updating quantity and/or price
@@ -28,25 +137,30 @@
 - if user does supply new name and/or desc. then override default behaviour of maintaining prev name and/or desc
 - it's either this or write separate sp's updating each attribute
 
-## for mongodb add a error collection which just logs any sql signal state 45000 errors triggered
 
+## big BIG MAYBE, but would be cool to implement notification system for each user which reflects mongodb logging, i.e. all events logged to mongodb, but relevant parties are also notified say project owner gets a comment, or commenter gets a reply from owner
 
-## homepage layout yet to figure out
-- can be like a kinda welcome + how-to/guide for user explaining navbar and what each page contains
-- AND DISPLAY ALL THEIR INFO IN A CARD AS BIO LIKE NAME, SURNAME, EMAIL, NICKNAME, ETC
+## for mongodb 
+- add a error collection which just logs any sql signal state 45000 errors triggered, this type of log occurs in the fail-early initial checks at top of most php files, and in all PDOException try-catches
+- anywhere an sp_invoke() in php is called, thats where i must trigger a log as it indicates an action taking place
+
 
 ## keep track of website structure
 ```
 bostarter/
 ├── actions/
-│   ├── add_global_skill.php
-│   ├── add_user_skill.php
+│   ├── commento_delete.php
+│   ├── commento_insert.php
 │   ├── login_handler.php
 │   ├── logout.php
-│   └── register_handler.php
+│   ├── register_handler.php
+│   ├── skill_curriculum_insert.php
+│   └── skill_insert.php
 ├── components/
+│   ├── error_alert.php
 │   ├── footer.php
-│   └── header.php
+│   ├── header.php
+│   └── success_alert.php
 ├── config/
 │   ├── config.php
 │   └── sp_invoke.php
@@ -56,6 +170,7 @@ bostarter/
 │   ├── index.php
 │   ├── login.php
 │   ├── progetti.php
+│   ├── progetto_dettagli.php
 │   ├── register.php
 │   ├── skill.php
 │   └── statistiche.php
@@ -623,8 +738,6 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 ---
 ## select the most important ones here to add to presentation (eg. deffo slide for importance of db robust structure and clarity of sp's)
 
-## INSERT HERE REFLECTIONS FROM TODO
-
 ### [[DB-PRJ-REPORT#TODO]]
 
 - budget proj hardware >= somma componenti
@@ -667,76 +780,89 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 - while the existence check for the project might seem redundant from a pure data-integrity standpoint, it is valuable for providing a better, more controlled error response and enforcing additional business logic. EXAMPLE: The check for the project’s closed state is absolutely necessary for comments and financing operations because it’s not covered by the foreign key constraints.
 
-- originally sillily stored plaintext pwd in db, switched to hashed pwds which required modifying sp_utente_login on db and handling pwd hashing on php application layer
+- decomposing php site into components, actions and public (pages) to split page display from action logic, and components great for code reusability
 
 # **6. FUNZIONALITÀ**
 ---
-## prolly just scrap everything here and do a more dynamic description like user login/register section, home.php section, statistiche.php section etc
-
-
-
 ## **6.1. BACKEND (MySQL)**
 
--- UTENTE:
---  sp_utente_register
---  sp_utente_login
+In questa sezione si presenta una breve overview della struttura dei file che inizializzano la base di dati `BOSTARTER`.
 
--- SKILL_CURRICULUM:
---  sp_skill_curriculum_insert
---  sp_skill_curriculum_selectAll
---  sp_skill_curriculum_selectDiff
+### **Inizializzazione DB**
 
--- PROGETTO:
---  sp_progetto_selectAll
---  sp_progetto_insert
+Il file di inizializzazione del database, `bostarter_init.sql`, si suddivide nelle seguenti parti principali:
 
--- FINANZIAMENTO:
---  sp_finanziamento_insert
+#### `TABELLE`
+- Si definiscono tutte le tabelle usate dal database.
+#### `STORED PROCEDURES (HELPER)`
+- Si definiscono tutte stored procedure di tipo secondario/helper utilizzate da altre stored procedure (primarie/main) per effettuare controlli di sicurezza, o a livello di applicazione invocate mediante la funzione mia `sp_invoke(...)`.
+#### `STORED PROCEDURES (MAIN)`
+- Si definiscono tutte le stored procedures di tipo primario/main, fungendo come interfaccia principale fra l'applicazione (sempre mediante `sp_invoke(...)` e il database per quasi ogni operazioni disponibile sulla piattaforma.
+#### `VISTE`
+- Si definiscono le tre viste richieste dal progetto.
+#### `TRIGGERS`
+- Si definiscono tutti i trigger richiesti dal progetto, con qualche aggiunta mia.
+#### `EVENTI`
+- Si definisce il solo evento richiesto dal progetto.
 
--- COMMENTO:
---  sp_commento_insert
---  sp_commento_delete
---  sp_commento_risposta_insert
---  sp_commento_risposta_delete
+Le tabelle, attraverso vincoli inter-relazionali e check definiti a livello di attributo fungono già come un buon punto di partenza in termini di sicurezza e consistenza dei dati. Ho optato, però, di implementare un ulteriore livello di sicurezza centrale e robusto all'interno delle stored procedures definite nel file. Come menzionato di sopra, ho suddiviso le stored procedures in due categorie principali: Main e helper. Le stored procedure "main" performano operazioni richieste dalla piattaforma (es. aggiunta di una skill globale), e si appoggiano a stored procedures di tipo "helper" per verificare che ogni controllo di sicurezza per l'operazione passi (es. l'utente che aggiunge una skill globale deve essere admin).
 
--- PARTECIPANTE:
---  sp_partecipante_utente_insert
---  sp_partecipante_creatore_update
+### **Popolamento DB**
 
--- SKILL:
---  sp_skill_insert
---  sp_skill_selectAll
+Il file di popolamento con dati fittizi per il database, `bostarter_demo.sql`, si suddivide nelle seguenti parti principali:
 
--- REWARD:
---  sp_reward_insert
+#### `UTENTE REGISTRATION (ALL)`
+- Registrazione di tutti gli utenti finti nella piattaforma, con svariati admin, creatori, ed utenti regolari.
+#### `SKILL INSERTION (ADMIN)`
+- Inserimento di skill nella lista globale della piattaforma. Solo admin possono fare tale operazione.
+#### `SKILL_CURRICULUM INSERTION (ALL)`
+- Inserimento di skill nel proprio curriculum da parte di ogni utente, in base alle skill globali definite di sopra.
+#### `PROGETTO INSERTION (CREATORE)`
+- Inserimento da parte del creatore di progetti nella piattaforma.
+#### `REWARD INSERTION (CREATORE)`
+- Inserimento da parte del creatore di reward per il progetto proprio.
+#### `COMPONENTE OPERATIONS (CREATORE)`
+- Nel caso di progetti hardware, inserimento da parte del creatore del progetto di componenti necessarie.
+#### `PROFILO & SKILL_PROFILO OPERATIONS (CREATORE)`
+- Nel caso di progetti software, inserimento da parte del creatore del progetto di profili e relative competenze al quale utenti possono candidarsi.
+#### `COMMENTO OPERATIONS (ALL)`
+- Inserimento di commenti su ciascun progetto della piattaforma; alcuni commenti dispongono di una risposta dal creatore.
+#### `PARTECIPANTE OPERATIONS (ALL)`
+- Inserimento da utenti per candidature di profili dei progetti, accettati/rifiutati dal creatore.
+#### `FINANZIAMENTO OPERATIONS (ALL)`
+- Inserimento di finanziamenti di progetti da parte di ogni utente.
 
--- COMPONENTE:
---  sp_componente_insert
---  sp_componente_delete
---  sp_componente_update
+In questo file vengono fatte chiamate delle stored procedures definite nel file di sopra per inserire i dati fittizi nella piattaforma. Ovviamente per il suo corretto funzionamento vengono fatte solo chiamate valide, e non vengono utilizzate qui stored procedures che rimuovono/aggiornano dati (ha più senso fare una dimostrazione di esso in sede d'esame).
 
--- PROFILO:
---  sp_profilo_insert
---  sp_profilo_delete
+### **Script**
 
--- SKILL_PROFILO:
---  sp_skill_profilo_insert
---  sp_skill_profilo_delete
---  sp_skill_profilo_update
-
--- FOTO:
---  sp_foto_insert
---  sp_foto_delete
+Viene riportato in [[#**7.3. Script**|fondo alla relazione]] un bash script che inizializza e popola automaticamente la base di dati utilizzando i file di sopra. Per poter utilizzarlo correttamente basta:
+1. Modificare nello script `MYSQL_PASS= <LA TUA PASSWORD>` con la propria password
+2. Assicurarsi di avere entrambi i file sql (`bostarter_init.sql` & `bostarter_demo.sql`) presenti nella stessa directory dello script
+3. (macOS) Eseguire su linea di comando, accertandosi che lo script abbia il permesso di eseguire: `./init_demo.sh`
+	- Se tutto è andato a buon fine, l'ultimo messaggio sul terminale dovrebbe indicare: `-- BOSTARTER INIZIALIZZATO --`
 
 ## **6.2. FRONTEND (PHP)**
 
+In questa sezione si presenta una breve overview della struttura della piattaforma BOSTARTER e delle sue funzionalità. Di seguito la struttura del sito:
+
+# COPY PASTE HERE THE DIR STRUCTURE OF THE WEBSITE FROM ABOVE!!!!!!!!!!!!!!!!!!
+
+
 ### **AUTENTICAZIONE UTENTE**
+- `index.php`
+- `login.php`
+- `register.php`
 
 Il landing page della piattaforma, `index.php`, verifica se l'utente si è già autenticato controllando la variabile di sessione `$_SESSION['user_email']` e se sì allora viene reindirizzato alla homepage, `home.php`, altrimenti viene reindirizzato alla pagina di login, `login.php` per autenticarsi.
 
 Se dispone di un account esistente sulla piattaforma (email e password) allora può autenticarsi, altrimenti clicca su Registra e continua con la procedura per creare il proprio account. In fase di login l'utente può anche autenticarsi come amministratore se dispone del codice di sicurezza proprio.
 
 ![[login.png]]
+
+Verrà resa disponibile in sede d'esame una sezione di autologin per poter passare rapidamente fra utenti e testare diverse funzionalità della piattaforma.
+
+![[autologin.png]]
 
 La struttura della pagina di registrazione è molto simile a quella di login per mantenere un look consistente e prevedibile per l'utente, con la sola differenza che contiene alcuni campi aggiuntivi per i propri dati personali.
 
@@ -745,8 +871,16 @@ La struttura della pagina di registrazione è molto simile a quella di login per
 In fase di registrazione, l'utente ha la possibilità di segnarsi come un creatore della piattaforma, cliccando sulla checkbox sopra al submit button della registrazione. In tal caso, verrà inserito nel DB anche come `CREATORE`.
 
 ### **HOMEPAGE**
+- `home.php`
 
 ### **STATISTICHE**
+- `statistiche.php`
+
+La pagina delle statistiche è relativamente semplice, chiamando i dati presenti nelle 3 viste definite nel database, e rendendole visibili nella forma di tabelle.
+
+![[statistiche.png]]
+
+Non sono previste alcune operazioni da nessun utente su questa pagina; i dati prodotti dalle viste vengono aggiornati in tempo reale, ricaricando la pagina.
 
 ### **SKILL**
 

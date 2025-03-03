@@ -520,7 +520,7 @@ END//
 
 /*
 *  PROCEDURE: sp_util_admin_exists
-*  PURPOSE: Verifica se l'utente è un admin, selezionando 1 se lo è, 0 altrimenti.
+*  PURPOSE: Verifica se l'utente è un admin, selezionando TRUE se lo è, FALSE altrimenti.
 *
 *  @param IN p_email - Email dell'utente da controllare
 */
@@ -533,6 +533,25 @@ BEGIN
         SELECT TRUE AS is_admin;
     ELSE
         SELECT FALSE AS is_admin;
+    END IF;
+    COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_util_creatore_exists
+*  PURPOSE: Verifica se l'utente è un creatore, selezionando TRUE se lo è, FALSE altrimenti.
+*
+*  @param IN p_email - Email dell'utente da controllare
+*/
+CREATE PROCEDURE sp_util_creatore_exists(
+    IN p_email VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    IF EXISTS (SELECT 1 FROM CREATORE WHERE email_utente = p_email) THEN
+        SELECT TRUE AS is_creatore;
+    ELSE
+        SELECT FALSE AS is_creatore;
     END IF;
     COMMIT;
 END//
@@ -555,23 +574,6 @@ BEGIN
     ELSE
         SELECT FALSE AS is_owner;
     END IF;
-    COMMIT;
-END//
-
-/*
-*  PROCEDURE: sp_util_progetto_finanziamenti_sum
-*  PURPOSE: Restituisce la somma degli importi dei finanziamenti ricevuti da un progetto.
-*
-*  @param IN p_nome_progetto - Nome del progetto da controllare
-*/
-CREATE PROCEDURE sp_util_progetto_finanziamenti_sum(
-    IN p_nome_progetto VARCHAR(100)
-)
-BEGIN
-    START TRANSACTION;
-    SELECT SUM(importo) AS totale_finanziamenti
-    FROM FINANZIAMENTO
-    WHERE nome_progetto = p_nome_progetto;
     COMMIT;
 END//
 
@@ -965,6 +967,7 @@ DELIMITER //
 -- UTENTE:
 --  sp_utente_register
 --  sp_utente_login
+--  sp_utente_select
 
 /*
 *  PROCEDURE: sp_utente_register
@@ -1063,6 +1066,24 @@ BEGIN
     COMMIT;
 END//
 
+/*
+*  PROCEDURE: sp_utente_select
+*  PURPOSE: Visualizzazione dei dati di un utente (home.php).
+*  USED BY: ALL
+*
+*  @param IN p_email - Email dell'utente
+*/
+CREATE PROCEDURE sp_utente_select(
+    IN p_email VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    SELECT nome, cognome, nickname, anno_nascita, luogo_nascita
+    FROM UTENTE
+    WHERE email = p_email;
+    COMMIT;
+END//
+
 -- SKILL_CURRICULUM:
 --  sp_skill_curriculum_insert
 --  sp_skill_curriculum_selectAll
@@ -1135,6 +1156,7 @@ END//
 -- PROGETTO:
 --  sp_progetto_select
 --  sp_progetto_selectAll
+--  sp_progetto_selectByCreatore
 --  sp_progetto_insert
 
 /*
@@ -1161,6 +1183,22 @@ END//
 CREATE PROCEDURE sp_progetto_selectAll()
 BEGIN
     SELECT * FROM PROGETTO;
+END//
+
+/*
+*  PROCEDURE: sp_progetto_selectByCreatore
+*  PURPOSE: Visualizzazione di tutti i progetti di un creatore.
+*  USED BY: CREATORE
+*
+*  @param IN p_email - Email del creatore
+*/
+CREATE PROCEDURE sp_progetto_selectByCreatore(
+    IN p_email VARCHAR(100)
+)
+BEGIN
+    SELECT *
+    FROM PROGETTO
+    WHERE email_creatore = p_email;
 END//
 
 /*
@@ -1216,6 +1254,8 @@ END//
 
 -- FINANZIAMENTO:
 --  sp_finanziamento_insert
+--  sp_finanziamento_selectAllByProgetto
+--  sp_finanziamento_selectAllByUtente
 
 /*
 *  PROCEDURE: sp_finanziamento_insert
@@ -1256,6 +1296,40 @@ BEGIN
     -- Se il controllo passa, inserisco il finanziamento
     INSERT INTO FINANZIAMENTO (email_utente, nome_progetto, codice_reward, importo)
     VALUES (p_email, p_nome_progetto, p_codice_reward, p_importo);
+    COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_finanziamento_selectAllByProgetto
+*  PURPOSE: Restituisce la somma degli importi dei finanziamenti ricevuti da un progetto.
+*
+*  @param IN p_nome_progetto - Nome del progetto da cui si vuole ottenere il totale dei finanziamenti
+*/
+CREATE PROCEDURE sp_finanziamento_selectAllByProgetto(
+    IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    SELECT SUM(importo) AS totale_finanziamenti
+    FROM FINANZIAMENTO
+    WHERE nome_progetto = p_nome_progetto;
+    COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_finanziamento_selectAllByUtente
+*  PURPOSE: Restituisce la lista degli importi dei finanziamenti effettuati da un utente.
+*
+*  @param IN p_email - Email dell'utente da cui si vuole ottenere la lista dei finanziamenti
+*/
+CREATE PROCEDURE sp_finanziamento_selectAllByUtente(
+    IN p_email VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    SELECT nome_progetto, importo, data
+    FROM FINANZIAMENTO
+    WHERE email_utente = p_email;
     COMMIT;
 END//
 
@@ -2036,6 +2110,14 @@ FROM CREATORE C
 ORDER BY affidabilita DESC
 LIMIT 3;
 
+-- Stored procedure per visualizzare la classifica dei top 3 creatori più affidabili
+DELIMITER //
+CREATE PROCEDURE view_classifica_creatori_affidabilita()
+BEGIN
+    SELECT * FROM view_classifica_creatori_affidabilita;
+END//
+DELIMITER ;
+
 -- Classifica dei top 3 progetti APERTI che sono più vicini al proprio completamento
 CREATE OR REPLACE VIEW view_classifica_progetti_completamento AS
 SELECT P.nome,
@@ -2048,6 +2130,13 @@ WHERE P.stato = 'aperto'
 ORDER BY (tot_finanziamenti / budget) DESC
 LIMIT 3;
 
+-- Stored procedure per visualizzare la classifica dei top 3 progetti più vicini al completamento
+DELIMITER //
+CREATE PROCEDURE view_classifica_progetti_completamento()
+BEGIN
+    SELECT * FROM view_classifica_progetti_completamento;
+END//
+DELIMITER ;
 
 -- Classifica dei top 3 utenti, in base al TOTALE di finanziamenti erogati
 CREATE OR REPLACE VIEW view_classifica_utenti_finanziamento AS
@@ -2057,6 +2146,14 @@ FROM UTENTE U
 GROUP BY U.email
 ORDER BY SUM(F.importo) DESC
 LIMIT 3;
+
+-- Stored procedure per visualizzare la classifica dei top 3 utenti con più finanziamenti erogati
+DELIMITER //
+CREATE PROCEDURE view_classifica_utenti_finanziamento()
+BEGIN
+    SELECT * FROM view_classifica_utenti_finanziamento;
+END//
+DELIMITER ;
 
 -- ==================================================
 -- TRIGGERS
