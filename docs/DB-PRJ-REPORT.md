@@ -1,25 +1,35 @@
 # TODO
 ---
+- [ ] check for any leftover TODO's in project
 - [ ] connect mongodb to php
 - [ ] env vars for mysql and php?
 - [ ] PASTE FULL SQL INIT FILE TO [[#**7.1. Inizializzazione DB**]]
+- [ ] review entire progettazione logica section fr
 - [ ] in README and in report & presentation and explain how to setup and run project..... bash script for php too? ........... hmmm maybe docker cool but idk
+- [ ] redo screenshots of funzionalità section once website complete
 - [ ] export to pdf using pandoc
 	- [ ] potentially need to fix mismatching links text for correct rendering
 	- [ ] ensure clickable links for ToC
 
 ## [[DB-PRJ-REPORT#5. RIFLESSIONI]]
 
-## review entire progettazione logica section fr
-## redo screenshots of funzionalità section once website complete
-
-
 ## make fake data for projects more recent and show one which is closed due to past data limite
 
 
+## consider renaming all sp_util_\*\_exists to something (still shared to all) but more meaningful like sp_util_check_progetto_owner
+- yes the example is good because between util and check there is no other word which means it is generic check made for php-layer and not primary sp's that rely on sp_nome_procedura_check syntax
+
 
 ## GO THROUGH ALL PHP FILES AND SEE IF THEY HAVE COMMON CONDITIONAL CHECKS THAT I CAN ABSTRACT INTO checks.php
-- can even make a whole dedicated directory like checks/ and within it i can have primitive_check.php which contains functions that do primitive checks (e.g. checkAuth() for if user login → single purpose / fundamental and basic checks) and then I can have other php files like commento_check.php which is a combination of custom checks and composite primitive checks (e.g. checkAuth() followed by check if specific $\_POST vars set etc)
+- can even make a whole dedicated directory like checks/ and within it i can have checks.php which contains functions that do primitive checks (e.g. checkAuth() for if user login → single purpose / fundamental and basic checks) and then I can have other php files like commento_check.php which is a combination of custom checks and composite primitive checks (e.g. checkAuth() followed by check if specific $\_POST vars set etc)
+- ### **GO THROUGH ALL PAGES AND ACTIONS, ESPECIALLY PAGES, AND ENSURE THERE ARE SECURITY DEFAULT ALWAYS-ON CHECKS LIKE IS USER LOGGED IN checkAuth()**
+
+
+
+# checks.php !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+- ### wrap all primitive checks in try-catch PDOException blocks so that in the rest of the code i dont need to use try-catch blocks and keep code cleaner elsewhere
+	- maybe add a parameter `errorMsg` where I have the option to input custom error message and if left empty i use default error message i define in the function try-catch
+
 
 
 ## keep track of which of them has been implemented in php (this is effective project progress tracking) and where/how
@@ -30,6 +40,7 @@
 	- login_handler.php
 - [x] sp_utente_select
 	- home.php
+- [ ] sp_utente_convert_creatore
 
 - [x] sp_skill_curriculum_insert
 	- skill_curriculum_insert.php
@@ -79,6 +90,7 @@
 
 - [ ] sp_profilo_insert
 - [ ] sp_profilo_delete
+- [ ] sp_profilo_selectAllByProgetto
 
 - [ ] sp_skill_profilo_insert
 - [ ] sp_skill_profilo_delete
@@ -88,6 +100,12 @@
 - [ ] sp_foto_delete
 - [x] sp_foto_selectAll
 	- progetto_dettagli.php
+
+
+## progetti.php
+- add button "Crea Progetto" for creators top right
+- same button for regular users but "Vuoi diventare un Creatore?" which then confirm prompts user if they wish to convert their account to a creator
+	- remember to set $\_SESSION\['is_creatore'] to true as needed for first time, future logins will be managed automatically. Or maybe better yet just force rerun sp_utente_login after having turned him to creator with say sp_utente_convert_creatore
 
 ## progetto_dettagli.php
 - this is where all the comments will be loaded, where a user can add a comment, where the creatore can reply to those comments
@@ -120,7 +138,7 @@
 - page to define and insert for one of his projects (he selects from checkbox) a new profile with custom name and competenze with required level
 
 
-## maybe rewards.php page in navbar which displays all the rewards a user has collected
+## create finanziamenti.php page in navbar which displays all the finanziamenti a user has done and display associated rewards
 
 
 ## maybe add sp_skill_curriculum_update (to update his livello_effettivo)
@@ -844,10 +862,80 @@ Viene riportato in [[#**7.3. Script**|fondo alla relazione]] un bash script che 
 
 ## **6.2. FRONTEND (PHP)**
 
-In questa sezione si presenta una breve overview della struttura della piattaforma BOSTARTER e delle sue funzionalità. Di seguito la struttura del sito:
+In questa sezione si presenta una breve overview della struttura della piattaforma BOSTARTER e delle sue funzionalità.
 
+#### Struttura Generale
+
+Di seguito la struttura generale del sito:
 # COPY PASTE HERE THE DIR STRUCTURE OF THE WEBSITE FROM ABOVE!!!!!!!!!!!!!!!!!!
 
+`/actions`: Le operazioni più complesse che permettono il funzionamento della piattaforma. Vengono invocate all'interno delle pagine.
+
+`/components`: Componenti grafiche riutilizzabili/fisse in ogni pagina.
+
+`/config`: Contiene le configurazioni necessarie per la piattaforma, come connessione al database.
+
+`/functions`: Funzioni primitive / semi-primitive che eseguono controlli od operazioni semplici comuni usate per il funzionamento delle pagine.
+
+`/public`: Le pagine php visibili al client.
+
+#### Struttura File
+
+La struttura generale di ogni file php nelle directory `public/` e `actions/` è la seguente:
+
+- `/public`:
+```php
+<?php
+// === CONFIG ===
+session_start();
+require '../config/config.php';
+
+// === CHECKS ===
+// ...
+
+// === DATABASE ===
+// ...
+?>
+
+// <HTML>
+```
+A capo di ogni file viene posta la sezione di configurazione (`=== CONFIG ===`), che chiama `session_start()` per recuperare le variabili di sessioni ed importa il file `config.php` contenente la connessione al database. Di seguito si hanno i controlli di sicurezza preliminari (`=== CHECKS ===`) relativi alla pagina specifica, e per ultimo si recuperano dal database (`=== DATABASE ===`) dati necessari mediante stored procedures. In fondo si ha la pagina html, con php minimale (tanto quanto necessario per del conditional rendering).
+
+- `/actions`:
+```php
+<?php
+// === CONFIG ===
+session_start();
+require '../config/config.php';
+
+// === CHECKS ===
+// ...
+
+// === ACTION ===
+try {
+    $in = [
+        'p_X' => $X,
+        // ...
+    ];
+
+    sp_invoke('X', $in);
+} catch (PDOException $ex) {
+	// Error, redirect alla pagina X
+    redirect(
+        false,
+        "Errore X: " . $ex->getMessage(),
+        '../public/X.php'
+    );
+}
+
+// Success, redirect alla pagina X
+redirect(
+    true,
+    'X effettuato con successo!',
+    '../public/X.php'
+);
+```
+Risulta immediato che la struttura del file sia simile a quella vista di sopra. L'unica differenza è la seguente: Invece di avere una sezione per il recupero di dati dal database (`=== DATABASE ===`) e in fondo pagina html (`<HTML>`), essendo un file che deve fare un'operazione su una pagina, si ha semplicemente una sezione che prepara ed invoca una stored procedure (`=== ACTION ===`), con successful od error redirect in base alla situazione specifica.
 
 ### **AUTENTICAZIONE UTENTE**
 - `index.php`

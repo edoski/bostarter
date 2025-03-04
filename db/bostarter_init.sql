@@ -1811,6 +1811,7 @@ END//
 -- PROFILO:
 --  sp_profilo_insert
 --  sp_profilo_delete
+--  sp_profilo_selectAllByProgetto
 
 /*
 *  PROCEDURE: sp_profilo_insert
@@ -1877,6 +1878,25 @@ BEGIN
     FROM PROFILO
     WHERE nome_profilo = p_nome_profilo
       AND nome_progetto = p_nome_progetto;
+    COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_profilo_selectAllByProgetto
+*  PURPOSE: Restituisce la lista dei profili di un progetto software, assieme alle competenze e ai livelli richiesti.
+*  USED BY: ALL
+*
+*  @param IN p_nome_progetto - Nome del progetto software di cui si vogliono ottenere i profili
+*/
+CREATE PROCEDURE sp_profilo_selectAllByProgetto(
+    IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    SELECT P.nome_profilo, SP.competenza, SP.livello_richiesto
+    FROM PROFILO P
+             JOIN SKILL_PROFILO SP ON P.nome_profilo = SP.nome_profilo
+    WHERE P.nome_progetto = p_nome_progetto;
     COMMIT;
 END//
 
