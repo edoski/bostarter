@@ -686,6 +686,32 @@ BEGIN
     COMMIT;
 END//
 
+/*
+*  PROCEDURE: sp_util_finanziamento_progetto_utente_oggi_exists
+*  PURPOSE: Verifica se l'utente ha finanziato il progetto oggi. Restituisce TRUE se ha finanziato, FALSE altrimenti.
+*  USED BY: ALL
+*
+*  @param IN p_email - Email dell'utente
+*  @param IN p_nome_progetto - Nome del progetto
+*/
+CREATE PROCEDURE sp_util_finanziamento_progetto_utente_oggi_exists(
+    IN p_email VARCHAR(100),
+    IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    IF EXISTS (SELECT 1
+               FROM FINANZIAMENTO
+               WHERE email_utente = p_email
+                 AND nome_progetto = p_nome_progetto
+                 AND data = CURRENT_DATE) THEN
+        SELECT TRUE AS finanziato_oggi;
+    ELSE
+        SELECT FALSE AS finanziato_oggi;
+    END IF;
+    COMMIT;
+END//
+
 -- SKILL_PROFILO: sp_skill_profilo_check, USATO IN:
 --  sp_skill_profilo_insert
 --  sp_skill_profilo_delete
@@ -2087,7 +2113,6 @@ BEGIN
     GROUP BY P.nome_profilo;
     COMMIT;
 END//
-
 
 -- SKILL_PROFILO:
 --  sp_skill_profilo_insert
