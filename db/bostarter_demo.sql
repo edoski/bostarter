@@ -528,8 +528,7 @@ CALL sp_partecipante_creatore_update(
 CALL sp_partecipante_utente_insert(
         'mike@example.com',
         'ProgettoAlpha',
-        'Designer',
-        'CSS'
+        'Designer'
      );
 
 CALL sp_partecipante_creatore_update(
@@ -537,6 +536,5 @@ CALL sp_partecipante_creatore_update(
         'mike@example.com',
         'ProgettoAlpha',
         'Designer',
-        'CSS',
         'accettato'
      );
