@@ -497,27 +497,24 @@ CALL sp_commento_insert(
 -- ==================================================
 
 -- For ProgettoAlpha:
-# CALL sp_partecipante_utente_insert(
-#         'eric@example.com',
-#         'ProgettoAlpha',
-#         'Developer',
-#         'JavaScript'
-#      );
-#
-# CALL sp_partecipante_creatore_update(
-#         'bob@example.com',
-#         'eric@example.com',
-#         'ProgettoAlpha',
-#         'Developer',
-#         'JavaScript',
-#         'accettato'
-#      );
+CALL sp_partecipante_utente_insert(
+        'eric@example.com',
+        'ProgettoAlpha',
+        'Developer'
+     );
+
+CALL sp_partecipante_creatore_update(
+        'bob@example.com',
+        'eric@example.com',
+        'ProgettoAlpha',
+        'Developer',
+        'accettato'
+     );
 
 CALL sp_partecipante_utente_insert(
         'judy@example.com',
         'ProgettoAlpha',
-        'Project Manager',
-        'UML'
+        'Project Manager'
      );
 
 CALL sp_partecipante_creatore_update(
@@ -525,7 +522,6 @@ CALL sp_partecipante_creatore_update(
         'judy@example.com',
         'ProgettoAlpha',
         'Project Manager',
-        'UML',
         'accettato'
      );
 
