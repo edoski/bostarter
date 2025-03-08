@@ -831,18 +831,17 @@ END//
 *
 *  @param IN p_nome_progetto - Nome del progetto a cui appartiene il partecipante
 *  @param IN p_nome_profilo - Nome del profilo richiesto dal partecipante
-*  @param IN p_competenza - Competenza richiesta dal partecipante
 */
 CREATE PROCEDURE sp_partecipante_check(
     IN p_nome_progetto VARCHAR(100),
-    IN p_nome_profilo VARCHAR(100),
-    IN p_competenza VARCHAR(100)
+    IN p_nome_profilo VARCHAR(100)
 )
 BEGIN
-    -- Controllo che il progetto sia di tipo software
+    -- Controllo che:
+    -- 1. Il progetto sia di tipo software
+    -- 2. Il profilo esista
     CALL sp_util_is_progetto_software(p_nome_progetto);
-    -- Controllo che la competenza per quel profilo del progetto esista
-    CALL sp_util_skill_profilo_exists(p_nome_profilo, p_nome_progetto, p_competenza);
+    CALL sp_util_profilo_exists(p_nome_profilo, p_nome_progetto);
 END//
 
 /*
@@ -854,7 +853,6 @@ END//
 *  @param IN p_email_candidato - Email dell'utente candidato al progetto
 *  @param IN p_nome_progetto - Nome del progetto a cui il partecipante si è candidato
 *  @param IN p_nome_profilo - Nome del profilo richiesto dal partecipante
-*  @param IN p_competenza - Competenza richiesta dal partecipante
 *
 *  @throws 45000 - CANDIDATURA NON ESISTENTE (+ altri throw specifici dalle sp_util utilizzate)
 */
@@ -862,12 +860,11 @@ CREATE PROCEDURE sp_partecipante_creatore_check(
     IN p_email_creatore VARCHAR(100),
     IN p_email_candidato VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
-    IN p_nome_profilo VARCHAR(100),
-    IN p_competenza VARCHAR(100)
+    IN p_nome_profilo VARCHAR(100)
 )
 BEGIN
     -- Controllo comune a entrambe le stored procedure
-    CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo, p_competenza);
+    CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
     -- Controllo che l'utente sia il creatore del progetto
     CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
 
@@ -890,7 +887,6 @@ END//
 *  @param IN p_email - Email dell'utente che si candida al progetto
 *  @param IN p_nome_progetto - Nome del progetto a cui il partecipante si candida
 *  @param IN p_nome_profilo - Nome del profilo richiesto dal partecipante
-*  @param IN p_competenza - Competenza richiesta dal partecipante
 *
 *  @throws 45000 - UTENTE CREATORE DEL PROGETTO
 *  @throws 45000 - CANDIDATURA INSERITA PRECEDENTEMENTE
@@ -899,15 +895,14 @@ END//
 CREATE PROCEDURE sp_partecipante_utente_check(
     IN p_email VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
-    IN p_nome_profilo VARCHAR(100),
-    IN p_competenza VARCHAR(100)
+    IN p_nome_profilo VARCHAR(100)
 )
 BEGIN
     -- Dichiarazione variabile per la competenza mancante/suo livello insufficiente (se esiste)
     DECLARE missing_skill VARCHAR(100) DEFAULT NULL;
 
     -- Controllo comune a entrambe le stored procedure
-    CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo, p_competenza);
+    CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
 
     -- Controllo che l'utente NON sia il creatore del progetto
     IF EXISTS (SELECT 1
@@ -940,7 +935,7 @@ BEGIN
       AND (sc.livello_effettivo IS NULL OR sc.livello_effettivo < sp.livello_richiesto)
     LIMIT 1;
 
-    -- Se una competenza problematica viene trovata, lancia un errore.
+    -- Se almeno una competenza problematica viene trovata, lancia un errore.
     IF missing_skill IS NOT NULL THEN
         SIGNAL SQLSTATE '45000'
             SET MESSAGE_TEXT = 'COMPETENZA MANCANTE O LIVELLO INSUFFICIENTE';
@@ -1675,13 +1670,11 @@ END//
 *  @param IN p_email - Email dell'utente che si candida
 *  @param IN p_nome_progetto - Nome del progetto interessato
 *  @param IN p_nome_profilo - Nome del profilo richiesto per il progetto
-*  @param IN p_competenza - Competenza richiesta per il profilo del progetto
 */
 CREATE PROCEDURE sp_partecipante_utente_insert(
     IN p_email VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
-    IN p_nome_profilo VARCHAR(100),
-    IN p_competenza VARCHAR(100)
+    IN p_nome_profilo VARCHAR(100)
 )
 BEGIN
     DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -1694,9 +1687,9 @@ BEGIN
     --  1. Il progetto sia di tipo software
     --  2. Il profilo per quel progetto esista
     --  3. L'utente non sia il creatore del progetto
-    --  4. L'utente non abbia già una candidatura per quella competenza
+    --  4. L'utente non abbia già una candidatura per quel profilo del progetto
     --  5. L'utente, per ogni competenza richiesta, abbia il livello richiesto
-    CALL sp_partecipante_utente_check(p_email, p_nome_progetto, p_nome_profilo, p_competenza);
+    CALL sp_partecipante_utente_check(p_email, p_nome_progetto, p_nome_profilo);
 
     -- Se i controlli passano, inserisco la candidatura
     INSERT INTO PARTECIPANTE (email_utente, nome_progetto, nome_profilo)
@@ -1714,7 +1707,6 @@ END//
 *  @param IN p_email_candidato - Email del candidato
 *  @param IN p_nome_progetto - Nome del progetto interessato
 *  @param IN p_nome_profilo - Nome del profilo richiesto per il progetto
-*  @param IN p_competenza - Competenza richiesta per il profilo del progetto
 *  @param IN p_nuovo_stato - Nuovo stato della candidatura (accettato o rifiutato)
 */
 CREATE PROCEDURE sp_partecipante_creatore_update(
@@ -1722,7 +1714,6 @@ CREATE PROCEDURE sp_partecipante_creatore_update(
     IN p_email_candidato VARCHAR(100),
     IN p_nome_progetto VARCHAR(100),
     IN p_nome_profilo VARCHAR(100),
-    IN p_competenza VARCHAR(100),
     IN p_nuovo_stato ENUM ('accettato','rifiutato')
 )
 BEGIN
@@ -1737,8 +1728,7 @@ BEGIN
     --  2. Il profilo per quel progetto esista
     --  3. L'utente sia il creatore del progetto
     --  4. La candidatura esista
-    CALL sp_partecipante_creatore_check(p_email_creatore, p_email_candidato, p_nome_progetto, p_nome_profilo,
-                                        p_competenza);
+    CALL sp_partecipante_creatore_check(p_email_creatore, p_email_candidato, p_nome_progetto, p_nome_profilo);
 
     -- Se i controlli passano, aggiorno lo stato della candidatura
     UPDATE PARTECIPANTE
