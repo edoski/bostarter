@@ -12,7 +12,7 @@ USE BOSTARTER;
 CALL sp_utente_register(
         'alice@example.com',
         '$2y$10$iyV4M0QFH/6jRfhpLQi7o.sQY4psXIIgu0nKcXy9JomlEzUP5OkJG',
-        'alice',
+        'alice09',
         'Alice',
         'Rossi',
         1980,
@@ -39,7 +39,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'bob@example.com',
         '$2y$10$UD3Szzw46Z.YGUVRwnbknOHa4pxJJZin/bd3E50DmeHID1NF/zkvC',
-        'bob',
+        'bobTheBuilder',
         'Bob',
         'Bianchi',
         1985,
@@ -52,7 +52,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'charlie@example.com',
         '$2y$10$MTrRjFubLx0pFikUw9f3q.JUI114hSzHiw5QTEshcmkMb7QFmCpfe',
-        'charlie',
+        'charlie_chaplin',
         'Charlie',
         'Verdi',
         1992,
@@ -65,7 +65,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'diana@example.com',
         '$2y$10$ekIyDsnc1kxUgYmwggpkxOszcnWxzs3Ar/VQJXLcwc8AVt7l5aCZm',
-        'diana',
+        'diana12',
         'Diana',
         'Neri',
         1988,
@@ -76,13 +76,13 @@ CALL sp_utente_register(
      );
 
 CALL sp_utente_register(
-        'eric@example.com',
-        '$2y$10$wPdkIxc6GqZtd4DeK6LShOtrkKrjlP11.rgpCghedWvSnw.o2qxNK',
-        'eric',
-        'Eric',
-        'Gialli',
-        1995,
-        'Firenze',
+        'edoardo.galli3@studio.unibo.it',
+        '$2y$10$VbCzsqRQAgwRP5x12zH7uO801YQGG6CbZB6HRoGEHRF5vKSq2RNzi',
+        'edo_unibo',
+        'Edoardo',
+        'Galli',
+        2003,
+        'Bologna',
         FALSE,
         FALSE,
         NULL
@@ -91,7 +91,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'frank@example.com',
         '$2y$10$7iuz26zxyC/S51dbXsrvQuMQc5BPVkfhWENR.H1vExD29wgJVcGqC',
-        'frank',
+        'frankenstain',
         'Frank',
         'Marrone',
         1990,
@@ -104,7 +104,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'grace@example.com',
         '$2y$10$cOYdjYD0gIgu8gVOO.//euBHFBTR/39nJpdIHuoebEjyYC1UfFCry',
-        'grace',
+        'gracieee',
         'Grace',
         'Verdi',
         1987,
@@ -117,7 +117,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'heidi@example.com',
         '$2y$10$Nk.mtGOdrDa1OQAkeMtN9.loPlu.ufqdQTJd8yhIqOvWSjorAPjaS',
-        'heidi',
+        'heidi_90',
         'Heidi',
         'Blu',
         1993,
@@ -130,7 +130,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'ivan@example.com',
         '$2y$10$MLGsQC2YpvzvQzjRHaDEseRRAMwZ3xb6CyuKzBySQIZCVeO0LDNT6',
-        'ivan',
+        'ivanTheTerrible',
         'Ivan',
         'Grosso',
         1984,
@@ -143,7 +143,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'judy@example.com',
         '$2y$10$bdagVYwY2G9RtsIkhRzBHOvmoWQbWAWS.J9.4YpAyrfnm80bhiMYO',
-        'judy',
+        'judge_judy',
         'Judy',
         'Rossi',
         1991,
@@ -169,7 +169,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'leo@example.com',
         '$2y$10$V9F.HfDtgABiHFPL.okctuZLFUKa1oBfbxzfKkS42b7wwICQnlmdC',
-        'leo',
+        'leo_da_vinci',
         'Leo',
         'Verdi',
         1994,
@@ -182,7 +182,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'mike@example.com',
         '$2y$10$/9YpR7i31T7.1bERl7sG2eGI6IqmnBwEtpGMcyTBHDSGS7QNSFBIa',
-        'mike',
+        'mike89',
         'Mike',
         'Gialli',
         1989,
@@ -234,9 +234,10 @@ CALL sp_skill_insert('HTML', 'alice@example.com');
 CALL sp_skill_insert('React', 'alice@example.com');
 CALL sp_skill_insert('Angular', 'alice@example.com');
 CALL sp_skill_insert('Node.js', 'alice@example.com');
-CALL sp_skill_insert('Django', 'alice@example.com');
-CALL sp_skill_insert('Flask', 'alice@example.com');
+CALL sp_skill_insert('MongoDB', 'alice@example.com');
 CALL sp_skill_insert('UML', 'alice@example.com');
+CALL sp_skill_insert('ERD', 'alice@example.com');
+CALL sp_skill_insert('Figma', 'alice@example.com');
 
 -- ==================================================
 -- SKILL_CURRICULUM INSERTION (ALL)
@@ -247,20 +248,22 @@ CALL sp_skill_curriculum_insert('bob@example.com', 'JavaScript', 3);
 CALL sp_skill_curriculum_insert('charlie@example.com', 'CSS', 4);
 CALL sp_skill_curriculum_insert('charlie@example.com', 'JavaScript', 5);
 CALL sp_skill_curriculum_insert('diana@example.com', 'PHP', 4);
-CALL sp_skill_curriculum_insert('eric@example.com', 'JavaScript', 4);
-CALL sp_skill_curriculum_insert('eric@example.com', 'PHP', 5);
+CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'MySQL', 5);
+CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'ERD', 5);
+CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'MongoDB', 5);
+CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'PHP', 5);
 CALL sp_skill_curriculum_insert('frank@example.com', 'Python', 4);
 CALL sp_skill_curriculum_insert('grace@example.com', 'JavaScript', 5);
 CALL sp_skill_curriculum_insert('heidi@example.com', 'HTML', 3);
 CALL sp_skill_curriculum_insert('ivan@example.com', 'C++', 4);
 CALL sp_skill_curriculum_insert('judy@example.com', 'SQL', 3);
-CALL sp_skill_curriculum_insert('judy@example.com', 'UML', 4);
+CALL sp_skill_curriculum_insert('judy@example.com', 'UML', 5);
+CALL sp_skill_curriculum_insert('judy@example.com', 'ERD', 5);
 CALL sp_skill_curriculum_insert('karen@example.com', 'Ruby', 4);
 CALL sp_skill_curriculum_insert('leo@example.com', 'React', 3);
-CALL sp_skill_curriculum_insert('mike@example.com', 'Angular', 4);
+CALL sp_skill_curriculum_insert('mike@example.com', 'Figma', 4);
 CALL sp_skill_curriculum_insert('mike@example.com', 'CSS', 5);
 CALL sp_skill_curriculum_insert('nancy@example.com', 'Node.js', 5);
-CALL sp_skill_curriculum_insert('oscar@example.com', 'Django', 4);
 CALL sp_skill_curriculum_insert('oscar@example.com', 'SQL', 5);
 
 -- ==================================================
@@ -373,36 +376,77 @@ CALL sp_componente_insert(
 -- PROFILO & SKILL_PROFILO OPERATIONS (CREATORE)
 -- ==================================================
 -- For ProgettoAlpha:
+-- Backend Developer
 CALL sp_profilo_insert(
-        'Developer',
+        'Backend Developer',
         'ProgettoAlpha',
         'bob@example.com'
-     );
+        );
 
 CALL sp_skill_profilo_insert(
-        'Developer',
+        'Backend Developer',
         'ProgettoAlpha',
         'bob@example.com',
-        'JavaScript',
-        3
+        'MySQL',
+        4
+        );
+
+CALL sp_skill_profilo_insert(
+        'Backend Developer',
+        'ProgettoAlpha',
+        'bob@example.com',
+        'MongoDB',
+        4
      );
 
 CALL sp_skill_profilo_insert(
-        'Developer',
+        'Backend Developer',
+        'ProgettoAlpha',
+        'bob@example.com',
+        'ERD',
+        4
+     );
+
+CALL sp_skill_profilo_insert(
+        'Backend Developer',
         'ProgettoAlpha',
         'bob@example.com',
         'PHP',
         3
      );
 
+-- Frontend Developer
+CALL sp_profilo_insert(
+        'Frontend Developer',
+        'ProgettoAlpha',
+        'bob@example.com'
+     );
+
 CALL sp_skill_profilo_insert(
-        'Developer',
+        'Frontend Developer',
         'ProgettoAlpha',
         'bob@example.com',
-        'MySQL',
+        'JavaScript',
         4
      );
 
+CALL sp_skill_profilo_insert(
+        'Frontend Developer',
+        'ProgettoAlpha',
+        'bob@example.com',
+        'CSS',
+        3
+     );
+
+CALL sp_skill_profilo_insert(
+        'Frontend Developer',
+        'ProgettoAlpha',
+        'bob@example.com',
+        'HTML',
+        3
+     );
+
+-- Project Manager
 CALL sp_profilo_insert(
         'Project Manager',
         'ProgettoAlpha',
@@ -414,9 +458,26 @@ CALL sp_skill_profilo_insert(
         'ProgettoAlpha',
         'bob@example.com',
         'UML',
+        5
+     );
+
+CALL sp_skill_profilo_insert(
+        'Project Manager',
+        'ProgettoAlpha',
+        'bob@example.com',
+        'ERD',
+        5
+     );
+
+CALL sp_skill_profilo_insert(
+        'Project Manager',
+        'ProgettoAlpha',
+        'bob@example.com',
+        'SQL',
         3
      );
 
+-- Designer
 CALL sp_profilo_insert(
         'Designer',
         'ProgettoAlpha',
@@ -429,6 +490,48 @@ CALL sp_skill_profilo_insert(
         'bob@example.com',
         'CSS',
         4
+     );
+
+CALL sp_skill_profilo_insert(
+        'Designer',
+        'ProgettoAlpha',
+        'bob@example.com',
+        'Figma',
+        4
+     );
+
+-- ==================================================
+-- PARTECIPANTE OPERATIONS (ALL)
+-- ==================================================
+-- For ProgettoAlpha:
+-- Project Manager
+CALL sp_partecipante_utente_insert(
+        'judy@example.com',
+        'ProgettoAlpha',
+        'Project Manager'
+     );
+
+CALL sp_partecipante_creatore_update(
+        'bob@example.com',
+        'judy@example.com',
+        'ProgettoAlpha',
+        'Project Manager',
+        'accettato'
+     );
+
+-- Designer
+CALL sp_partecipante_utente_insert(
+        'mike@example.com',
+        'ProgettoAlpha',
+        'Designer'
+     );
+
+CALL sp_partecipante_creatore_update(
+        'bob@example.com',
+        'mike@example.com',
+        'ProgettoAlpha',
+        'Designer',
+        'accettato'
      );
 
 -- ==================================================
@@ -490,51 +593,4 @@ CALL sp_commento_insert(
         'charlie@example.com',
         'ProgettoBeta',
         'Beta è un progetto molto interessante.'
-     );
-
--- ==================================================
--- PARTECIPANTE OPERATIONS (ALL)
--- ==================================================
-
--- For ProgettoAlpha:
-CALL sp_partecipante_utente_insert(
-        'eric@example.com',
-        'ProgettoAlpha',
-        'Developer'
-     );
-
-CALL sp_partecipante_creatore_update(
-        'bob@example.com',
-        'eric@example.com',
-        'ProgettoAlpha',
-        'Developer',
-        'accettato'
-     );
-
-CALL sp_partecipante_utente_insert(
-        'judy@example.com',
-        'ProgettoAlpha',
-        'Project Manager'
-     );
-
-CALL sp_partecipante_creatore_update(
-        'bob@example.com',
-        'judy@example.com',
-        'ProgettoAlpha',
-        'Project Manager',
-        'accettato'
-     );
-
-CALL sp_partecipante_utente_insert(
-        'mike@example.com',
-        'ProgettoAlpha',
-        'Designer'
-     );
-
-CALL sp_partecipante_creatore_update(
-        'bob@example.com',
-        'mike@example.com',
-        'ProgettoAlpha',
-        'Designer',
-        'accettato'
      );
