@@ -15,15 +15,14 @@ CREATE TABLE UTENTE
 (
     email         VARCHAR(100) NOT NULL,
     password      VARCHAR(255) NOT NULL,
-    nickname      VARCHAR(50)  NOT NULL UNIQUE CHECK ( LENGTH(nickname) >= 3 ), -- Minimo 3 caratteri
+    nickname      VARCHAR(50)  NOT NULL UNIQUE CHECK ( LENGTH(nickname) > 0 ), -- Minimo 1 carattere
     nome          VARCHAR(50)  NOT NULL,
     cognome       VARCHAR(50)  NOT NULL,
-    anno_nascita  INT          NOT NULL CHECK ( anno_nascita < 2007 ),          -- età > 18
+    anno_nascita  INT          NOT NULL CHECK ( anno_nascita < 2007 ),         -- età > 18
     luogo_nascita VARCHAR(50)  NOT NULL,
     PRIMARY KEY (email)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
--- Uso di utf8mb4 (full UTF-8 support) per supportare eventuali caratteri speciali e emoji
 
 -- 2. ADMIN
 CREATE TABLE ADMIN
@@ -43,7 +42,7 @@ CREATE TABLE ADMIN
 CREATE TABLE CREATORE
 (
     email_utente VARCHAR(100) NOT NULL,
-    nr_progetti  INT UNSIGNED  DEFAULT 0,                                                   -- Numero di progetti creati 0..255
+    nr_progetti  INT UNSIGNED  DEFAULT 0,
     affidabilita DECIMAL(5, 2) DEFAULT 0.00 CHECK ( affidabilita BETWEEN 0.00 AND 100.00 ), -- Progetti finanziati / Progetti creati
     PRIMARY KEY (email_utente),
     CONSTRAINT fk_creatore_utente
@@ -57,9 +56,9 @@ CREATE TABLE CREATORE
 -- 4. PROGETTO
 CREATE TABLE PROGETTO
 (
-    nome             VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome) >= 3 ), -- Minimo 3 caratteri
+    nome             VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome) > 0 ), -- Minimo 1 carattere
     email_creatore   VARCHAR(100)   NOT NULL,
-    descrizione      TEXT           NOT NULL CHECK ( LENGTH(descrizione) >= 3 ),
+    descrizione      TEXT           NOT NULL CHECK ( LENGTH(descrizione) > 0 ), -- Minimo 1 carattere
     budget           DECIMAL(10, 2) NOT NULL CHECK ( budget > 0 ),
     stato            ENUM ('aperto','chiuso') DEFAULT 'aperto',
     data_inserimento DATE           NOT NULL  DEFAULT CURRENT_DATE,
@@ -119,7 +118,7 @@ CREATE TABLE REWARD
 (
     codice        VARCHAR(50)    NOT NULL,
     nome_progetto VARCHAR(100)   NOT NULL,
-    descrizione   TEXT           NOT NULL CHECK ( LENGTH(descrizione) >= 3 ), -- Minimo 3 caratteri
+    descrizione   TEXT           NOT NULL CHECK ( LENGTH(descrizione) > 0 ), -- Minimo 1 carattere
     foto          MEDIUMBLOB     NOT NULL,
     min_importo   DECIMAL(10, 2) NOT NULL CHECK ( min_importo > 0 ),
     PRIMARY KEY (codice, nome_progetto),
@@ -134,10 +133,10 @@ CREATE TABLE REWARD
 -- 9. COMPONENTE
 CREATE TABLE COMPONENTE
 (
-    nome_componente VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome_componente) >= 3 ), -- Minimo 3 caratteri
+    nome_componente VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome_componente) > 0 ), -- Minimo 1 carattere
     nome_progetto   VARCHAR(100)   NOT NULL,
-    descrizione     TEXT           NOT NULL CHECK ( LENGTH(descrizione) >= 3 ),     -- Minimo 3 caratteri
-    quantita        INT            NOT NULL CHECK ( quantita > 0 ),                 -- Business Rule #3
+    descrizione     TEXT           NOT NULL CHECK ( LENGTH(descrizione) > 0 ),     -- Minimo 1 carattere
+    quantita        INT            NOT NULL CHECK ( quantita > 0 ),                -- Business Rule #3
     prezzo          DECIMAL(10, 2) NOT NULL CHECK ( prezzo > 0 ),
     PRIMARY KEY (nome_componente, nome_progetto),
     CONSTRAINT fk_comp_phw
@@ -151,7 +150,7 @@ CREATE TABLE COMPONENTE
 -- 10. PROFILO
 CREATE TABLE PROFILO
 (
-    nome_profilo  VARCHAR(100) NOT NULL CHECK ( LENGTH(nome_profilo) >= 3 ), -- Minimo 3 caratteri
+    nome_profilo  VARCHAR(100) NOT NULL CHECK ( LENGTH(nome_profilo) > 0 ), -- Minimo 1 carattere
     nome_progetto VARCHAR(100) NOT NULL,
     PRIMARY KEY (nome_profilo, nome_progetto),
     CONSTRAINT fk_profilo_progetto
@@ -165,7 +164,7 @@ CREATE TABLE PROFILO
 -- 11. SKILL
 CREATE TABLE SKILL
 (
-    competenza VARCHAR(100) NOT NULL CHECK ( LENGTH(competenza) >= 3 ), -- Minimo 3 caratteri
+    competenza VARCHAR(100) NOT NULL CHECK ( LENGTH(competenza) > 0 ), -- Minimo 1 carattere
     PRIMARY KEY (competenza)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
@@ -204,8 +203,8 @@ CREATE TABLE COMMENTO
     email_utente  VARCHAR(100) NOT NULL,
     nome_progetto VARCHAR(100) NOT NULL,
     data          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    testo         TEXT         NOT NULL CHECK ( LENGTH(testo) >= 3 ), -- Minimo 3 caratteri
-    risposta      TEXT         NULL,                                  -- Business Rule #8
+    testo         TEXT         NOT NULL CHECK ( LENGTH(testo) > 0 ), -- Minimo 1 carattere
+    risposta      TEXT         NULL,                                 -- Business Rule #8
     PRIMARY KEY (id),
     CONSTRAINT fk_com_utente
         FOREIGN KEY (email_utente)
@@ -1879,6 +1878,7 @@ END//
 --  sp_componente_insert
 --  sp_componente_delete
 --  sp_componente_update
+--  sp_componente_selectAllByProgetto
 
 /*
 *  PROCEDURE: sp_componente_insert
@@ -2004,6 +2004,24 @@ BEGIN
         prezzo      = p_prezzo
     WHERE nome_componente = p_nome_componente
       AND nome_progetto = p_nome_progetto;
+    COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_componente_selectAllByProgetto
+*  PURPOSE: Restituisce la lista dei componenti di un progetto hardware.
+*  USED BY: ALL
+*
+*  @param IN p_nome_progetto - Nome del progetto hardware di cui si vogliono ottenere i componenti
+*/
+CREATE PROCEDURE sp_componente_selectAllByProgetto(
+    IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+    START TRANSACTION;
+    SELECT nome_componente, descrizione, quantita, prezzo
+    FROM COMPONENTE
+    WHERE nome_progetto = p_nome_progetto;
     COMMIT;
 END//
 
@@ -2720,11 +2738,11 @@ CREATE TRIGGER trg_rifiuta_finanziamento_utente_giorno
     ON FINANZIAMENTO
     FOR EACH ROW
 BEGIN
-    DECLARE data_finanz DATE;
+    DECLARE data_finanziamento DATE;
     DECLARE num_finanziamenti INT;
 
     -- Recupera la data attuale
-    SET data_finanz = CURDATE();
+    SET data_finanziamento = CURDATE();
 
     -- Conta il numero di finanziamenti effettuati dall'utente per il progetto nello stesso giorno
     SELECT COUNT(*)
@@ -2732,7 +2750,7 @@ BEGIN
     FROM FINANZIAMENTO
     WHERE email_utente = NEW.email_utente
       AND nome_progetto = NEW.nome_progetto
-      AND data = data_finanz;
+      AND data = data_finanziamento;
 
     -- Se il numero di finanziamenti è > 0, rifiuta il finanziamento
     IF num_finanziamenti > 0 THEN
