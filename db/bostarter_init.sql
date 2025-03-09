@@ -56,7 +56,7 @@ CREATE TABLE CREATORE
 -- 4. PROGETTO
 CREATE TABLE PROGETTO
 (
-    nome             VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome) > 0 ), -- Minimo 1 carattere
+    nome             VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome) > 0 ),        -- Minimo 1 carattere
     email_creatore   VARCHAR(100)   NOT NULL,
     descrizione      TEXT           NOT NULL CHECK ( LENGTH(descrizione) > 0 ), -- Minimo 1 carattere
     budget           DECIMAL(10, 2) NOT NULL CHECK ( budget > 0 ),
@@ -312,7 +312,6 @@ DELIMITER //
 /*
 *  PROCEDURE: sp_util_is_utente_admin
 *  PURPOSE: Verifica se l'utente è un admin, lanciando un errore se non lo è.
-*  REFERENCED BY: sp_skill_insert
 *
 *  @param IN p_email - Email dell'utente da controllare
 *
@@ -333,7 +332,6 @@ END//
 /*
 *  PROCEDURE: sp_util_is_utente_creatore
 *  PURPOSE: Verifica se l'utente è un creatore.
-*  REFERENCED BY: sp_progetto_insert
 *
 *  @param IN p_email - Email dell'utente da controllare
 *
@@ -354,8 +352,6 @@ END//
 /*
 *  PROCEDURE: sp_util_is_creatore_progetto_owner
 *  PURPOSE: Verifica se l'utente è il creatore del progetto.
-*  REFERENCED BY: sp_skill_profilo_check, sp_profilo_check, sp_componente_check, sp_partecipante_creatore_check, sp_commento_risposta_check,
-*                 sp_foto_check, sp_reward_insert, sp_progetto_descrizione_update
 *
 *  @param IN p_email - Email dell'utente da controllare
 *  @param IN p_nome_progetto - Nome del progetto da controllare
@@ -379,7 +375,6 @@ END//
 /*
 *  PROCEDURE: sp_util_progetto_exists
 *  PURPOSE: Verifica se il progetto esiste.
-*  REFERENCED BY: sp_commento_check, sp_commento_risposta_check, sp_reward_insert
 *
 *  @param IN p_nome_progetto - Nome del progetto da controllare
 *
@@ -400,7 +395,6 @@ END//
 /*
 *  PROCEDURE: sp_util_is_progetto_software
 *  PURPOSE: Verifica se il progetto è di tipo software.
-*  REFERENCED BY: sp_skill_profilo_check, sp_profilo_check, sp_partecipante_check
 *
 *  @param IN p_nome_progetto - Nome del progetto da controllare
 *
@@ -421,7 +415,6 @@ END//
 /*
 *  PROCEDURE: sp_util_is_progetto_hardware
 *  PURPOSE: Verifica se il progetto è di tipo hardware.
-*  REFERENCED BY: sp_componente_check
 *
 *  @param IN p_nome_progetto - Nome del progetto da controllare
 *
@@ -442,7 +435,6 @@ END//
 /*
 *  PROCEDURE: sp_util_profilo_exists
 *  PURPOSE: Verifica se il profilo di un progetto esiste.
-*  REFERENCED BY: sp_skill_profilo_check, sp_profilo_check
 *
 *  @param IN p_nome_profilo - Nome del profilo da controllare
 *  @param IN p_nome_progetto - Nome del progetto a cui appartiene il profilo
@@ -466,7 +458,6 @@ END//
 /*
 *  PROCEDURE: sp_util_skill_profilo_exists
 *  PURPOSE: Verifica se la competenza richiesta dal profilo di un progetto esiste.
-*  REFERENCED BY: sp_skill_profilo_check, sp_partecipante_check
 *
 *  @param IN p_nome_profilo - Nome del profilo da controllare
 *  @param IN p_nome_progetto - Nome del progetto a cui appartiene il profilo
@@ -493,7 +484,6 @@ END//
 /*
 *  PROCEDURE: sp_util_commento_exists
 *  PURPOSE: Verifica se il commento esiste.
-*  REFERENCED BY: sp_commento_check, sp_commento_risposta_check
 *
 *  @param IN p_id - ID del commento da controllare
 *
@@ -1277,6 +1267,7 @@ END//
 --  sp_progetto_selectByCreatore
 --  sp_progetto_insert
 --  sp_progetto_descrizione_update
+--  sp_progetto_budget_update
 
 /*
 *  PROCEDURE: sp_progetto_select
@@ -1406,6 +1397,92 @@ BEGIN
     UPDATE PROGETTO
     SET descrizione = p_descrizione
     WHERE nome = p_nome;
+    COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_progetto_budget_update
+*  PURPOSE: Aggiornamento del budget di un progetto.
+*  USED BY: CREATORE
+*
+*  @param IN p_nome - Nome del progetto
+*  @param IN p_email_creatore - Email del creatore del progetto
+*  @param IN p_budget - Nuovo budget del progetto
+*/
+CREATE PROCEDURE sp_progetto_budget_update(
+    IN p_nome VARCHAR(100),
+    IN p_email_creatore VARCHAR(100),
+    IN p_budget DECIMAL(10, 2)
+)
+BEGIN
+    DECLARE current_budget DECIMAL(10,2);
+    DECLARE current_state VARCHAR(20);
+    DECLARE tot_finanziamento DECIMAL(10,2);
+    DECLARE tot_componenti DECIMAL(10,2);
+
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+    START TRANSACTION;
+    -- Controllo che l'utente sia il creatore del progetto
+    CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome);
+
+    -- Recupero il budget corrente e lo stato del progetto
+    SELECT budget, stato
+    INTO current_budget, current_state
+    FROM PROGETTO
+    WHERE nome = p_nome;
+
+    -- Se il progetto non è aperto, restituisce un errore (non è possibile modificare un progetto chiuso)
+    IF current_state != 'aperto' THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'IMPOSSIBILE MODIFICARE BUDGET DI PROGETTO CHIUSO';
+    END IF;
+
+    -- Mi assicuro che il nuovo budget sia maggiore di 0
+    IF p_budget <= 0 THEN
+        SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'BUDGET PROGETTO DEVE ESSERE > 0';
+    END IF;
+
+    -- Se il budget viene modificato, controllo il totale dei finanziamenti
+    IF p_budget != current_budget THEN
+        SELECT IFNULL(SUM(importo), 0)
+        INTO tot_finanziamento
+        FROM FINANZIAMENTO
+        WHERE nome_progetto = p_nome;
+
+        -- Se il totale dei finanziamenti è maggiore o uguale al nuovo budget,
+        -- aggiorno il budget del progetto e imposta lo stato a 'chiuso'
+        IF tot_finanziamento >= p_budget THEN
+            UPDATE PROGETTO
+            SET budget = p_budget,
+                stato = 'chiuso'
+            WHERE nome = p_nome;
+            COMMIT;
+        END IF;
+    END IF;
+
+    -- Per i progetti hardware, verifico che il nuovo budget sia almeno uguale al costo totale dei componenti
+    IF EXISTS(SELECT 1 FROM PROGETTO_HARDWARE WHERE nome_progetto = p_nome) THEN
+        SELECT IFNULL(SUM(prezzo * quantita), 0)
+        INTO tot_componenti
+        FROM COMPONENTE
+        WHERE nome_progetto = p_nome;
+
+        IF p_budget < tot_componenti THEN
+            SIGNAL SQLSTATE '45000'
+                SET MESSAGE_TEXT = 'BUDGET PROGETTO DEVE ESSERE >= SOMMA COSTO COMPONENTI';
+        END IF;
+    END IF;
+
+    -- Se tutti i controlli passano, aggiorno il budget del progetto (lo stato rimane invariato)
+    UPDATE PROGETTO
+    SET budget = p_budget
+    WHERE nome = p_nome;
+
     COMMIT;
 END//
 

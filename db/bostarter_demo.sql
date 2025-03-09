@@ -91,7 +91,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'frank@example.com',
         '$2y$10$7iuz26zxyC/S51dbXsrvQuMQc5BPVkfhWENR.H1vExD29wgJVcGqC',
-        'frankenstain',
+        'frankenstein',
         'Frank',
         'Marrone',
         1990,
