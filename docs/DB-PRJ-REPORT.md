@@ -3,123 +3,76 @@
 - [ ] check for any leftover TODO's in project
 - [ ] connect mongodb to php
 - [ ] env vars for mysql and php?
+- [ ] move sql files to bostarter/db/
 - [ ] PASTE FULL SQL INIT FILE TO [[#**7.1. Inizializzazione DB**]]
-- [ ] review entire progettazione logica section fr
+- [ ] review entire report and ensure consistent tables, attributes etc
 - [ ] in README and in report & presentation and explain how to setup and run project..... bash script for php too? ........... hmmm maybe docker cool but idk
 - [ ] redo screenshots of funzionalità section once website complete
 - [ ] export to pdf using pandoc
 	- [ ] potentially need to fix mismatching links text for correct rendering
 	- [ ] ensure clickable links for ToC
 
-## [[DB-PRJ-REPORT#5. RIFLESSIONI]]
-
-## make fake data for projects more recent and show one which is closed due to past data limite
-
-
-## consider renaming all sp_util_\*\_exists to something (still shared to all) but more meaningful like sp_util_check_progetto_owner
-- yes the example is good because between util and check there is no other word which means it is generic check made for php-layer and not primary sp's that rely on sp_nome_procedura_check syntax
-
-
-## GO THROUGH ALL PHP FILES AND SEE IF THEY HAVE COMMON CONDITIONAL CHECKS THAT I CAN ABSTRACT INTO checks.php
-- can even make a whole dedicated directory like checks/ and within it i can have checks.php which contains functions that do primitive checks (e.g. checkAuth() for if user login → single purpose / fundamental and basic checks) and then I can have other php files like commento_check.php which is a combination of custom checks and composite primitive checks (e.g. checkAuth() followed by check if specific $\_POST vars set etc)
-- ### **GO THROUGH ALL PAGES AND ACTIONS, ESPECIALLY PAGES, AND ENSURE THERE ARE SECURITY DEFAULT ALWAYS-ON CHECKS LIKE IS USER LOGGED IN checkAuth()**
+# DOMANDE PER PROF (READ TRACCIA BEFORE)
+- **Per quanto riguarda la registrazione di utenti sulla piattaforma:** È ammesso che **un utente possa registrarsi come admin/amministratore**, anche se è un ruolo privilegiato?
+- **Per quanto riguardano i finanziamenti:** 
+	1. Si presuppone che il progetto accetti finanziamenti fatti da un utente **solo una volta al giorno?** Questo mio dubbio nasce dalla definizione di data per un finanziamento: Per "data" intende **in MySQL l'equivalente di "DATE" oppure "DATETIME"?** Perché con **DATE** un utente può effettuare finanziamenti per un progetto **una volta al giorno**, mentre con **DATETIME una volta per minuto**.
+	2. È ammesso che **un utente possa finanziare il progetto con un importo che ecceda il budget totale / rimanente**? Nella mia implementazione attuale, tale scenario è ammesso e quello che accade è: Lo stato del progetto viene posto a "chiuso" (in tal modo da non accettare ulteriori finanziamenti), e la somma dei finanziamenti **+ l'eccesso da quest'ultimo finanziamento** è chiaramente visibile quando si visualizza il progetto.
+	3. Nella traccia del progetto viene specificato che la scelta della reward va fatta "a valle del finanziamento di un progetto". Per "a valle", intende da un punto di vista del database che prima venga inserito nella tabella dei finanziamenti l'importo e dati dell'utente e finanziatore, **ed altrove viene associata la reward al finanziamento**, oppure è accettabile **mantenere il riferimento della reward** (il suo codice) direttamente **all'interno della tabella dei finanziamenti**?
+- **Per quanto riguardano le candidature ai profili di un progetto software:** Si presuppone che per un dato profilo di un progetto, se il creatore accetta un utente candidato come partecipante al progetto, **il profilo in questione viene chiuso (non ammette candidature), oppure può accettare ulteriori candidature da altri utenti?** Ovvero, Il "Profilo" è un'entità astratta che non ha limiti di istanza, oppure è concreta e con limite di singola istanza?
+- **Per quanto riguardano i profili/componenti per progetti software/hardware:** È ammissibile l'esistenza di un progetto software/hardware che non dispone di profili/componenti (ma che comunque possono essere inseriti in secondo luogo dal creatore)?
 
 
 
-# checks.php !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-- ### wrap all primitive checks in try-catch PDOException blocks so that in the rest of the code i dont need to use try-catch blocks and keep code cleaner elsewhere
-	- maybe add a parameter `errorMsg` where I have the option to input custom error message and if left empty i use default error message i define in the function try-catch
 
 
 
-## keep track of which of them has been implemented in php (this is effective project progress tracking) and where/how
-### MAIN
-- [x] sp_utente_register
-	- register_handler.php
-- [x] sp_utente_login
-	- login_handler.php
-- [x] sp_utente_select
-	- home.php
-- [ ] sp_utente_convert_creatore
-
-- [x] sp_skill_curriculum_insert
-	- skill_curriculum_insert.php
-- [x] sp_skill_curriculum_selectAll
-	- skill.php
-- [x] sp_skill_curriculum_selectDiff
-	- skill.php
-
-- [x] sp_progetto_select
-	- progetto_dettagli.php
-- [x] sp_progetto_selectAll
-	- progetti.php
-- [x] sp_progetto_selectByCreatore
-	- home.php
-- [ ] sp_progetto_insert
-
-- [ ] sp_finanziamento_insert
-- [x] sp_finanziamento_selectAllByProgetto
-	- progetti.php
-- [x] sp_finanziamento_selectAllByUtente
-	- home.php
-
-- [x] sp_commento_insert
-	- commento_insert.php
-- [x] sp_commento_delete
-	- commento_delete.php
-- [x] sp_commento_selectAll
-	- progetto_dettagli.php
-- [x] sp_commento_risposta_insert
-	- commento_risposta_insert.php
-- [x] sp_commento_risposta_delete
-	- commento_risposta_delete.php
-
-- [ ] sp_partecipante_utente_insert
-- [ ] sp_partecipante_creatore_update
-
-- [x] sp_skill_insert
-	- skill_insert.php
-- [x] sp_skill_selectAll
-	- skill.php
-
-- [ ] sp_reward_insert
-
-- [ ] sp_componente_insert
-- [ ] sp_componente_delete
-- [ ] sp_componente_update
-
-- [ ] sp_profilo_insert
-- [ ] sp_profilo_delete
-- [ ] sp_profilo_selectAllByProgetto
-
-- [ ] sp_skill_profilo_insert
-- [ ] sp_skill_profilo_delete
-- [ ] sp_skill_profilo_update
-
-- [ ] sp_foto_insert
-- [ ] sp_foto_delete
-- [x] sp_foto_selectAll
-	- progetto_dettagli.php
 
 
-## progetti.php
-- add button "Crea Progetto" for creators top right
-- same button for regular users but "Vuoi diventare un Creatore?" which then confirm prompts user if they wish to convert their account to a creator
-	- remember to set $\_SESSION\['is_creatore'] to true as needed for first time, future logins will be managed automatically. Or maybe better yet just force rerun sp_utente_login after having turned him to creator with say sp_utente_convert_creatore
+
+
+
+
 
 ## progetto_dettagli.php
-- this is where all the comments will be loaded, where a user can add a comment, where the creatore can reply to those comments
-	- add creatore capability to reply to comments using alr defined sp
-- regular user can see all project details and finance project
-	- project financing button "Finanzia" leads to progetto_finanzia.php which relies on actions/finanziamento_insert.php
-- creator can edit project details in here (budget, desc, profili, componenti, etc)
-	- profili / componenti should lead to separate page like profilo_dettagli.php componente_dettagli.php
-- add a dynamic green bar which shows how much of project has been financed compared to total budget required (copy paste from progetti.php)
-- clean up the other attributes too like in progetti.php
+- profili / componenti should lead to separate page like profilo_dettagli.php componente_dettagli.php
 - ### candidature has its own section beneath fotos
 	- for all users, it is a horizontal scrollbar (if overflow) showing all the available profiles for the project + any taken profiles and by who (nickname only)
 		- Pending and rejected profiles are not shown here, and for pending profiles unless one candidate is accepted by the creator, the profile will remain visible as open for all users
 		- all users who are not the creator can click on the profilo and it will open the specific profilo_dettagli.php page for that profile of that project
+
+
+
+
+### to make all php files slimmer consider abstracting reused visual components and requiring them in file, and same thing for data gathering if there are identical try-catch sp_invoke data initialisers like $progetto or $finanziamenti
+- if u do this refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways
+
+
+## TODO SP
+- sp_skill_curriculum_update
+- sp_skill_curriculum_delete
+
+- sp_skill_update
+
+- sp_progetto_insert
+
+- sp_partecipante_utente_insert
+- sp_partecipante_creatore_update
+
+- sp_reward_insert
+
+- sp_componente_insert
+- sp_componente_delete
+- sp_componente_update
+
+- sp_profilo_insert
+- sp_profilo_delete
+
+- sp_skill_profilo_insert
+- sp_skill_profilo_delete
+- sp_skill_profilo_update
+
+
+
 
 
 
@@ -137,30 +90,16 @@
 - creator of project page only
 - page to define and insert for one of his projects (he selects from checkbox) a new profile with custom name and competenze with required level
 
-
-## create finanziamenti.php page in navbar which displays all the finanziamenti a user has done and display associated rewards
-
-
-## maybe add sp_skill_curriculum_update (to update his livello_effettivo)
-- and sp_skill_curriculum_delete (remove all partecipazioni of user if they were tied to that skill)
-- and sp_skill_update to rename skills globally
+## partecipazioni.php page in navbar displays all the sw projects a user is participating in and  associated profiles/competenza/livello
 
 
 ## REMEMBER FOR HW PROJECTS 
 - WHEN USER ADDS COMPONENTS PRICE/QUANTITY HE MUST BE ALERTED IF THEIR SUM EXCEEDS THE PROJECT BUDGET AND TO CONFIRM ADD THEM OR NOT → MAKE SURE THE BUDGET RECALCULATION TRIGGERS ARE CORRECT
 
 
-## at php level whenever a COMPONENTE IS UPDATE WITH sp_componente_budget and the desc or name remain unchanged, assume that the user is only updating quantity and/or price
-- **same might apply to profilo and livello_richiesto**
-- if user does supply new name and/or desc. then override default behaviour of maintaining prev name and/or desc
-- it's either this or write separate sp's updating each attribute
-
-
-## big BIG MAYBE, but would be cool to implement notification system for each user which reflects mongodb logging, i.e. all events logged to mongodb, but relevant parties are also notified say project owner gets a comment, or commenter gets a reply from owner
-
 ## for mongodb 
 - add a error collection which just logs any sql signal state 45000 errors triggered, this type of log occurs in the fail-early initial checks at top of most php files, and in all PDOException try-catches
-- anywhere an sp_invoke() in php is called, thats where i must trigger a log as it indicates an action taking place
+- almost anywhere an sp_invoke() in php is called, thats where i must trigger a log as it indicates an action taking place
 
 
 ## keep track of website structure
@@ -767,11 +706,10 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 	- fundamental point at the end because PARTECIPANTE.stato = 'rifiutato' IS ONLY APPLICABLE TO THOSE WHOSE SKILL >= REQUESTED, BUT THE PROJECT CREATOR EXPLICITLY REFUSED THEM
 
 - multi-layer security check → redundant security > single line of defense php-level
+	- "security in depth"
 
 - profiles were global when PROFILO_PROGETTO was separate from SKILL_PROFILO, so I removed PROFILO_PROGETTO and added nome_progetto to PK of SKILL_PROFILO
 	- Otherwise updates for livello_richiesto were problematic due to profiles being global and thus multiple proj might reference the same profilo but have different livello_richiesto
-
-- Authentication and Security Code Check: must also be implemented in the application layer. DO NOT ALLOW NEW USERS TO REGISTER AS ADMINS, ONLY CREATORS!!!! FOR EXAM JUST ADD A PREEXISTING ADMIN MANUALLY FROM A DEMO SQL FILE ES. bostarter_demo.sql
 
 - finanziamento.codice_reward is defined at php-level when the user chooses finanziamento.importo and BEFORE the finanziamento record is submitted
 
@@ -787,18 +725,20 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 - **This has led to my realisation that a clear picture of the operations needed to be done before he starts designing the db is crucial**
 - I have opted not to implement this as it was not required in the traccia and doing so would require restructuring the db schema and i am already a bit far into sql
 
-- I initially had a ridiculous amount of stored procedures that far exceeded what was requested in the list of operations of the traccia, but cut down significantly as it wouldve made the system, though more realistic, far too complex beyond the scope of the project. The most complex of which were always sp_X_update procedures
+- I initially had a ridiculous amount of operations that far exceeded what was requested in the list of operations of the traccia, but cut down significantly as it wouldve made the system, though more realistic, far too complex beyond the scope of the project. The most complex of which were always sp_X_update procedures
 	- **scope creep in check... do not implement what was not asked of you to implement**
 		- another example was originally wanting to containerise the project with docker, or use laravel framework for php... all great things but not required and would add significant overhead in complexity
 
 - lots of SPs have common logic checks, I decided to modularise this by abstracting out the common logic checks into secondary helper SP's to improve readability and maintainability of the code
+	- I followed the same philosophy and even file structure (checks first, action last) in php
+	- idem but with triggers, removed all triggers (except for the ones asked in the traccia) i defined and instead integrated the logic into existing sp's, to improve maintainability of the code so as to ensure that everything that has to be known about what the sp affects in the db is immediately visible there
 
-- With my main init file having grown to >1700 lines I decided to document it with very clear segmentations to make it clearer and more maintainable
+- With my main init file having grown to >2700 lines I decided to document it with very clear segmentations to make it clearer and more maintainable
 	- highlight importance of clear structure, documentation, and necessity of transmitting clearly the purpose/intent of the SP etc
 
 - while the existence check for the project might seem redundant from a pure data-integrity standpoint, it is valuable for providing a better, more controlled error response and enforcing additional business logic. EXAMPLE: The check for the project’s closed state is absolutely necessary for comments and financing operations because it’s not covered by the foreign key constraints.
 
-- decomposing php site into components, actions and public (pages) to split page display from action logic, and components great for code reusability
+- decomposing php site into components, actions, functions, and public (pages) to split page display from action logic, and components great for code reusability
 
 # **6. FUNZIONALITÀ**
 ---
@@ -837,8 +777,6 @@ Il file di popolamento con dati fittizi per il database, `bostarter_demo.sql`, s
 - Inserimento di skill nel proprio curriculum da parte di ogni utente, in base alle skill globali definite di sopra.
 #### `PROGETTO INSERTION (CREATORE)`
 - Inserimento da parte del creatore di progetti nella piattaforma.
-#### `REWARD INSERTION (CREATORE)`
-- Inserimento da parte del creatore di reward per il progetto proprio.
 #### `COMPONENTE OPERATIONS (CREATORE)`
 - Nel caso di progetti hardware, inserimento da parte del creatore del progetto di componenti necessarie.
 #### `PROFILO & SKILL_PROFILO OPERATIONS (CREATORE)`
@@ -923,10 +861,12 @@ try {
 	// Error, redirect alla pagina X
     redirect(
         false,
-        "Errore X: " . $ex->getMessage(),
+        "Errore X: " . $ex->errorInfo[2],
         '../public/X.php'
     );
 }
+
+// ...
 
 // Success, redirect alla pagina X
 redirect(
@@ -995,31 +935,8 @@ bostarter_demo.sql
 ```
 
 ## **7.3. Script**
-Di seguito anche un breve script che invoca i due file di sopra, per inizializzare il DB e popolare la piattaforma con i dati fittizi. Mi raccomando per il corretto funzionamento di sovrascrivere la variabile `MYSQL_PASS` con la propria password:
+Di seguito anche un breve script che invoca i due file di sopra, per inizializzare il DB e popolare la piattaforma con i dati fittizi. Lo script, inoltre, invoca un file php che popola la piattaforma con foto fittizie per i progetti, componenti, ecc.. Mi raccomando per il corretto funzionamento di sovrascrivere la variabile `MYSQL_PASS` con la propria password:
+
 ```sh
-#!/bin/bash
-# init_demo.sh
-
-MYSQL_USER="root"
-MYSQL_PASS= <LA TUA PASSWORD>
-MYSQL_HOST="localhost"
-
-mysql -u "$MYSQL_USER" -p"$MYSQL_PASS" -h "$MYSQL_HOST" < bostarter_init.sql
-
-if [  $? -eq 0 ]; then
-    echo "-- OK: bostarter_init.sql --"
-else
-    echo "-- ERRORE: bostarter_init.sql --"
-fi
-
-mysql -u "$MYSQL_USER" -p"$MYSQL_PASS" -h "$MYSQL_HOST" BOSTARTER < bostarter_demo.sql
-
-if [  $? -eq 0 ]; then
-    echo "-- OK: bostarter_demo.sql --"
-else
-    echo "-- ERRORE: bostarter_demo.sql --"
-fi
-
-echo "-- BOSTARTER INIZIALIZZATO --"
-
+init_demo.sh
 ```
