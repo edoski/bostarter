@@ -61,132 +61,116 @@ try {
 
     <!-- Top row -->
     <div class="row g-4">
-        <!-- Welcome & Guide Card -->
-        <div class="col-12 col-md-6">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">Benvenuto/a su BOSTARTER!</h4>
-                </div>
-                <div class="card-body">
-                    <p class="card-text fw-bold">
-                        Ciao <?php echo htmlspecialchars($_SESSION['nickname']); ?>, benvenuto/a nella nostra piattaforma di crowdfunding!
-                    </p>
-                    <p class="card-text">Ecco una breve guida su come muoverti:</p>
-                    <ul>
-                        <li><strong>Progetti:</strong> visualizza tutti i progetti o creane uno (se sei un creatore).</li>
-                        <li><strong>Finanziamenti:</strong> visualizza i dettagli di tutti i tuoi finanziamenti effettuati e ricevuti.</li>
-                        <li><strong>Statistiche:</strong> visualizza le statistiche pubbliche della piattaforma.</li>
-                        <li><strong>Skill:</strong> gestisci le tue competenze e aggiungile al tuo profilo.</li>
-                        <li><strong>Logout:</strong> esci dal tuo account in qualsiasi momento.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
         <!-- User Info (Bio) Card -->
-        <div class="col-12 col-md-6">
-            <div class="card shadow-sm h-100">
+        <div class="col-12">
+            <div class="card shadow-sm">
                 <div class="card-header bg-secondary text-white">
                     <h4 class="mb-0">Il tuo profilo</h4>
                 </div>
                 <div class="card-body">
-                    <!-- Dati personali -->
-                    <div class="card mb-3">
-                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">Dati personali</h5>
-                            <div>
-                                <?php if (!$_SESSION['is_creatore'] && !$_SESSION['is_admin']): ?>
-                                    <span class="badge bg-light text-secondary fs-6">Utente</span>
-                                <?php endif; ?>
-                                <?php if ($_SESSION['is_creatore']): ?>
-                                    <span class="badge bg-primary fs-6">Creatore</span>
-                                <?php endif; ?>
-                                <?php if ($_SESSION['is_admin']): ?>
-                                    <span class="badge bg-danger fs-6">Admin</span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-6">
-                                    <p><strong>Nome:</strong> <?php echo htmlspecialchars($_SESSION['nome']); ?></p>
-                                    <p><strong>Email:</strong> <?php echo htmlspecialchars($_SESSION['email']); ?></p>
-                                    <p><strong>Anno di nascita:</strong> <?php echo htmlspecialchars($_SESSION['anno_nascita']); ?></p>
-                                </div>
-                                <div class="col-6">
-                                    <p><strong>Cognome:</strong> <?php echo htmlspecialchars($_SESSION['cognome']); ?></p>
-                                    <p><strong>Nickname:</strong> <?php echo htmlspecialchars($_SESSION['nickname']); ?></p>
-                                    <p><strong>Luogo di nascita:</strong> <?php echo htmlspecialchars($_SESSION['luogo_nascita']); ?></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Statistiche utente -->
-                    <div class="card">
-                        <div class="card-header bg-light">
-                            <h5 class="mb-0">Le tue statistiche</h5>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <!-- Skill dell'utente -->
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <span class="badge bg-primary me-2"><?php echo count($skills); ?></span>
-                                        <strong><a href="../public/skill.php">Competenze</a></strong>
+                    <div class="row g-3">
+                        <!-- Dati personali -->
+                        <div class="col-12 col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0">Dati personali</h5>
+                                    <div>
+                                        <?php if (!$_SESSION['is_creatore'] && !$_SESSION['is_admin']): ?>
+                                            <span class="badge bg-light text-secondary fs-6">Utente</span>
+                                        <?php endif; ?>
+                                        <?php if ($_SESSION['is_creatore']): ?>
+                                            <span class="badge bg-primary fs-6">Creatore</span>
+                                        <?php endif; ?>
+                                        <?php if ($_SESSION['is_admin']): ?>
+                                            <span class="badge bg-danger fs-6">Admin</span>
+                                        <?php endif; ?>
                                     </div>
-                                    <?php if (!empty($skills) && count($skills) > 0): ?>
-                                        <div class="small text-muted">
-                                            <?php
-                                            $skillNames = array_column($skills, 'competenza');
-                                            echo implode(', ', array_slice($skillNames, 0, 3));
-                                            if (count($skillNames) > 3) echo "...";
-                                            ?>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <p><strong>Nome:</strong> <?php echo htmlspecialchars($_SESSION['nome']); ?></p>
+                                            <p><strong>Email:</strong> <?php echo htmlspecialchars($_SESSION['email']); ?></p>
+                                            <p><strong>Anno di nascita:</strong> <?php echo htmlspecialchars($_SESSION['anno_nascita']); ?></p>
                                         </div>
-                                    <?php else: ?>
-                                        <div class="small text-muted">Nessuna competenza inserita</div>
-                                    <?php endif; ?>
-                                </div>
-
-                                <!-- Finanziamenti dell'utente -->
-                                <div class="col-6">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <span class="badge bg-success me-2"><?php echo count($finanziamenti); ?></span>
-                                        <strong><a href="../public/finanziamenti.php" class="text-success">Finanziamenti</a></strong>
-                                    </div>
-                                    <?php if (!empty($finanziamenti)): ?>
-                                        <p class="small text-muted">Totale: <?php echo number_format($totale_finanziamenti, 2); ?>€</p>
-                                    <?php else: ?>
-                                        <p class="small text-muted">Nessun finanziamento effettuato</p>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-
-                            <!-- Informazioni creatore (se applicable) -->
-                            <?php if ($_SESSION['is_creatore']): ?>
-                                <hr>
-                                <div class="row">
-                                    <div class="col-6">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <span class="badge bg-primary me-2"><?php echo htmlspecialchars($_SESSION['nr_progetti']); ?></span>
-                                            <strong>Progetti creati</strong>
+                                        <div class="col-6">
+                                            <p><strong>Cognome:</strong> <?php echo htmlspecialchars($_SESSION['cognome']); ?></p>
+                                            <p><strong>Nickname:</strong> <?php echo htmlspecialchars($_SESSION['nickname']); ?></p>
+                                            <p><strong>Luogo di nascita:</strong> <?php echo htmlspecialchars($_SESSION['luogo_nascita']); ?></p>
                                         </div>
                                     </div>
-                                    <div class="col-6">
-                                        <div class="d-flex align-items-center mb-2">
-                                            <div class="progress w-50 position-relative" style="height: 20px;">
-                                                <div class="progress-bar fw-bold bg-success"
-                                                     style="width: <?php echo htmlspecialchars($_SESSION['affidabilita']); ?>%; height: 100%;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Statistiche utente -->
+                        <div class="col-12 col-md-6">
+                            <div class="card h-100">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Le tue statistiche</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <!-- Skill dell'utente -->
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <span class="badge bg-primary me-2"><?php echo count($skills); ?></span>
+                                                <strong><a href="curriculum.php">Competenze</a></strong>
+                                            </div>
+                                            <?php if (!empty($skills) && count($skills) > 0): ?>
+                                                <div class="small text-muted">
+                                                    <?php
+                                                    $skillNames = array_column($skills, 'competenza');
+                                                    echo implode(', ', array_slice($skillNames, 0, 3));
+                                                    if (count($skillNames) > 3) echo "...";
+                                                    ?>
                                                 </div>
-                                                <div class="position-absolute top-50 start-50 translate-middle text-center fw-bold text-black">
-                                                    <?php echo htmlspecialchars($_SESSION['affidabilita']); ?>%
+                                            <?php else: ?>
+                                                <div class="small text-muted">Nessuna competenza inserita</div>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <!-- Finanziamenti dell'utente -->
+                                        <div class="col-6">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <span class="badge bg-success me-2"><?php echo count($finanziamenti); ?></span>
+                                                <strong><a href="../public/finanziamenti.php" class="text-success">Finanziamenti</a></strong>
+                                            </div>
+                                            <?php if (!empty($finanziamenti)): ?>
+                                                <p class="small text-muted">Totale: <?php echo number_format($totale_finanziamenti, 2); ?>€</p>
+                                            <?php else: ?>
+                                                <p class="small text-muted">Nessun finanziamento effettuato</p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+
+                                    <!-- Informazioni creatore (se applicable) -->
+                                    <?php if ($_SESSION['is_creatore']): ?>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <span class="badge bg-primary me-2"><?php echo htmlspecialchars($_SESSION['nr_progetti']); ?></span>
+                                                    <strong>Progetti creati</strong>
                                                 </div>
                                             </div>
-                                            <strong class="mx-2">Affidabilità</strong>
+                                            <div class="col-6">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <div class="progress w-50 position-relative" style="height: 20px;">
+                                                        <div class="progress-bar fw-bold bg-success"
+                                                             style="width: <?php echo htmlspecialchars($_SESSION['affidabilita']); ?>%; height: 100%;">
+                                                        </div>
+                                                        <div class="position-absolute top-50 start-50 translate-middle text-center fw-bold text-black">
+                                                            <?php echo htmlspecialchars($_SESSION['affidabilita']); ?>%
+                                                        </div>
+                                                    </div>
+                                                    <strong class="mx-2">Affidabilità</strong>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
+                                    <?php endif; ?>
                                 </div>
-                            <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -127,6 +127,15 @@ if ($progetto['tipo'] === 'SOFTWARE') {
                 'livello' => $row['livello_richiesto']
             ];
         }
+
+        // Recupero i partecipanti accettati
+        $acceptedResult = sp_invoke('sp_partecipante_selectAcceptedByProgetto', $in);
+        foreach ($acceptedResult as $row) {
+            $acceptedParticipants[$row['nome_profilo']] = [
+                'email_utente' => $row['email_utente'],
+                'nickname' => $row['nickname']
+            ];
+        }
     } catch (PDOException $ex) {
         redirect(
             false,
@@ -418,13 +427,13 @@ try {
             <div class="card-body d-flex flex-nowrap overflow-auto">
                 <?php if ($progetto['tipo'] === 'SOFTWARE'): ?>
                     <?php if ($progetto['stato'] === 'aperto'): ?>
-                        <?php foreach ($profili as $nome_profilo => $skills): ?>
-                            <div class="flex-shrink-0 w-25 p-2 h-100">
-                                <div class="card shadow-sm">
+                       <?php foreach ($profili as $nome_profilo => $skills): ?>
+                            <div class="flex-shrink-0 w-25 p-2">
+                                <div class="card shadow-sm h-100 d-flex flex-column">
                                     <div class="card-header">
-                                        <p class="fw-bold"><?php echo htmlspecialchars($nome_profilo); ?></p>
+                                        <p class="fw-bold mb-0"><?php echo htmlspecialchars($nome_profilo); ?></p>
                                     </div>
-                                    <div class="card-body overflow-auto">
+                                    <div class="card-body overflow-auto flex-grow-1">
                                         <?php if (!empty($skills)): ?>
                                             <ul>
                                                 <?php foreach ($skills as $skill): ?>
@@ -436,15 +445,21 @@ try {
                                             </ul>
                                         <?php endif; ?>
                                     </div>
-                                    <?php if (!checkProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
-                                        <div class="card-footer">
+                                    <div class="card-footer">
+                                        <?php if (isset($acceptedParticipants[$nome_profilo])): ?>
+                                            <!-- Profile taken -->
+                                            <button class="btn btn-secondary w-100" disabled>
+                                                Occupato da <?php echo htmlspecialchars($acceptedParticipants[$nome_profilo]['nickname']); ?>
+                                            </button>
+                                        <?php elseif (!checkProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
+                                            <!-- Profile available -->
                                             <form action="../actions/candidatura_insert.php" method="post">
                                                 <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
                                                 <input type="hidden" name="nome_profilo" value="<?php echo htmlspecialchars($nome_profilo); ?>">
                                                 <button type="submit" class="btn btn-primary w-100">Candidati</button>
                                             </form>
-                                        </div>
-                                    <?php endif; ?>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -455,11 +470,11 @@ try {
                     <?php if (!empty($componenti)): ?>
                         <?php foreach ($componenti as $componente): ?>
                             <div class="flex-shrink-0 w-25 p-2">
-                                <div class="card shadow-sm">
+                                <div class="card shadow-sm h-100 d-flex flex-column">
                                     <div class="card-header">
                                         <p class="fw-bold"><?php echo htmlspecialchars($componente['nome_componente']); ?></p>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="card-body overflow-auto flex-grow-1">
                                         <p><strong>Descrizione:</strong> <?php echo htmlspecialchars($componente['descrizione']); ?></p>
                                         <p><strong>Quantità:</strong> <?php echo htmlspecialchars($componente['quantita']); ?></p>
                                         <p><strong>Prezzo:</strong> <?php echo htmlspecialchars(number_format($componente['prezzo'], 2)); ?>€</p>

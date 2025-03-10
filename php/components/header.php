@@ -13,21 +13,13 @@
             <!-- Logo -->
             <a class="navbar-brand fw-bold" href="../public/home.php">BOSTARTER</a>
 
-            <!-- Gruppo Sinistro: Progetti, Statistiche, Skill, Finanziamenti (solo se logged in) -->
+            <!-- Gruppo Sinistro: Progetti, Statistiche, Curriculum, Finanziamenti (solo se logged in) -->
             <?php if (isset($_SESSION['email'])): ?>
                 <ul class="navbar-nav flex-row align-items-center ms-3">
-                    <li class="nav-item px-2">
-                        <a class="nav-link" href="../public/progetti.php">Progetti</a>
-                    </li>
-                    <li class="nav-item px-2">
-                        <a class="nav-link" href="../public/statistiche.php">Statistiche</a>
-                    </li>
-                    <li class="nav-item px-2">
-                        <a class="nav-link" href="../public/skill.php">Skill</a>
-                    </li>
-                    <li class="nav-item px-2">
-                        <a class="nav-link" href="../public/finanziamenti.php">Finanziamenti</a>
-                    </li>
+                    <li class="nav-item px-2"><a class="nav-link" href="../public/progetti.php">Progetti</a></li>
+                    <li class="nav-item px-2"><a class="nav-link" href="../public/statistiche.php">Statistiche</a></li>
+                    <li class="nav-item px-2"><a class="nav-link" href="../public/curriculum.php">Curriculum</a></li>
+                    <li class="nav-item px-2"><a class="nav-link" href="../public/finanziamenti.php">Finanziamenti</a></li>
                 </ul>
             <?php endif; ?>
 
@@ -40,12 +32,8 @@
                         </a>
                     </li>
                 <?php else: ?>
-                    <li class="nav-item px-2">
-                        <a class="nav-link" href="../public/login.php">Login</a>
-                    </li>
-                    <li class="nav-item px-2">
-                        <a class="nav-link" href="../public/register.php">Register</a>
-                    </li>
+                    <li class="nav-item px-2"><a class="nav-link" href="../public/login.php">Login</a></li>
+                    <li class="nav-item px-2"><a class="nav-link" href="../public/register.php">Register</a></li>
                 <?php endif; ?>
             </ul>
         </div>

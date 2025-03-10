@@ -51,6 +51,7 @@ try {
         <?php include '../components/success_alert.php'; ?>
 
         <!-- My Skills Section -->
+        <h1 class="mb-4">Curriculum</h1>
         <div class="card mb-4 shadow-sm">
             <div class="card-header">
                 <h4 class="mb-0">Le mie Skill</h4>

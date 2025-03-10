@@ -22,7 +22,7 @@ try {
     redirect(
         false,
         "Errore nell'inserimento della skill: " . $ex->errorInfo[2],
-        '../public/skill.php'
+        '../public/curriculum.php'
     );
 }
 
@@ -30,5 +30,5 @@ try {
 redirect(
     true,
     'Skill (globale) aggiunta correttamente.',
-    '../public/skill.php'
+    '../public/curriculum.php'
 );

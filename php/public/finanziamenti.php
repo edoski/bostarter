@@ -134,8 +134,8 @@ foreach ($finanziamenti_ricevuti as $finanziamento) {
                             <thead>
                             <tr>
                                 <th>Data</th>
-                                <th>Finanziatore</th>
                                 <th>Progetto</th>
+                                <th>Finanziatore</th>
                                 <th>Importo</th>
                                 <th>Reward</th>
                             </tr>
@@ -145,13 +145,13 @@ foreach ($finanziamenti_ricevuti as $finanziamento) {
                                 <tr>
                                     <td><?php echo htmlspecialchars($finanziamento['data']); ?></td>
                                     <td>
-                                        <?php echo htmlspecialchars($finanziamento['finanziatore_nickname'] ?? 'N/A'); ?>
-                                        <small class="text-muted d-block"><?php echo htmlspecialchars($finanziamento['email_utente']); ?></small>
-                                    </td>
-                                    <td>
                                         <a href="../public/progetto_dettagli.php?nome=<?php echo urlencode($finanziamento['nome_progetto']); ?>">
                                             <?php echo htmlspecialchars($finanziamento['nome_progetto']); ?>
                                         </a>
+                                    </td>
+                                    <td>
+                                        <?php echo htmlspecialchars($finanziamento['finanziatore_nickname'] ?? 'N/A'); ?>
+                                        <small class="text-muted d-block"><?php echo htmlspecialchars($finanziamento['email_utente']); ?></small>
                                     </td>
                                     <td class="fw-bold"><?php echo htmlspecialchars(number_format($finanziamento['importo'], 2)); ?>€</td>
                                     <td>

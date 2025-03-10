@@ -246,6 +246,7 @@ CALL sp_skill_curriculum_insert('alice@example.com', 'PHP', 5);
 CALL sp_skill_curriculum_insert('alice@example.com', 'MySQL', 4);
 CALL sp_skill_curriculum_insert('bob@example.com', 'JavaScript', 3);
 CALL sp_skill_curriculum_insert('charlie@example.com', 'CSS', 4);
+CALL sp_skill_curriculum_insert('charlie@example.com', 'Figma', 4);
 CALL sp_skill_curriculum_insert('charlie@example.com', 'JavaScript', 5);
 CALL sp_skill_curriculum_insert('diana@example.com', 'PHP', 4);
 CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'MySQL', 5);

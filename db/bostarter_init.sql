@@ -967,6 +967,16 @@ BEGIN
 	-- 4. Il profilo esista
 	CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
 
+	-- Controllo che il profilo non sia già stato occupato da un altro utente
+	IF EXISTS (SELECT 1
+	           FROM PARTECIPANTE
+	           WHERE nome_progetto = p_nome_progetto
+		         AND nome_profilo = p_nome_profilo
+		         AND stato = 'accettato') THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROFILO GIA\' OCCUPATO';
+	END IF;
+
 	-- Controllo che l'utente NON sia il creatore del progetto
 	IF EXISTS (SELECT 1
 	           FROM PROGETTO
@@ -1862,6 +1872,7 @@ END//
 -- PARTECIPANTE:
 --  sp_partecipante_utente_insert
 --  sp_partecipante_creatore_update
+--  sp_partecipante_selectAcceptedByProgetto
 
 /*
 *  PROCEDURE: sp_partecipante_utente_insert
@@ -1890,11 +1901,13 @@ BEGIN
 		END;
 	START TRANSACTION;
 	-- Controllo che:
-	--  1. Il progetto sia di tipo software
-	--  2. Il profilo per quel progetto esista
-	--  3. L'utente non sia il creatore del progetto
-	--  4. L'utente non abbia già una candidatura per quel profilo del progetto
-	--  5. L'utente, per ogni competenza richiesta, abbia il livello richiesto
+	--  1. Il progetto esista
+	--  2. Il progetto sia di tipo software
+	--  3. Il profilo per quel progetto esista
+	--  4. L'utente non sia il creatore del progetto
+	--  5. Il profilo per quel progetto non sia già stato occupato da un altro utente
+	--  6. L'utente non abbia già una candidatura per quel profilo del progetto
+	--  7. L'utente, per ogni competenza richiesta, abbia il livello richiesto
 	CALL sp_partecipante_utente_check(p_email, p_nome_progetto, p_nome_profilo);
 
 	-- Se i controlli passano, inserisco la candidatura
@@ -1930,10 +1943,11 @@ BEGIN
 		END;
 	START TRANSACTION;
 	-- Controllo che:
-	--  1. Il progetto sia di tipo software
-	--  2. Il profilo per quel progetto esista
-	--  3. L'utente sia il creatore del progetto
-	--  4. La candidatura esista
+	--  1. Il progetto esista
+	--  2. Il progetto sia di tipo software
+	--  3. Il profilo per quel progetto esista
+	--  4. L'utente sia il creatore del progetto
+	--  5. La candidatura esista
 	CALL sp_partecipante_creatore_check(p_email_creatore, p_email_candidato, p_nome_progetto, p_nome_profilo);
 
 	-- Se i controlli passano, aggiorno lo stato della candidatura
@@ -1942,6 +1956,29 @@ BEGIN
 	WHERE email_utente = p_email_candidato
 	  AND nome_progetto = p_nome_progetto
 	  AND nome_profilo = p_nome_profilo;
+	COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_partecipante_selectAcceptedByProgetto
+*  PURPOSE: Visualizzazione di tutti i partecipanti accettati per un progetto.
+*  USED BY: ALL
+*
+*  @param IN p_nome_progetto - Nome del progetto
+*/
+CREATE PROCEDURE sp_partecipante_selectAcceptedByProgetto(
+	IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+	START TRANSACTION;
+	SELECT
+		P.nome_profilo,
+		P.email_utente,
+		U.nickname
+	FROM PARTECIPANTE P
+		     JOIN UTENTE U ON P.email_utente = U.email
+	WHERE P.nome_progetto = p_nome_progetto
+	  AND P.stato = 'accettato';
 	COMMIT;
 END//
 
