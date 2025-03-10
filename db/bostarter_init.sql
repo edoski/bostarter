@@ -2291,7 +2291,8 @@ BEGIN
 	SELECT prezzo, quantita
 	INTO old_prezzo, old_quantita
 	FROM COMPONENTE
-	WHERE nome_componente = p_nome_componente AND nome_progetto = p_nome_progetto;
+	WHERE nome_componente = p_nome_componente
+	  AND nome_progetto = p_nome_progetto;
 
 	-- Calcolo il costo totale del componente prima dell'aggiornamento
 	SET old_totale = old_prezzo * old_quantita;
@@ -2314,9 +2315,10 @@ BEGIN
 	-- Se i controlli passano, aggiorno il componente
 	UPDATE COMPONENTE
 	SET descrizione = p_descrizione,
-	    quantita = p_quantita,
-	    prezzo = p_prezzo
-	WHERE nome_componente = p_nome_componente AND nome_progetto = p_nome_progetto;
+	    quantita    = p_quantita,
+	    prezzo      = p_prezzo
+	WHERE nome_componente = p_nome_componente
+	  AND nome_progetto = p_nome_progetto;
 	COMMIT;
 END//
 
@@ -2414,24 +2416,23 @@ END//
 /*
 *  PROCEDURE: sp_profilo_selectAllByProgetto
 *  PURPOSE: Restituisce la lista dei profili di un progetto software, assieme alle competenze e ai livelli richiesti.
-*  NOTE: Le competenze sono restituite in formato 'competenza|livello_richiesto'. Vengono raggruppate per profilo.
 *  USED BY: ALL
 *
 *  @param IN p_nome_progetto - Nome del progetto software di cui si vogliono ottenere i profili
 */
-CREATE PROCEDURE sp_profilo_selectAllByProgetto(
+CREATE PROCEDURE sp_profilo_skill_selectAllByProgetto(
 	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
 	START TRANSACTION;
 	SELECT P.nome_profilo,
-	       GROUP_CONCAT(CONCAT(sp.competenza, '|', sp.livello_richiesto) SEPARATOR ',') AS skills -- Esempio: 'Java|3,Python|4'
+	       SP.competenza,
+	       SP.livello_richiesto
 	FROM PROFILO P
-		     JOIN SKILL_PROFILO sp
-		          ON P.nome_profilo = sp.nome_profilo
-			          AND P.nome_progetto = sp.nome_progetto
+		     JOIN SKILL_PROFILO SP ON P.nome_profilo = SP.nome_profilo
+		AND P.nome_progetto = SP.nome_progetto
 	WHERE P.nome_progetto = p_nome_progetto
-	GROUP BY P.nome_profilo;
+	ORDER BY P.nome_profilo, SP.competenza;
 	COMMIT;
 END//
 
@@ -2562,13 +2563,11 @@ BEGIN
 	WHERE P.nome_profilo = p_nome_profilo
 	  AND P.nome_progetto = p_nome_progetto
 	  AND P.stato = 'potenziale'
-	  AND NOT EXISTS (
-	      SELECT 1
-	      FROM SKILL_CURRICULUM SC
-	      WHERE SC.email_utente = P.email_utente
-		    AND SC.competenza = p_competenza
-		    AND SC.livello_effettivo >= p_nuovo_livello_richiesto
-	  );
+	  AND NOT EXISTS (SELECT 1
+	                  FROM SKILL_CURRICULUM SC
+	                  WHERE SC.email_utente = P.email_utente
+		                AND SC.competenza = p_competenza
+		                AND SC.livello_effettivo >= p_nuovo_livello_richiesto);
 
 	-- Se i controlli passano, aggiorno il livello richiesto della skill
 	UPDATE SKILL_PROFILO

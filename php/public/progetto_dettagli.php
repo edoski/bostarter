@@ -89,7 +89,7 @@ try {
 try {
     $in = ['p_nome_progetto' => $_GET['nome']];
     // Restituisce un array di record, di cui il primo (e unico) si rappresenta come il campo numerico 'totale_finanziamenti'
-    $totalFin = sp_invoke('sp_finanziamento_selectAllByProgetto', $in)[0]['totale_finanziamenti'] ?? 0;
+    $totalFin = sp_invoke('sp_finanziamento_selectSumByProgetto', $in)[0]['totale_finanziamenti'] ?? 0;
 
     $progetto['tot_finanziamento'] = $totalFin;
     $budget = $progetto['budget'];
@@ -118,7 +118,15 @@ try {
 if ($progetto['tipo'] === 'SOFTWARE') {
     try {
         $in = ['p_nome_progetto' => $_GET['nome']];
-        $profili = sp_invoke('sp_profilo_selectAllByProgetto', $in);
+        $profili = [];
+        $result = sp_invoke('sp_profilo_skill_selectAllByProgetto', $in);
+
+        foreach ($result as $row) {
+            $profili[$row['nome_profilo']][] = [
+                'competenza' => $row['competenza'],
+                'livello' => $row['livello_richiesto']
+            ];
+        }
     } catch (PDOException $ex) {
         redirect(
             false,
@@ -409,40 +417,29 @@ try {
             <div class="card-body d-flex flex-nowrap overflow-auto">
                 <?php if ($progetto['tipo'] === 'SOFTWARE'): ?>
                     <?php if ($progetto['stato'] === 'aperto'): ?>
-                        <?php foreach ($profili as $profilo): ?>
+                        <?php foreach ($profili as $nome_profilo => $skills): ?>
                             <div class="flex-shrink-0 w-25 p-2 h-100">
                                 <div class="card shadow-sm">
                                     <div class="card-header">
-                                        <p class="fw-bold"><?php echo htmlspecialchars($profilo['nome_profilo']); ?></p>
+                                        <p class="fw-bold"><?php echo htmlspecialchars($nome_profilo); ?></p>
                                     </div>
                                     <div class="card-body overflow-auto">
-                                        <?php
-                                        $skillsArr = array();
-                                        if (!empty($profilo['skills'])) {
-                                            $skillsRaw = explode(',', $profilo['skills']);
-                                            foreach ($skillsRaw as $skillEntry) {
-                                                $parts = explode('|', $skillEntry);
-                                                if (count($parts) == 2) {
-                                                    $skillsArr[] = array('competenza' => trim($parts[0]), 'livello' => trim($parts[1]));
-                                                }
-                                            }
-                                        }
-                                        if (count($skillsArr) > 0) {
-                                            echo '<ul>';
-                                            foreach ($skillsArr as $s) {
-                                                echo '<li>' . htmlspecialchars($s['competenza']) . ' (' . htmlspecialchars($s['livello']) . '/5)</li>';
-                                            }
-                                            echo '</ul>';
-                                        }
-                                        ?>
+                                        <?php if (!empty($skills)): ?>
+                                            <ul>
+                                                <?php foreach ($skills as $skill): ?>
+                                                    <li>
+                                                        <?php echo htmlspecialchars($skill['competenza']); ?>
+                                                        (<?php echo htmlspecialchars($skill['livello']); ?>/5)
+                                                    </li>
+                                                <?php endforeach; ?>
+                                            </ul>
+                                        <?php endif; ?>
                                     </div>
                                     <?php if (!checkProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
                                         <div class="card-footer">
                                             <form action="../actions/candidatura_insert.php" method="post">
-                                                <input type="hidden" name="nome_progetto"
-                                                       value="<?php echo htmlspecialchars($progetto['nome']); ?>">
-                                                <input type="hidden" name="nome_profilo"
-                                                       value="<?php echo htmlspecialchars($profilo['nome_profilo']); ?>">
+                                                <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
+                                                <input type="hidden" name="nome_profilo" value="<?php echo htmlspecialchars($nome_profilo); ?>">
                                                 <button type="submit" class="btn btn-primary w-100">Candidati</button>
                                             </form>
                                         </div>
@@ -510,12 +507,9 @@ try {
                             <?php if ($commento['email_utente'] === $_SESSION['email'] || $_SESSION['is_admin']): ?>
                                 <div class="card-footer">
                                     <form action="../actions/commento_delete.php" method="post">
-                                        <input type="hidden" name="id_commento"
-                                               value="<?php echo htmlspecialchars($commento['id']); ?>">
-                                        <input type="hidden" name="nome_progetto"
-                                               value="<?php echo htmlspecialchars($progetto['nome']); ?>">
-                                        <input type="hidden" name="email_utente"
-                                               value="<?php echo htmlspecialchars($commento['email_utente']); ?>">
+                                        <input type="hidden" name="id_commento" value="<?php echo htmlspecialchars($commento['id']); ?>">
+                                        <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
+                                        <input type="hidden" name="email_utente" value="<?php echo htmlspecialchars($commento['email_utente']); ?>">
                                         <button type="submit" class="btn btn-danger">Elimina</button>
                                     </form>
                                 </div>
@@ -525,16 +519,13 @@ try {
                                 <div class="card-footer">
                                     <strong>
                                         Risposta
-                                        (<?php if (checkProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>You<?php else: ?>Creatore<?php endif; ?>
-                                        )
+                                        (<?php if (checkProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>You<?php else: ?>Creatore<?php endif; ?>)
                                     </strong>
                                     <p><?php echo htmlspecialchars($commento['risposta']); ?></p>
                                     <?php if (checkProgettoOwner($_SESSION['email'], $progetto['nome']) || $_SESSION['is_admin']): ?>
                                         <form action="../actions/commento_risposta_delete.php" method="post">
-                                            <input type="hidden" name="id_commento"
-                                                   value="<?php echo htmlspecialchars($commento['id']); ?>">
-                                            <input type="hidden" name="nome_progetto"
-                                                   value="<?php echo htmlspecialchars($progetto['nome']); ?>">
+                                            <input type="hidden" name="id_commento" value="<?php echo htmlspecialchars($commento['id']); ?>">
+                                            <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
                                             <button type="submit" class="btn btn-danger">Elimina</button>
                                         </form>
                                     <?php endif; ?>
@@ -542,14 +533,11 @@ try {
                             <?php elseif (checkProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
                                 <div class="card-footer">
                                     <form action="../actions/commento_risposta_insert.php" method="post">
-                                        <input type="hidden" name="id_commento"
-                                               value="<?php echo htmlspecialchars($commento['id']); ?>">
-                                        <input type="hidden" name="nome_progetto"
-                                               value="<?php echo htmlspecialchars($progetto['nome']); ?>">
+                                        <input type="hidden" name="id_commento" value="<?php echo htmlspecialchars($commento['id']); ?>">
+                                        <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
                                         <div class="form-group mt-2">
                                             <label for="risposta">Rispondi</label>
-                                            <textarea class="form-control" id="risposta" name="risposta" rows="1"
-                                                      required></textarea>
+                                            <textarea class="form-control" id="risposta" name="risposta" rows="1" required></textarea>
                                             <button type="submit" class="btn btn-primary mt-2">Invia</button>
                                         </div>
                                     </form>
@@ -565,8 +553,7 @@ try {
             <!-- Form per inserire un commento -->
             <div class="card-footer">
                 <form action="../actions/commento_insert.php" method="post">
-                    <input type="hidden" name="nome_progetto"
-                           value="<?php echo htmlspecialchars($progetto['nome']); ?>">
+                    <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
                     <div class="form-group">
                         <label class="fs-5 my-2 fw-bold" for="commento">Commento</label>
                         <textarea class="form-control my-2" id="commento" name="commento" rows="3" required></textarea>
