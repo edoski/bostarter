@@ -589,6 +589,24 @@ BEGIN
 END//
 
 /*
+*  PROCEDURE: sp_util_is_progetto_aperto
+*  PURPOSE: Verifica se lo stato del progetto è aperto.
+*
+*  @param IN p_nome_progetto - Nome del progetto da controllare
+*
+*  @throws 45000 - PROGETTO CHIUSO
+*/
+CREATE PROCEDURE sp_util_is_progetto_aperto(
+	IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+	IF (SELECT stato FROM PROGETTO WHERE nome = p_nome_progetto) = 'chiuso' THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
+	END IF;
+END//
+
+/*
 *  PROCEDURE: sp_util_get_admin_codice_sicurezza
 *  PURPOSE: Visualizzazione del codice di sicurezza di un admin.
 *  USED BY: ADMIN
@@ -740,7 +758,6 @@ END//
 /*
 *  PROCEDURE: sp_skill_profilo_check
 *  PURPOSE: Controlla la validità di un profilo e di una competenza richiesta.
-*  UTIL: sp_util_is_creatore_progetto_owner, sp_util_is_progetto_software, sp_util_profilo_exists, sp_util_skill_profilo_exists
 *
 *  @param IN p_nome_profilo - Nome del profilo da controllare
 *  @param IN p_email_creatore - Email dell'utente creatore del progetto
@@ -756,8 +773,13 @@ CREATE PROCEDURE sp_skill_profilo_check(
 	IN p_is_insert BOOLEAN
 )
 BEGIN
-	-- Controllo che il progetto sia creato dall'utente, e che sia di tipo software
+	-- Controllo che il progetto esista
+	CALL sp_util_progetto_exists(p_nome_progetto);
+
+	-- Controllo che il progetto sia creato dall'utente
 	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+
+	-- Controllo che il progetto sia di tipo software
 	CALL sp_util_is_progetto_software(p_nome_progetto);
 
 	-- Controllo che il profilo del progetto esista
@@ -776,7 +798,6 @@ END//
 /*
 *  PROCEDURE: sp_profilo_check
 *  PURPOSE: Controlla la validità di un profilo.
-*  UTIL: sp_util_is_creatore_progetto_owner, sp_util_is_progetto_software, sp_util_profilo_exists
 *
 *  @param IN p_nome_profilo - Nome del profilo da controllare
 *  @param IN p_email_creatore - Email dell'utente creatore del progetto
@@ -790,9 +811,11 @@ CREATE PROCEDURE sp_profilo_check(
 	IN p_is_insert BOOLEAN
 )
 BEGIN
-	-- Controllo che il progetto sia creato dall'utente, e che sia di tipo software
+	-- Controllo che il progetto esista
+	CALL sp_util_progetto_exists(p_nome_progetto);
+
+	-- Controllo che il progetto sia creato dall'utente
 	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
-	CALL sp_util_is_progetto_software(p_nome_progetto);
 
 	-- Controllo che il profilo esista (solo per delete)
 	IF NOT p_is_insert THEN
@@ -808,7 +831,6 @@ END//
 /*
 *  PROCEDURE: sp_componente_check
 *  PURPOSE: Controlla la validità di un componente.
-*  UTIL: sp_util_is_creatore_progetto_owner, sp_util_is_progetto_hardware
 *
 *  @param IN p_nome_componente - Nome del componente da controllare
 *  @param IN p_nome_progetto - Nome del progetto a cui appartiene il componente
@@ -824,9 +846,17 @@ CREATE PROCEDURE sp_componente_check(
 	IN p_is_insert BOOLEAN
 )
 BEGIN
-	-- Controllo che il progetto sia creato dall'utente, e che sia di tipo hardware
+	-- Controllo che il progetto esista
+	CALL sp_util_progetto_exists(p_nome_progetto);
+
+	-- Controllo che il progetto sia creato dall'utente
 	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+
+	-- Controllo che il progetto sia di tipo hardware
 	CALL sp_util_is_progetto_hardware(p_nome_progetto);
+
+	-- Controllo che il progetto sia ancora aperto
+	CALL sp_util_is_progetto_aperto(p_nome_progetto);
 
 	-- Controllo che il componente esista (solo per update e delete)
 	IF NOT p_is_insert THEN
@@ -847,7 +877,6 @@ END//
 /*
 *  PROCEDURE: sp_partecipante_check
 *  PURPOSE: Controlla la validità di un partecipante. I controlli sono comuni a entrambe le stored procedure di seguito.
-*  UTIL: sp_util_is_progetto_software, sp_util_skill_profilo_exists
 *
 *  @param IN p_nome_progetto - Nome del progetto a cui appartiene il partecipante
 *  @param IN p_nome_profilo - Nome del profilo richiesto dal partecipante
@@ -857,17 +886,22 @@ CREATE PROCEDURE sp_partecipante_check(
 	IN p_nome_profilo VARCHAR(100)
 )
 BEGIN
-	-- Controllo che:
-	-- 1. Il progetto sia di tipo software
-	-- 2. Il profilo esista
+	-- Controllo che il progetto esista
+	CALL sp_util_progetto_exists(p_nome_progetto);
+
+	-- Controllo che il progetto sia ancora aperto
+	CALL sp_util_is_progetto_aperto(p_nome_progetto);
+
+	-- Controllo che il progetto sia di tipo software
 	CALL sp_util_is_progetto_software(p_nome_progetto);
+
+	-- Controllo che il profilo esista
 	CALL sp_util_profilo_exists(p_nome_profilo, p_nome_progetto);
 END//
 
 /*
 *  PROCEDURE: sp_partecipante_creatore_check
 *  PURPOSE: Controlla la validità di un partecipante. I controlli sono specifici per il creatore del progetto.
-*  UTIL: sp_partecipante_check, sp_util_is_creatore_progetto_owner
 *
 *  @param IN p_email_creatore - Email dell'utente creatore del progetto
 *  @param IN p_email_candidato - Email dell'utente candidato al progetto
@@ -883,8 +917,13 @@ CREATE PROCEDURE sp_partecipante_creatore_check(
 	IN p_nome_profilo VARCHAR(100)
 )
 BEGIN
-	-- Controllo comune a entrambe le stored procedure
+	-- Controllo che:
+	-- 1. Il progetto esista
+	-- 2. Il programma sia ancora aperto
+	-- 3. Il progetto sia di tipo software
+	-- 4. Il profilo esista
 	CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
+
 	-- Controllo che l'utente sia il creatore del progetto
 	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
 
@@ -921,7 +960,11 @@ BEGIN
 	-- Dichiarazione variabile per la competenza mancante/suo livello insufficiente (se esiste)
 	DECLARE missing_skill VARCHAR(100) DEFAULT NULL;
 
-	-- Controllo comune a entrambe le stored procedure
+	-- Controllo che:
+	-- 1. Il progetto esista
+	-- 2. Il programma sia ancora aperto
+	-- 3. Il progetto sia di tipo software
+	-- 4. Il profilo esista
 	CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
 
 	-- Controllo che l'utente NON sia il creatore del progetto
@@ -971,7 +1014,6 @@ END//
 /*
 *  PROCEDURE: sp_commento_check
 *  PURPOSE: Controlla la validità di un commento.
-*  UTIL: sp_util_progetto_exists, sp_util_commento_exists
 *
 *  @param IN p_id - ID del commento da controllare
 *  @param IN p_nome_progetto - Nome del progetto a cui appartiene il commento
@@ -1008,7 +1050,6 @@ END//
 /*
 *  PROCEDURE: sp_commento_risposta_check
 *  PURPOSE: Controlla la validità di una risposta a un commento.
-*  UTIL: sp_util_progetto_exists, sp_util_commento_exists, sp_util_is_creatore_progetto_owner
 *
 *  @param IN p_commento_id - ID del commento a cui si vuole rispondere/cancellare la risposta
 *  @param IN p_nome_progetto - Nome del progetto a cui appartiene il commento
@@ -1066,7 +1107,6 @@ END//
 /*
 *  PROCEDURE: sp_foto_check
 *  PURPOSE: Controlla la validità di una foto.
-*  UTIL: sp_util_is_creatore_progetto_owner
 *
 *  @param IN p_nome_progetto - Nome del progetto a cui appartiene la foto
 *  @param IN p_email_creatore - Email dell'utente creatore del progetto
@@ -1541,12 +1581,28 @@ CREATE PROCEDURE sp_finanziamento_insert(
 	IN p_importo DECIMAL(10, 2)
 )
 BEGIN
+	DECLARE num_finanziamenti INT;
+
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
 			ROLLBACK;
 			RESIGNAL;
 		END;
 	START TRANSACTION;
+
+	-- Controllo che l'utente non abbia già effettuato un finanziamento nello stesso giorno
+	SELECT COUNT(*)
+	INTO num_finanziamenti
+	FROM FINANZIAMENTO
+	WHERE email_utente = p_email
+	  AND nome_progetto = p_nome_progetto
+	  AND data = CURDATE();
+
+	IF num_finanziamenti > 0 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'FINANZIAMENTO GIA\' EFFETTUATO NELLO STESSO GIORNO';
+	END IF;
+
 	-- Controllo che il progetto sia aperto
 	IF NOT EXISTS (SELECT 1
 	               FROM PROGETTO
@@ -1556,7 +1612,7 @@ BEGIN
 			SET MESSAGE_TEXT = 'PROGETTO CHIUSO O NON ESISTENTE';
 	END IF;
 
-	-- Se il controllo passa, inserisco il finanziamento
+	-- Se i controlli passano, inserisco il finanziamento
 	INSERT INTO FINANZIAMENTO (email_utente, nome_progetto, codice_reward, importo)
 	VALUES (p_email, p_nome_progetto, p_codice_reward, p_importo);
 	COMMIT;
@@ -1815,7 +1871,7 @@ END//
 *   - L'utente non può candidarsi a un progetto di cui è creatore, e non può candidarsi più di una volta per la stessa competenza.
 *   - Utenti che non dispongono della competenza richiesta non possono candidarsi.
 *   - Utenti che non dispongono del livello richiesto per la competenza non possono candidarsi e vengono automaticamente rifiutati
-*     senza mai essere inseriti nella tabella PARTECIPANTE (vedi trigger trg_rifiuta_candidatura_livello_effettivo_insufficiente).
+*     senza mai essere inseriti nella tabella PARTECIPANTE.
 *
 *  @param IN p_email - Email dell'utente che si candida
 *  @param IN p_nome_progetto - Nome del progetto interessato
@@ -2038,8 +2094,6 @@ END//
 *  NOTE:
 *    - Il prezzo e la quantità del componente vengono definiti dal creatore al momento dell'inserimento.
 *    - Il prezzo e la quantità del componente aggiorneranno il budget del progetto se (prezzo * quantità) > budget attuale del progetto.
-*       - Il budget aumenta della differenza tra il prezzo totale dei componenti e il budget (vedi trigger trg_update_budget_componente_insert).
-*       - Il creatore è notificato a livello di interfaccia del cambio di budget.
 *
 *  @param IN p_nome_componente - Nome del componente da inserire per il progetto hardware
 *  @param IN p_nome_progetto - Nome del progetto hardware
@@ -2057,16 +2111,45 @@ CREATE PROCEDURE sp_componente_insert(
 	IN p_email_creatore VARCHAR(100)
 )
 BEGIN
+	DECLARE tot_componenti DECIMAL(10, 2);
+	DECLARE budget_progetto DECIMAL(10, 2);
+	DECLARE eccesso DECIMAL(10, 2);
+
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
 			ROLLBACK;
 			RESIGNAL;
 		END;
 	START TRANSACTION;
+
 	-- Controllo che:
-	--  1. L'utente sia il creatore del progetto
-	--  2. Il progetto sia di tipo hardware
+	--  1. Il progetto esista
+	--  2. L'utente sia il creatore del progetto
+	--  3. Il progetto sia di tipo hardware
+	--  4. Il progetto sia ancora aperto
 	CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, TRUE);
+
+	-- Recupero il budget del progetto
+	SELECT budget
+	INTO budget_progetto
+	FROM PROGETTO
+	WHERE nome = p_nome_progetto;
+
+	-- Calcolo il costo totale dei componenti del progetto
+	SELECT IFNULL(SUM(prezzo * quantita), 0)
+	INTO tot_componenti
+	FROM COMPONENTE
+	WHERE nome_progetto = p_nome_progetto;
+
+	-- Determino l'eccesso di budget
+	SET eccesso = (tot_componenti + (p_prezzo * p_quantita)) - budget_progetto;
+
+	-- Se l'eccesso è > 0, aggiorno il budget del progetto
+	IF eccesso > 0 THEN
+		UPDATE PROGETTO
+		SET budget = budget + eccesso
+		WHERE nome = p_nome_progetto;
+	END IF;
 
 	-- Se i controlli passano, inserisco il componente
 	INSERT INTO COMPONENTE (nome_componente, nome_progetto, descrizione, quantita, prezzo)
@@ -2078,7 +2161,7 @@ END//
 *  PROCEDURE: sp_componente_delete
 *  PURPOSE: Rimozione di un componente per un progetto hardware.
 *  USED BY: CREATORE
-*  NOTE: Il budget del progetto viene aggiornato in base alla quantità e al prezzo del componente rimosso (vedi trigger trg_update_budget_componente_delete).
+*  NOTE: Il budget del progetto viene aggiornato in base alla quantità e al prezzo del componente rimosso.
 *
 *  @param IN p_nome_componente - Nome del componente da rimuovere
 *  @param IN p_nome_progetto - Nome del progetto hardware a cui appartiene il componente
@@ -2090,17 +2173,52 @@ CREATE PROCEDURE sp_componente_delete(
 	IN p_email_creatore VARCHAR(100)
 )
 BEGIN
+	DECLARE budget_progetto DECIMAL(10, 2);
+	DECLARE comp_prezzo DECIMAL(10, 2);
+	DECLARE comp_quantita INT;
+	DECLARE new_budget DECIMAL(10, 2);
+
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
 			ROLLBACK;
 			RESIGNAL;
 		END;
 	START TRANSACTION;
+
 	-- Controllo che:
-	--  1. L'utente sia il creatore del progetto
-	--  2. Il progetto sia di tipo hardware
-	--  3. Il componente esista
+	--  1. Il progetto esista
+	--  2. L'utente sia il creatore del progetto
+	--  3. Il progetto sia ancora aperto
+	--  4. Il progetto sia di tipo hardware
+	--  5. Il componente esista
 	CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, FALSE);
+
+	-- Controllo che ci sia almeno un componente rimanente
+	IF (SELECT COUNT(*) FROM COMPONENTE WHERE nome_progetto = p_nome_progetto) = 1 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'IMPOSSIBILE RIMUOVERE ULTIMO COMPONENTE';
+	END IF;
+
+	-- Recupera il budget del progetto
+	SELECT budget
+	INTO budget_progetto
+	FROM PROGETTO
+	WHERE nome = p_nome_progetto;
+
+	-- Recupera prezzo e quantità del componente da eliminare
+	SELECT prezzo, quantita
+	INTO comp_prezzo, comp_quantita
+	FROM COMPONENTE
+	WHERE nome_componente = p_nome_componente
+	  AND nome_progetto = p_nome_progetto;
+
+	-- Determina il budget del progetto senza il componente rimosso
+	SET new_budget = budget_progetto - (comp_prezzo * comp_quantita);
+
+	-- Aggiorno il budget del progetto
+	UPDATE PROGETTO
+	SET budget = new_budget
+	WHERE nome = p_nome_progetto;
 
 	-- Se i controlli passano, rimuovo il componente
 	DELETE
@@ -2115,8 +2233,7 @@ END//
 *  PURPOSE: Aggiornamento di un componente per un progetto hardware.
 *  USED BY: CREATORE
 *  NOTE:
-*   - Il budget del progetto viene aggiornato in base alla differenza tra il prezzo e la quantità del componente prima e dopo l'aggiornamento
-*     (vedi trigger trg_update_budget_componente_update).
+*   - Il budget del progetto viene aggiornato in base alla differenza tra il prezzo e la quantità del componente prima e dopo l'aggiornamento.
 *   - Se campi come nome e/o descrizione del componente non sono modificati a livello di interfaccia, non vengono aggiornati e vengono passati
 *     nome e/o descrizione attuali.
 *
@@ -2136,25 +2253,70 @@ CREATE PROCEDURE sp_componente_update(
 	IN p_email_creatore VARCHAR(100)
 )
 BEGIN
+	DECLARE tot_componenti DECIMAL(10, 2);
+	DECLARE budget_progetto DECIMAL(10, 2);
+	DECLARE eccesso DECIMAL(10, 2);
+	DECLARE old_totale DECIMAL(10, 2);
+	DECLARE old_prezzo DECIMAL(10, 2);
+	DECLARE old_quantita INT;
+
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
 			ROLLBACK;
 			RESIGNAL;
 		END;
 	START TRANSACTION;
+
 	-- Controllo che:
-	--  1. L'utente sia il creatore del progetto
-	--  2. Il progetto sia di tipo hardware
-	--  3. Il componente esista
+	--  1. Il progetto esista
+	--  2. L'utente sia il creatore del progetto
+	--  3. Il progetto sia ancora aperto
+	--  4. Il progetto sia di tipo hardware
+	--  5. Il componente esista
 	CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, FALSE);
+
+	-- Controllo che la quantità del componente sia > 0
+	IF p_quantita <= 0 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'QUANTITY COMPONENTE DEVE ESSERE > 0';
+	END IF;
+
+	-- Recupero il budget del progetto
+	SELECT budget
+	INTO budget_progetto
+	FROM PROGETTO
+	WHERE nome = p_nome_progetto;
+
+	-- Recupero il vecchio prezzo e quantità del componente
+	SELECT prezzo, quantita
+	INTO old_prezzo, old_quantita
+	FROM COMPONENTE
+	WHERE nome_componente = p_nome_componente AND nome_progetto = p_nome_progetto;
+
+	-- Calcolo il costo totale del componente prima dell'aggiornamento
+	SET old_totale = old_prezzo * old_quantita;
+
+	-- Calcolo il costo totale dei componenti del progetto, escludendo il componente corrente
+	SELECT IFNULL(SUM(prezzo * quantita), 0)
+	INTO tot_componenti
+	FROM COMPONENTE
+	WHERE nome_progetto = p_nome_progetto
+	  AND NOT (nome_componente = p_nome_componente AND nome_progetto = p_nome_progetto);
+
+	-- Determino l'eccesso di budget con il nuovo componente
+	SET eccesso = (tot_componenti + (p_prezzo * p_quantita)) - budget_progetto;
+
+	-- Vale anche se l'"eccesso" è negativo, per ridurre il budget
+	UPDATE PROGETTO
+	SET budget = budget + eccesso
+	WHERE nome = p_nome_progetto;
 
 	-- Se i controlli passano, aggiorno il componente
 	UPDATE COMPONENTE
 	SET descrizione = p_descrizione,
-	    quantita    = p_quantita,
-	    prezzo      = p_prezzo
-	WHERE nome_componente = p_nome_componente
-	  AND nome_progetto = p_nome_progetto;
+	    quantita = p_quantita,
+	    prezzo = p_prezzo
+	WHERE nome_componente = p_nome_componente AND nome_progetto = p_nome_progetto;
 	COMMIT;
 END//
 
@@ -2263,7 +2425,7 @@ CREATE PROCEDURE sp_profilo_selectAllByProgetto(
 BEGIN
 	START TRANSACTION;
 	SELECT P.nome_profilo,
-	       GROUP_CONCAT(CONCAT(sp.competenza, '|', sp.livello_richiesto) SEPARATOR ',') AS skills
+	       GROUP_CONCAT(CONCAT(sp.competenza, '|', sp.livello_richiesto) SEPARATOR ',') AS skills -- Esempio: 'Java|3,Python|4'
 	FROM PROFILO P
 		     JOIN SKILL_PROFILO sp
 		          ON P.nome_profilo = sp.nome_profilo
@@ -2303,10 +2465,12 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
+
 	-- Controllo che:
-	--  1. L'utente sia il creatore del progetto
-	--  2. Il progetto sia di tipo software
-	--  3. Il profilo esista
+	--  1. Il progetto esista
+	--  2. L'utente sia il creatore del progetto
+	--  3. Il progetto sia di tipo software
+	--  4. Il profilo esista
 	CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, TRUE);
 
 	-- Se i controlli passano, inserisco la skill nel profilo del progetto
@@ -2339,11 +2503,13 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
+
 	-- Controllo che:
-	--  1. L'utente sia il creatore del progetto
-	--  2. Il progetto sia di tipo software
-	--  3. Il profilo esista
-	--  4. Il profilo abbia la competenza richiesta
+	--  1. Il progetto esista
+	--  2. L'utente sia il creatore del progetto
+	--  3. Il progetto sia di tipo software
+	--  4. Il profilo esista
+	--  5. Il profilo abbia la competenza richiesta
 	CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, FALSE);
 
 	-- Se i controlli passano, rimuovo la skill dal profilo
@@ -2360,7 +2526,6 @@ END//
 *  PURPOSE: Aggiornamento del livello richiesto di una skill per un profilo di un progetto software.
 *  USED BY: CREATORE
 *  NOTE: Se un PARTECIPANTE potenziale non soddisfa il nuovo livello richiesto, la candidatura viene automaticamente rifiutata
-*        (vedi trigger trg_rifiuta_candidature_skill_profilo_update)
 *
 *  @param IN p_nome_profilo - Nome del profilo del progetto software per cui aggiornare il livello richiesto della skill
 *  @param IN p_competenza - Competenza/skill richiesta per il profilo del progetto da aggiornare
@@ -2382,12 +2547,28 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
+
 	-- Controllo che:
-	--  1. L'utente sia il creatore del progetto
-	--  2. Il progetto sia di tipo software
-	--  3. Il profilo esista
-	--  4. Il profilo abbia la competenza richiesta
+	--  1. Il progetto esista
+	--  2. L'utente sia il creatore del progetto
+	--  3. Il progetto sia di tipo software
+	--  4. Il profilo esista
+	--  5. Il profilo abbia la competenza richiesta
 	CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, FALSE);
+
+	-- SIDE EFFECT: Rifiuto automaticamente le candidature che non soddisfano il nuovo livello richiesto
+	UPDATE PARTECIPANTE P
+	SET stato = 'rifiutato'
+	WHERE P.nome_profilo = p_nome_profilo
+	  AND P.nome_progetto = p_nome_progetto
+	  AND P.stato = 'potenziale'
+	  AND NOT EXISTS (
+	      SELECT 1
+	      FROM SKILL_CURRICULUM SC
+	      WHERE SC.email_utente = P.email_utente
+		    AND SC.competenza = p_competenza
+		    AND SC.livello_effettivo >= p_nuovo_livello_richiesto
+	  );
 
 	-- Se i controlli passano, aggiorno il livello richiesto della skill
 	UPDATE SKILL_PROFILO
@@ -2562,7 +2743,10 @@ DELIMITER //
 --  trg_update_affidabilita_finanziamento
 --  trg_incrementa_progetti_creati
 
--- Trigger per aggiornare l'affidabilità di un creatore quando crea un progetto
+/*
+*  TRIGGER: trg_update_affidabilita_progetto
+*  PURPOSE: Aggiornare l'affidabilità di un creatore quando crea un progetto
+*/
 CREATE TRIGGER trg_update_affidabilita_progetto
 	AFTER INSERT
 	ON PROGETTO
@@ -2585,7 +2769,7 @@ BEGIN
 		     JOIN FINANZIAMENTO F ON P.nome = F.nome_progetto
 	WHERE P.email_creatore = NEW.email_creatore;
 
-	-- Calcola la nuova affidabilità del creatore
+	-- Calcolo la nuova affidabilità del creatore
 	IF tot_progetti > 0 THEN
 		SET new_aff = (progetti_finanziati / tot_progetti) * 100;
 	ELSE
@@ -2597,7 +2781,10 @@ BEGIN
 	WHERE email_utente = NEW.email_creatore;
 END//
 
--- Trigger per aggiornare l'affidabilità di un creatore quando un progetto da lui creato viene finanziato
+/*
+*  TRIGGER: trg_update_affidabilita_finanziamento
+*  PURPOSE: Aggiornare l'affidabilità di un creatore quando un progetto da lui creato viene finanziato
+*/
 CREATE TRIGGER trg_update_affidabilita_finanziamento
 	AFTER INSERT
 	ON FINANZIAMENTO
@@ -2608,7 +2795,7 @@ BEGIN
 	DECLARE progetti_finanziati INT;
 	DECLARE new_aff DECIMAL(5, 2);
 
-	-- Recupera l'email del creatore del progetto
+	-- Recupero l'email del creatore del progetto
 	SELECT email_creatore
 	INTO email
 	FROM PROGETTO
@@ -2627,7 +2814,7 @@ BEGIN
 		     JOIN FINANZIAMENTO F ON P.nome = F.nome_progetto
 	WHERE P.email_creatore = email;
 
-	-- Calcola la nuova affidabilità del creatore
+	-- Calcolo la nuova affidabilità del creatore
 	IF tot_progetti > 0 THEN
 		SET new_aff = (progetti_finanziati / tot_progetti) * 100;
 	ELSE
@@ -2639,7 +2826,10 @@ BEGIN
 	WHERE email_utente = email;
 END//
 
--- Trigger per aumentare il numero di progetti creati da un creatore
+/*
+*  TRIGGER: trg_incrementa_progetti_creati
+*  PURPOSE: Aumentare il numero di progetti creati da un creatore
+*/
 CREATE TRIGGER trg_incrementa_progetti_creati
 	AFTER INSERT
 	ON PROGETTO
@@ -2652,11 +2842,11 @@ END//
 
 -- PROGETTO:
 --  trg_update_stato_progetto
---  trg_update_budget_componente_insert
---  trg_update_budget_componente_delete
---  trg_update_budget_componente_update
 
--- Trigger per cambiare lo stato di un progetto in 'chiuso' quando il budget è stato raggiunto
+/*
+*  TRIGGER: trg_update_stato_progetto
+*  PURPOSE: Cambia lo stato di un progetto in 'chiuso' quando il budget è stato raggiunto e rifiuta le candidature pendenti.
+*/
 CREATE TRIGGER trg_update_stato_progetto
 	AFTER INSERT
 	ON FINANZIAMENTO
@@ -2679,234 +2869,16 @@ BEGIN
 
 	-- Se il totale del finanziamento è >= al budget del progetto, allora lo stato del progetto diventa 'chiuso'
 	IF tot_finanziamento >= budget_progetto THEN
+		-- Chiudo il progetto
 		UPDATE PROGETTO
 		SET stato = 'chiuso'
 		WHERE nome = NEW.nome_progetto;
-	END IF;
-END//
 
--- Trigger per aggiornare il budget di un progetto hardware quando un componente viene aggiunto
-CREATE TRIGGER trg_update_budget_componente_insert
-	BEFORE INSERT
-	ON COMPONENTE
-	FOR EACH ROW
-BEGIN
-	DECLARE tot_componenti DECIMAL(10, 2);
-	DECLARE budget_progetto DECIMAL(10, 2);
-	DECLARE eccesso DECIMAL(10, 2);
-
-	-- Controllo che il progetto sia ancora aperto
-	IF (SELECT stato
-	    FROM PROGETTO
-	    WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
-	END IF;
-
-	-- Recupera il budget del progetto
-	SELECT budget
-	INTO budget_progetto
-	FROM PROGETTO
-	WHERE nome = NEW.nome_progetto;
-
-	-- Calcola il costo totale dei componenti del progetto
-	SELECT IFNULL(SUM(prezzo * quantita), 0) -- Per sicurezza anche se deve esistere sempre almeno un componente a prescindere
-	INTO tot_componenti
-	FROM COMPONENTE
-	WHERE nome_progetto = NEW.nome_progetto;
-
-	-- Determina l'eccesso di budget
-	SET eccesso = (tot_componenti + (NEW.prezzo * NEW.quantita)) - budget_progetto;
-
-	-- Se l'eccesso è > 0, allora aggiorna il budget del progetto
-	IF eccesso > 0 THEN
-		UPDATE PROGETTO
-		SET budget = budget + eccesso
-		WHERE nome = NEW.nome_progetto;
-	END IF;
-END //
-
--- Trigger per aggiornare il budget di un progetto hardware quando un componente viene rimosso
-CREATE TRIGGER trg_update_budget_componente_delete
-	BEFORE DELETE
-	ON COMPONENTE
-	FOR EACH ROW
-BEGIN
-	DECLARE budget_progetto DECIMAL(10, 2);
-	DECLARE new_budget DECIMAL(10, 2);
-
-	-- Controllo che il progetto sia ancora aperto
-	IF (SELECT stato
-	    FROM PROGETTO
-	    WHERE nome = OLD.nome_progetto) = 'chiuso' THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
-	END IF;
-
-	-- Controllo che ci sia almeno un componente rimanente
-	IF (SELECT COUNT(*)
-	    FROM COMPONENTE
-	    WHERE nome_progetto = OLD.nome_progetto) = 1 THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'IMPOSSIBILE RIMUOVERE ULTIMO COMPONENTE';
-	END IF;
-
-	-- Recupera il budget del progetto
-	SELECT budget
-	INTO budget_progetto
-	FROM PROGETTO
-	WHERE nome = OLD.nome_progetto;
-
-	-- Determina il budget del progetto senza il componente rimosso
-	SET new_budget = budget_progetto - (OLD.prezzo * OLD.quantita);
-
-	-- Aggiorna il budget del progetto
-	UPDATE PROGETTO
-	SET budget = new_budget
-	WHERE nome = OLD.nome_progetto;
-END //
-
--- Trigger per aggiornare il budget di un progetto hardware quando un componente viene aggiornato
-CREATE TRIGGER trg_update_budget_componente_update
-	BEFORE UPDATE
-	ON COMPONENTE
-	FOR EACH ROW
-BEGIN
-	DECLARE tot_componenti DECIMAL(10, 2);
-	DECLARE budget_progetto DECIMAL(10, 2);
-	DECLARE eccesso DECIMAL(10, 2);
-
-	-- Controllo che il progetto sia ancora aperto
-	IF (SELECT stato
-	    FROM PROGETTO
-	    WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
-	END IF;
-
-	-- Controllo che la quantità del componente sia > 0
-	IF NEW.quantita <= 0 THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'QUANTITY COMPONENTE DEVE ESSERE > 0';
-	END IF;
-
-	-- Recupera il budget del progetto
-	SELECT budget
-	INTO budget_progetto
-	FROM PROGETTO
-	WHERE nome = NEW.nome_progetto;
-
-	-- Calcola il costo totale dei componenti del progetto, escludendo il componente corrente
-	SELECT IFNULL(SUM(prezzo * quantita), 0)
-	INTO tot_componenti
-	FROM COMPONENTE
-	WHERE nome_progetto = NEW.nome_progetto
-	  AND NOT (nome_componente = OLD.nome_componente AND nome_progetto = OLD.nome_progetto);
-	-- Nel caso in cui il nome del componente sia cambiato
-
-	-- Determina l'eccesso di budget con il nuovo componente
-	SET eccesso = (tot_componenti + (NEW.prezzo * NEW.quantita)) - budget_progetto;
-
-	-- Vale anche se l'"eccesso" è negativo, per ridurre il budget
-	UPDATE PROGETTO
-	SET budget = budget + eccesso
-	WHERE nome = NEW.nome_progetto;
-END //
-
--- PARTECIPANTE:
---  trg_rifiuta_candidature_skill_profilo_update
---  trg_rifiuta_candidatura_livello_effettivo_insufficiente
---  trg_delete_candidature_progetto_chiuso
---  trg_delete_candidature_profilo_rimosso_da_progetto
-
--- Trigger per rifiutare automaticamente eventuali candidature se il livello_richiesto della competenza del relativo profilo viene aumentata
-CREATE TRIGGER trg_rifiuta_candidature_skill_profilo_update
-	AFTER UPDATE
-	ON SKILL_PROFILO
-	FOR EACH ROW
-BEGIN
-	UPDATE PARTECIPANTE P
-	SET stato = 'rifiutato'
-	WHERE P.nome_profilo = NEW.nome_profilo
-	  AND P.nome_progetto = NEW.nome_progetto
-	  AND P.stato = 'potenziale'
-	  AND NOT EXISTS (SELECT 1
-	                  FROM SKILL_CURRICULUM SC
-	                  WHERE SC.email_utente = P.email_utente
-		                AND SC.competenza = NEW.competenza
-		                AND SC.livello_effettivo >= NEW.livello_richiesto);
-END//
-
-
--- Trigger per rifiutare automaticamente candidature se il livello_effettivo non è sufficiente rispetto al livello_richiesto di ogni competenza del profilo
-DELIMITER //
-CREATE TRIGGER trg_rifiuta_candidatura_livello_effettivo_insufficiente
-	BEFORE INSERT
-	ON PARTECIPANTE
-	FOR EACH ROW
-BEGIN
-	-- Controllo che il progetto sia ancora aperto
-	IF (SELECT stato FROM PROGETTO WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
-	END IF;
-
-	-- Controllo che per ogni competenza richiesta dal profilo, il livello effettivo del candidato sia >= al livello richiesto
-	IF EXISTS (SELECT 1
-	           FROM SKILL_PROFILO sp
-	           WHERE sp.nome_profilo = NEW.nome_profilo
-		         AND sp.nome_progetto = NEW.nome_progetto
-		         AND NOT EXISTS (SELECT 1
-		                         FROM SKILL_CURRICULUM sc
-		                         WHERE sc.email_utente = NEW.email_utente
-			                       AND sc.competenza = sp.competenza
-			                       AND sc.livello_effettivo >= sp.livello_richiesto)) THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'LIVELLO EFFETTIVO NON SUFFICIENTE PER IL PROFILO';
-	END IF;
-END//
-
--- Trigger per rifiutare automaticamente le candidature se il progetto viene chiuso
-CREATE TRIGGER trg_delete_candidature_progetto_chiuso
-	AFTER UPDATE
-	ON PROGETTO
-	FOR EACH ROW
-BEGIN
-	IF NEW.stato = 'chiuso' THEN
+		-- Rifiuto tutte le candidature pendenti
 		UPDATE PARTECIPANTE
 		SET stato = 'rifiutato'
-		WHERE nome_progetto = NEW.nome
+		WHERE nome_progetto = NEW.nome_progetto
 		  AND stato = 'potenziale';
-	END IF;
-END//
-
--- FINANZIAMENTO:
---  trg_rifiuta_finanziamento_utente_giorno
-
--- Trigger per rifiutare automaticamente un finanziamento se l'utente ha già finanziato il progetto nello stesso giorno
-CREATE TRIGGER trg_rifiuta_finanziamento_utente_giorno
-	BEFORE INSERT
-	ON FINANZIAMENTO
-	FOR EACH ROW
-BEGIN
-	DECLARE data_finanziamento DATE;
-	DECLARE num_finanziamenti INT;
-
-	-- Recupera la data attuale
-	SET data_finanziamento = CURDATE();
-
-	-- Conta il numero di finanziamenti effettuati dall'utente per il progetto nello stesso giorno
-	SELECT COUNT(*)
-	INTO num_finanziamenti
-	FROM FINANZIAMENTO
-	WHERE email_utente = NEW.email_utente
-	  AND nome_progetto = NEW.nome_progetto
-	  AND data = data_finanziamento;
-
-	-- Se il numero di finanziamenti è > 0, rifiuta il finanziamento
-	IF num_finanziamenti > 0 THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'FINANZIAMENTO GIA\' EFFETTUATO NELLO STESSO GIORNO';
 	END IF;
 END//
 
@@ -2918,7 +2890,10 @@ DELIMITER ;
 
 DELIMITER //
 
--- Evento per chiudere automaticamente i progetti scaduti, eseguito ogni giorno
+/*
+* EVENTO: ev_chiudi_progetti_scaduti
+* PURPOSE: Chiudere automaticamente i progetti scaduti, eseguito ogni giorno
+*/
 CREATE EVENT ev_chiudi_progetti_scaduti
 	ON SCHEDULE EVERY 1 DAY
 	DO
