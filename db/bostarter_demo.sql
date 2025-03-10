@@ -238,6 +238,7 @@ CALL sp_skill_insert('MongoDB', 'alice@example.com');
 CALL sp_skill_insert('UML', 'alice@example.com');
 CALL sp_skill_insert('ERD', 'alice@example.com');
 CALL sp_skill_insert('Figma', 'alice@example.com');
+CALL sp_skill_insert('Markdown', 'alice@example.com');
 
 -- ==================================================
 -- SKILL_CURRICULUM INSERTION (ALL)
@@ -253,6 +254,9 @@ CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'MySQL', 5);
 CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'ERD', 5);
 CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'MongoDB', 5);
 CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'PHP', 5);
+CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'CSS', 5);
+CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'HTML', 5);
+CALL sp_skill_curriculum_insert('edoardo.galli3@studio.unibo.it', 'JavaScript', 5);
 CALL sp_skill_curriculum_insert('frank@example.com', 'Python', 4);
 CALL sp_skill_curriculum_insert('grace@example.com', 'JavaScript', 5);
 CALL sp_skill_curriculum_insert('heidi@example.com', 'HTML', 3);
@@ -500,6 +504,45 @@ CALL sp_skill_profilo_insert(
         'Figma',
         4
      );
+
+-- Documentation Specialist
+CALL sp_profilo_insert(
+		'Documentation Specialist',
+		'ProgettoAlpha',
+		'bob@example.com'
+	 );
+
+CALL sp_skill_profilo_insert(
+		'Documentation Specialist',
+		'ProgettoAlpha',
+		'bob@example.com',
+		'UML',
+		5
+	 );
+
+CALL sp_skill_profilo_insert(
+		'Documentation Specialist',
+		'ProgettoAlpha',
+		'bob@example.com',
+		'Markdown',
+		3
+	 );
+
+CALL sp_skill_profilo_insert(
+		'Documentation Specialist',
+		'ProgettoAlpha',
+		'bob@example.com',
+		'HTML',
+		3
+	 );
+
+CALL sp_skill_profilo_insert(
+		'Documentation Specialist',
+		'ProgettoAlpha',
+		'bob@example.com',
+		'ERD',
+		4
+	 );
 
 -- ==================================================
 -- PARTECIPANTE OPERATIONS (ALL)

@@ -25,38 +25,17 @@
 
 
 
-
-
-
-
-
-
-
-
-## progetto_dettagli.php
-- profili / componenti should lead to separate page like profilo_dettagli.php componente_dettagli.php
-- ### candidature has its own section beneath fotos
-	- for all users, it is a horizontal scrollbar (if overflow) showing all the available profiles for the project + any taken profiles and by who (nickname only)
-		- Pending and rejected profiles are not shown here, and for pending profiles unless one candidate is accepted by the creator, the profile will remain visible as open for all users
-		- all users who are not the creator can click on the profilo and it will open the specific profilo_dettagli.php page for that profile of that project
-
-
-
-
 ### to make all php files slimmer consider abstracting reused visual components and requiring them in file, and same thing for data gathering if there are identical try-catch sp_invoke data initialisers like $progetto or $finanziamenti
 - if u do this refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways
 
 
 ## TODO SP
+#### Curriculum
 - sp_skill_curriculum_update
 - sp_skill_curriculum_delete
-
 - sp_skill_update
 
 - sp_progetto_insert
-
-- sp_partecipante_utente_insert
-- sp_partecipante_creatore_update
 
 - sp_reward_insert
 
@@ -878,7 +857,6 @@ redirect(
 Risulta immediato che la struttura del file sia simile a quella vista di sopra. L'unica differenza è la seguente: Invece di avere una sezione per il recupero di dati dal database (`=== DATABASE ===`) e in fondo pagina html (`<HTML>`), essendo un file che deve fare un'operazione su una pagina, si ha semplicemente una sezione che prepara ed invoca una stored procedure (`=== ACTION ===`), con successful od error redirect in base alla situazione specifica.
 
 ### **AUTENTICAZIONE UTENTE**
-- `index.php`
 - `login.php`
 - `register.php`
 
@@ -896,7 +874,7 @@ La struttura della pagina di registrazione è molto simile a quella di login per
 
 ![[register.png]]
 
-In fase di registrazione, l'utente ha la possibilità di segnarsi come un creatore della piattaforma, cliccando sulla checkbox sopra al submit button della registrazione. In tal caso, verrà inserito nel DB anche come `CREATORE`.
+In fase di registrazione, l'utente ha la possibilità di segnarsi come un creatore e/o admin della piattaforma, cliccando sulle checkbox sopra al submit button della registrazione. In tal caso, verrà inserito nel DB anche come `CREATORE` / `ADMIN`.
 
 ### **HOMEPAGE**
 - `home.php`
@@ -910,9 +888,15 @@ La pagina delle statistiche è relativamente semplice, chiamando i dati presenti
 
 Non sono previste alcune operazioni da nessun utente su questa pagina; i dati prodotti dalle viste vengono aggiornati in tempo reale, ricaricando la pagina.
 
-### **SKILL**
+### **CURRICULUM**
+
+### **FINANZIAMENTI**
 
 ### **PROGETTI**
+
+### **DETTAGLI PROGETTO**
+
+### **CANDIDATURE**
 
 ## **6.3. LOGGING (MongoDB)**
 

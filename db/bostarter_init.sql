@@ -986,6 +986,17 @@ BEGIN
 			SET MESSAGE_TEXT = 'UTENTE CREATORE DEL PROGETTO';
 	END IF;
 
+	-- Controllo se l'utente è stato precedentemente rifiutato per questo profilo
+	IF EXISTS (SELECT 1
+	           FROM PARTECIPANTE
+	           WHERE email_utente = p_email
+		         AND nome_progetto = p_nome_progetto
+		         AND nome_profilo = p_nome_profilo
+		         AND stato = 'rifiutato') THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'UTENTE PRECEDENTEMENTE RIFIUTATO PER QUESTO PROFILO';
+	END IF;
+
 	-- Controllo che l'utente non abbia già una candidatura per quel profilo del progetto
 	IF EXISTS (SELECT 1
 	           FROM PARTECIPANTE
@@ -993,7 +1004,7 @@ BEGIN
 		         AND nome_progetto = p_nome_progetto
 		         AND nome_profilo = p_nome_profilo) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'CANDIDATURA INSERITA PRECEDENTEMENTE';
+			SET MESSAGE_TEXT = 'CANDIDATURA GIA\' INSERITA';
 	END IF;
 
 	-- Per ogni competenza richiesta dal profilo, controlla che il candidato abbia una entry in SKILL_CURRICULUM
@@ -1873,6 +1884,8 @@ END//
 --  sp_partecipante_utente_insert
 --  sp_partecipante_creatore_update
 --  sp_partecipante_selectAcceptedByProgetto
+--  sp_partecipante_selectAllByUtente
+--  sp_partecipante_selectAllByCreatore
 
 /*
 *  PROCEDURE: sp_partecipante_utente_insert
@@ -1906,8 +1919,9 @@ BEGIN
 	--  3. Il profilo per quel progetto esista
 	--  4. L'utente non sia il creatore del progetto
 	--  5. Il profilo per quel progetto non sia già stato occupato da un altro utente
-	--  6. L'utente non abbia già una candidatura per quel profilo del progetto
-	--  7. L'utente, per ogni competenza richiesta, abbia il livello richiesto
+	--  6. L'utente non sia già stato rifiutato per quel profilo del progetto
+	--  7. L'utente non abbia già una candidatura per quel profilo del progetto
+	--  8. L'utente, per ogni competenza richiesta, abbia il livello richiesto
 	CALL sp_partecipante_utente_check(p_email, p_nome_progetto, p_nome_profilo);
 
 	-- Se i controlli passano, inserisco la candidatura
@@ -1979,6 +1993,51 @@ BEGIN
 		     JOIN UTENTE U ON P.email_utente = U.email
 	WHERE P.nome_progetto = p_nome_progetto
 	  AND P.stato = 'accettato';
+	COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_partecipante_selectAllByUtente
+*  PURPOSE: Visualizzazione di tutte le candidature inviate da un utente.
+*  USED BY: ALL
+*
+*  @param IN p_email - Email dell'utente
+*/
+CREATE PROCEDURE sp_partecipante_selectAllByUtente(
+	IN p_email VARCHAR(100)
+)
+BEGIN
+	START TRANSACTION;
+	SELECT P.email_utente, P.nome_progetto, P.nome_profilo, P.stato,
+	       PR.descrizione, PR.email_creatore,
+	       U.nickname AS creatore_nickname
+	FROM PARTECIPANTE P
+		     JOIN PROGETTO PR ON P.nome_progetto = PR.nome
+		     JOIN UTENTE U ON PR.email_creatore = U.email
+	WHERE P.email_utente = p_email
+	ORDER BY P.stato, P.nome_progetto;
+	COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_partecipante_selectAllByCreatore
+*  PURPOSE: Visualizzazione di tutte le candidature ricevute per i progetti di un creatore.
+*  USED BY: CREATORE
+*
+*  @param IN p_email_creatore - Email del creatore
+*/
+CREATE PROCEDURE sp_partecipante_selectAllByCreatore(
+	IN p_email_creatore VARCHAR(100)
+)
+BEGIN
+	START TRANSACTION;
+	SELECT P.email_utente, P.nome_progetto, P.nome_profilo, P.stato,
+	       U.nickname AS candidato_nickname
+	FROM PARTECIPANTE P
+		     JOIN PROGETTO PR ON P.nome_progetto = PR.nome
+		     JOIN UTENTE U ON P.email_utente = U.email
+	WHERE PR.email_creatore = p_email_creatore
+	ORDER BY P.stato, P.nome_progetto, P.nome_profilo;
 	COMMIT;
 END//
 

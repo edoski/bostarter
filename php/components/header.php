@@ -17,9 +17,10 @@
             <?php if (isset($_SESSION['email'])): ?>
                 <ul class="navbar-nav flex-row align-items-center ms-3">
                     <li class="nav-item px-2"><a class="nav-link" href="../public/progetti.php">Progetti</a></li>
+                    <li class="nav-item px-2"><a class="nav-link" href="../public/finanziamenti.php">Finanziamenti</a></li>
                     <li class="nav-item px-2"><a class="nav-link" href="../public/statistiche.php">Statistiche</a></li>
                     <li class="nav-item px-2"><a class="nav-link" href="../public/curriculum.php">Curriculum</a></li>
-                    <li class="nav-item px-2"><a class="nav-link" href="../public/finanziamenti.php">Finanziamenti</a></li>
+                    <li class="nav-item px-2"><a class="nav-link" href="../public/candidature.php">Candidature</a></li>
                 </ul>
             <?php endif; ?>
 
