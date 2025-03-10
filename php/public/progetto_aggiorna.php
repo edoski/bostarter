@@ -183,7 +183,7 @@ if ($progetto['tipo'] === 'HARDWARE') {
                 // Recupero il totale dei finanziamenti e calcolo la percentuale
                 try {
                     $in = ['p_nome_progetto' => $_GET['nome']];
-                    $totalFin = sp_invoke('sp_finanziamento_selectAllByProgetto', $in)[0]['totale_finanziamenti'] ?? 0;
+                    $totalFin = sp_invoke('sp_finanziamento_selectSumByProgetto', $in)[0]['totale_finanziamenti'] ?? 0;
                     $progetto['tot_finanziamento'] = $totalFin;
                     $progetto['percentuale'] = ($progetto['budget'] > 0) ? ($totalFin / $progetto['budget']) * 100 : 0;
                 } catch (PDOException $ex) {

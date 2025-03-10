@@ -42,7 +42,7 @@ foreach ($progetti as &$progetto) {
         $in = ['p_nome_progetto' => $progetto['nome']];
 
         // Restituisce un array di record, di cui il primo (e unico) si rappresenta come il campo numerico 'totale_finanziamenti'
-        $totalFin = sp_invoke('sp_finanziamento_selectAllByProgetto', $in)[0]['totale_finanziamenti'] ?? 0;
+        $totalFin = sp_invoke('sp_finanziamento_selectSumByProgetto', $in)[0]['totale_finanziamenti'] ?? 0;
 
         $progetto['tot_finanziamento'] = $totalFin;
         $budget = $progetto['budget'];
