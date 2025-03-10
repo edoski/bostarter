@@ -363,8 +363,9 @@ try {
                     <div class="card-footer">
                         <form action="../public/finanziamento_conferma.php" method="post">
                             <input type="hidden" name="nome" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
-                            <div class="form-group mt-2 fw-bold">
-                                <label class="fs-5 mb-2" for="importo">Finanzia il Progetto (€)</label>
+                            <div class="form-group mt-2">
+                                <label class="fs-5 mb-2 fw-bold" for="importo">Finanzia il Progetto (€)</label>
+                                <p class="small text-muted">Inserisci l'importo che desideri finanziare e premi Invia.</p>
                                 <input type="number" class="form-control mb-2" id="importo" name="importo"
                                        step="0.01"
                                        min="0.01"
@@ -556,6 +557,7 @@ try {
                     <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
                     <div class="form-group">
                         <label class="fs-5 my-2 fw-bold" for="commento">Commento</label>
+                        <p class="small text-muted">Inserisci un commento per esprimere la tua opinione sul progetto.</p>
                         <textarea class="form-control my-2" id="commento" name="commento" rows="3" required></textarea>
                         <button type="submit" class="btn btn-primary mt-2">Invia</button>
                     </div>
