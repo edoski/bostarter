@@ -43,6 +43,15 @@ try {
     $finError = "Errore nel recupero dei finanziamenti: " . $ex->errorInfo[2];
 }
 
+// Recupero le candidature inviate dall'utente
+try {
+    $in = ['p_email' => $_SESSION['email']];
+    $candidature = sp_invoke('sp_partecipante_selectAllByUtente', $in);
+} catch (PDOException $ex) {
+    $candidature = [];
+    $candidatureError = "Errore nel recupero delle candidature: " . $ex->errorInfo[2];
+}
+
 // Recupero le skill del curriculum dell'utente
 try {
     $in = ['p_email' => $_SESSION['email']];
@@ -112,7 +121,7 @@ try {
                                 <div class="card-body">
                                     <div class="row">
                                         <!-- Skill dell'utente -->
-                                        <div class="col-6">
+                                        <div class="col-md-4">
                                             <div class="d-flex align-items-center mb-2">
                                                 <span class="badge bg-primary me-2"><?php echo count($skills); ?></span>
                                                 <strong><a href="curriculum.php">Competenze</a></strong>
@@ -130,11 +139,30 @@ try {
                                             <?php endif; ?>
                                         </div>
 
-                                        <!-- Finanziamenti dell'utente -->
-                                        <div class="col-6">
+                                        <!-- Candidature dell'utente -->
+                                        <div class="col-md-4">
                                             <div class="d-flex align-items-center mb-2">
-                                                <span class="badge bg-success me-2"><?php echo count($finanziamenti); ?></span>
-                                                <strong><a href="../public/finanziamenti.php" class="text-success">Finanziamenti</a></strong>
+                                                <span class="badge bg-primary me-2"><?php echo count($candidature); ?></span>
+                                                <strong><a href="../public/candidature.php" class="text-primary">Candidature</a></strong>
+                                            </div>
+                                            <?php if (!empty($candidature)): ?>
+                                                <p class="small text-muted">
+                                                    <?php
+                                                    $stati = array_column($candidature, 'stato');
+                                                    $accettate = count(array_filter($stati, function($s) { return $s === 'accettato'; }));
+                                                    echo "Accettate: " . $accettate . "/" . count($candidature);
+                                                    ?>
+                                                </p>
+                                            <?php else: ?>
+                                                <p class="small text-muted">Nessuna candidatura inviata</p>
+                                            <?php endif; ?>
+                                        </div>
+
+                                        <!-- Finanziamenti dell'utente -->
+                                        <div class="col-md-4">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <span class="badge bg-primary me-2"><?php echo count($finanziamenti); ?></span>
+                                                <strong><a href="../public/finanziamenti.php" class="text-primary">Finanziamenti</a></strong>
                                             </div>
                                             <?php if (!empty($finanziamenti)): ?>
                                                 <p class="small text-muted">Totale: <?php echo number_format($totale_finanziamenti, 2); ?>€</p>
@@ -250,7 +278,7 @@ try {
                                                 Reward: <?php echo htmlspecialchars($finanziamento['codice_reward']); ?>
                                             </p>
                                             <small>
-                                                <?php echo htmlspecialchars(date('d/m/Y', strtotime($finanziamento['data']))); ?>
+                                                <?php echo htmlspecialchars($finanziamento['data']); ?>
                                             </small>
                                         </div>
                                     </div>

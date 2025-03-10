@@ -88,7 +88,8 @@ foreach ($progetti as &$progetto) {
 
         <?php if (!empty($progetto)): ?>
             <div class="row">
-                <?php unset($progetto); // Unsetto la variabile $progetto per evitare conflitti con il ciclo successivo
+                <?php
+                unset($progetto); // IMPORTANT: Unsetto la variabile $progetto per evitare conflitti con il ciclo successivo
                 foreach ($progetti as $progetto): ?>
                     <!-- Card Progetto -->
                     <div class="col-md-4 mb-4">

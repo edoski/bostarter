@@ -771,7 +771,8 @@ BEGIN
 	START TRANSACTION;
 
 	-- Conta quante competenze richieste dal profilo NON sono soddisfatte dall'utente
-	SELECT COUNT(*) INTO missing_skills
+	SELECT COUNT(*)
+	INTO missing_skills
 	FROM SKILL_PROFILO sp
 		     LEFT JOIN SKILL_CURRICULUM sc ON sp.competenza = sc.competenza AND sc.email_utente = p_email_utente
 	WHERE sp.nome_profilo = p_nome_profilo
@@ -785,7 +786,6 @@ BEGIN
 
 	-- Restituisce il risultato
 	SELECT is_eligible AS eligible;
-
 	COMMIT;
 END//
 
@@ -1325,6 +1325,8 @@ END//
 
 -- SKILL_CURRICULUM:
 --  sp_skill_curriculum_insert
+--  sp_skill_curriculum_update
+--  sp_skill_curriculum_delete
 --  sp_skill_curriculum_selectAll
 --  sp_skill_curriculum_selectDiff
 
@@ -1351,6 +1353,96 @@ BEGIN
 	START TRANSACTION;
 	INSERT INTO SKILL_CURRICULUM (email_utente, competenza, livello_effettivo)
 	VALUES (p_email, p_competenza, p_livello);
+	COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_skill_curriculum_update
+*  PURPOSE: Aggiornamento del livello di una skill nel curriculum di un utente.
+*  USED BY: ALL
+*
+*  @param IN p_email - Email dell'utente
+*  @param IN p_competenza - Competenza da aggiornare
+*  @param IN p_livello - Nuovo livello della competenza (da 0 a 5)
+*/
+CREATE PROCEDURE sp_skill_curriculum_update(
+	IN p_email VARCHAR(100),
+	IN p_competenza VARCHAR(100),
+	IN p_livello TINYINT
+)
+BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+
+	-- Controllo che la skill esista nel curriculum dell'utente
+	IF NOT EXISTS (SELECT 1 FROM SKILL_CURRICULUM WHERE email_utente = p_email AND competenza = p_competenza) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'SKILL NON PRESENTE NEL CURRICULUM';
+	END IF;
+
+	-- Se l'utente è un partecipante a progetti che richiedono questa skill
+	-- e il nuovo livello è inferiore al livello richiesto, rimuovo le candidature
+	DELETE P
+	FROM PARTECIPANTE P
+		     JOIN SKILL_PROFILO SP ON P.nome_progetto = SP.nome_progetto AND P.nome_profilo = SP.nome_profilo
+	WHERE P.email_utente = p_email
+	  AND SP.competenza = p_competenza
+	  AND SP.livello_richiesto > p_livello
+	  AND P.stato IN ('potenziale', 'accettato');
+
+	-- Aggiorno il livello della skill
+	UPDATE SKILL_CURRICULUM
+	SET livello_effettivo = p_livello
+	WHERE email_utente = p_email
+	  AND competenza = p_competenza;
+	COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_skill_curriculum_delete
+*  PURPOSE: Rimozione di una skill dal curriculum di un utente.
+*  USED BY: ALL
+*  NOTE: Se l'utente è un partecipante potenziale/accettato a un progetto che richiede questa skill,
+*        la candidatura viene automaticamente rifiutata.
+*
+*  @param IN p_email - Email dell'utente
+*  @param IN p_competenza - Competenza da rimuovere dal curriculum
+*/
+CREATE PROCEDURE sp_skill_curriculum_delete(
+	IN p_email VARCHAR(100),
+	IN p_competenza VARCHAR(100)
+)
+BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+
+	-- Verifico che la skill esista nel curriculum dell'utente
+	IF NOT EXISTS (SELECT 1 FROM SKILL_CURRICULUM WHERE email_utente = p_email AND competenza = p_competenza) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'SKILL NON PRESENTE NEL CURRICULUM';
+	END IF;
+
+	-- Se l'utente è un partecipante potenziale a progetti che richiedono questa skill, rimuovo le candidature
+	DELETE P
+	FROM PARTECIPANTE P
+		     JOIN SKILL_PROFILO SP ON P.nome_progetto = SP.nome_progetto AND P.nome_profilo = SP.nome_profilo
+	WHERE P.email_utente = p_email
+	  AND SP.competenza = p_competenza
+	  AND P.stato IN ('potenziale', 'accettato');
+
+	-- Rimuovo la skill dal curriculum dell'utente
+	DELETE
+	FROM SKILL_CURRICULUM
+	WHERE email_utente = p_email
+	  AND competenza = p_competenza;
 	COMMIT;
 END//
 
@@ -2025,10 +2117,9 @@ CREATE PROCEDURE sp_partecipante_selectAcceptedByProgetto(
 )
 BEGIN
 	START TRANSACTION;
-	SELECT
-		P.nome_profilo,
-		P.email_utente,
-		U.nickname
+	SELECT P.nome_profilo,
+	       P.email_utente,
+	       U.nickname
 	FROM PARTECIPANTE P
 		     JOIN UTENTE U ON P.email_utente = U.email
 	WHERE P.nome_progetto = p_nome_progetto
@@ -2048,8 +2139,12 @@ CREATE PROCEDURE sp_partecipante_selectAllByUtente(
 )
 BEGIN
 	START TRANSACTION;
-	SELECT P.email_utente, P.nome_progetto, P.nome_profilo, P.stato,
-	       PR.descrizione, PR.email_creatore,
+	SELECT P.email_utente,
+	       P.nome_progetto,
+	       P.nome_profilo,
+	       P.stato,
+	       PR.descrizione,
+	       PR.email_creatore,
 	       U.nickname AS creatore_nickname
 	FROM PARTECIPANTE P
 		     JOIN PROGETTO PR ON P.nome_progetto = PR.nome
@@ -2071,7 +2166,10 @@ CREATE PROCEDURE sp_partecipante_selectAllByCreatore(
 )
 BEGIN
 	START TRANSACTION;
-	SELECT P.email_utente, P.nome_progetto, P.nome_profilo, P.stato,
+	SELECT P.email_utente,
+	       P.nome_progetto,
+	       P.nome_profilo,
+	       P.stato,
 	       U.nickname AS candidato_nickname
 	FROM PARTECIPANTE P
 		     JOIN PROGETTO PR ON P.nome_progetto = PR.nome
@@ -2107,6 +2205,7 @@ END//
 
 -- SKILL:
 --  sp_skill_insert
+--  sp_skill_update
 --  sp_skill_selectAll
 
 /*
@@ -2131,9 +2230,65 @@ BEGIN
 	-- Controllo che l'admin sia l'utente che esegue la procedura
 	CALL sp_util_is_utente_admin(p_email);
 
-	-- Se il controllo passa, inserisco la competenza
+	-- Controllo che la competenza non esista già
+	IF EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_competenza) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'COMPETENZA ESISTE GIA\'';
+	END IF;
+
+	-- Controllo che la competenza non sia nulla o vuota
+	IF p_competenza IS NULL OR p_competenza = '' THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'COMPETENZA NON VALIDA';
+	END IF;
+
+	-- Se i controlli passano, inserisco la competenza
 	INSERT INTO SKILL (competenza)
 	VALUES (p_competenza);
+	COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_skill_update
+*  PURPOSE: Aggiornamento del nome di una skill globale.
+*  USED BY: ADMIN
+*
+*  @param IN p_email_admin - Email dell'amministratore che esegue l'aggiornamento
+*  @param IN p_vecchia_competenza - Nome attuale della competenza
+*  @param IN p_nuova_competenza - Nuovo nome della competenza
+*/
+CREATE PROCEDURE sp_skill_update(
+	IN p_email_admin VARCHAR(100),
+	IN p_vecchia_competenza VARCHAR(100),
+	IN p_nuova_competenza VARCHAR(100)
+)
+BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+
+	-- Controllo che l'utente sia un admin
+	CALL sp_util_is_utente_admin(p_email_admin);
+
+	-- Controllo che la vecchia skill esista
+	IF NOT EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_vecchia_competenza) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'SKILL NON ESISTENTE';
+	END IF;
+
+	-- Controllo che la nuova skill non esista già
+	IF EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_nuova_competenza) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'NUOVA SKILL ESISTE GIA\'';
+	END IF;
+
+	-- Se i controlli passano, aggiorno il nome della skill
+	UPDATE SKILL
+	SET competenza = p_nuova_competenza
+	WHERE competenza = p_vecchia_competenza;
 	COMMIT;
 END//
 

@@ -5,6 +5,7 @@
 - [ ] env vars for mysql and php?
 - [ ] PASTE FULL SQL INIT FILE TO [[#**7.1. Inizializzazione DB**]]
 - [ ] review entire report and ensure consistent tables, attributes etc
+	- [ ] update LISTA DELLE OPERAZIONI MAYBE!!!!!
 - [ ] create README.md for repo to explain how to setup and run project
 - [ ] hmmm maybe docker cool but idk
 - [ ] redo screenshots of funzionalità section once website complete
@@ -24,19 +25,17 @@
 
 
 
+## see if can reuse/replicate javascript modal logic from curriculum.php elsewhere, or reason if u wanna keep it or not
+
+
 
 ### to make all php files slimmer consider abstracting reused visual components and requiring them in file, and same thing for data gathering if there are identical try-catch sp_invoke data initialisers like $progetto or $finanziamenti
-- if u do this refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways
+- if u do this evaluate if need to refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways and whatever else/files for consistency
 
 
 ## TODO SP
 #### Curriculum
-- sp_skill_curriculum_update
-- sp_skill_curriculum_delete
-- sp_skill_update
-
 - sp_progetto_insert
-
 - sp_reward_insert
 
 - sp_componente_insert

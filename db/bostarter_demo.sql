@@ -578,6 +578,13 @@ CALL sp_partecipante_creatore_update(
         'accettato'
      );
 
+-- Frontend Developer
+CALL sp_partecipante_utente_insert(
+		'edoardo.galli3@studio.unibo.it',
+		'ProgettoAlpha',
+		'Frontend Developer'
+	 );
+
 -- ==================================================
 -- COMMENTO OPERATIONS (ALL)
 -- ==================================================
