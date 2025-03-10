@@ -3,10 +3,10 @@
 - [ ] check for any leftover TODO's in project
 - [ ] connect mongodb to php
 - [ ] env vars for mysql and php?
-- [ ] move sql files to bostarter/db/
 - [ ] PASTE FULL SQL INIT FILE TO [[#**7.1. Inizializzazione DB**]]
 - [ ] review entire report and ensure consistent tables, attributes etc
-- [ ] in README and in report & presentation and explain how to setup and run project..... bash script for php too? ........... hmmm maybe docker cool but idk
+- [ ] create README.md for repo to explain how to setup and run project
+- [ ] hmmm maybe docker cool but idk
 - [ ] redo screenshots of funzionalità section once website complete
 - [ ] export to pdf using pandoc
 	- [ ] potentially need to fix mismatching links text for correct rendering
