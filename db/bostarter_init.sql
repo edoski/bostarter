@@ -750,6 +750,45 @@ BEGIN
 	COMMIT;
 END//
 
+/*
+*  PROCEDURE: sp_util_verify_partecipante_eligibility
+*  PURPOSE: Verifica se un utente ha tutte le competenze necessarie per candidarsi a un profilo.
+*  USED BY: ALL
+*
+*  @param IN p_email_utente - Email dell'utente
+*  @param IN p_nome_progetto - Nome del progetto
+*  @param IN p_nome_profilo - Nome del profilo
+*/
+CREATE PROCEDURE sp_util_verify_partecipante_eligibility(
+	IN p_email_utente VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_nome_profilo VARCHAR(100)
+)
+BEGIN
+	DECLARE is_eligible BOOLEAN DEFAULT TRUE;
+	DECLARE missing_skills INT;
+
+	START TRANSACTION;
+
+	-- Conta quante competenze richieste dal profilo NON sono soddisfatte dall'utente
+	SELECT COUNT(*) INTO missing_skills
+	FROM SKILL_PROFILO sp
+		     LEFT JOIN SKILL_CURRICULUM sc ON sp.competenza = sc.competenza AND sc.email_utente = p_email_utente
+	WHERE sp.nome_profilo = p_nome_profilo
+	  AND sp.nome_progetto = p_nome_progetto
+	  AND (sc.livello_effettivo IS NULL OR sc.livello_effettivo < sp.livello_richiesto);
+
+	-- Se c'è almeno una competenza mancante o insufficiente, l'utente non è idoneo
+	IF missing_skills > 0 THEN
+		SET is_eligible = FALSE;
+	END IF;
+
+	-- Restituisce il risultato
+	SELECT is_eligible AS eligible;
+
+	COMMIT;
+END//
+
 -- SKILL_PROFILO: sp_skill_profilo_check, USATO IN:
 --  sp_skill_profilo_insert
 --  sp_skill_profilo_delete
@@ -1886,6 +1925,7 @@ END//
 --  sp_partecipante_selectAcceptedByProgetto
 --  sp_partecipante_selectAllByUtente
 --  sp_partecipante_selectAllByCreatore
+--  sp_partecipante_getStatus
 
 /*
 *  PROCEDURE: sp_partecipante_utente_insert
@@ -2038,6 +2078,30 @@ BEGIN
 		     JOIN UTENTE U ON P.email_utente = U.email
 	WHERE PR.email_creatore = p_email_creatore
 	ORDER BY P.stato, P.nome_progetto, P.nome_profilo;
+	COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_partecipante_getStatus
+*  PURPOSE: Restituisce lo stato di partecipazione di un utente a un profilo di un progetto.
+*  USED BY: ALL
+*
+*  @param IN p_email_utente - Email dell'utente
+*  @param IN p_nome_progetto - Nome del progetto
+*  @param IN p_nome_profilo - Nome del profilo
+*/
+CREATE PROCEDURE sp_partecipante_getStatus(
+	IN p_email_utente VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_nome_profilo VARCHAR(100)
+)
+BEGIN
+	START TRANSACTION;
+	SELECT stato
+	FROM PARTECIPANTE
+	WHERE email_utente = p_email_utente
+	  AND nome_progetto = p_nome_progetto
+	  AND nome_profilo = p_nome_profilo;
 	COMMIT;
 END//
 

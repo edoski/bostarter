@@ -447,17 +447,59 @@ try {
                                     </div>
                                     <div class="card-footer">
                                         <?php if (isset($acceptedParticipants[$nome_profilo])): ?>
-                                            <!-- Profile taken -->
+                                            <!-- Profilo occupato -->
                                             <button class="btn btn-secondary w-100" disabled>
                                                 Occupato da <?php echo htmlspecialchars($acceptedParticipants[$nome_profilo]['nickname']); ?>
                                             </button>
                                         <?php elseif (!checkProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
-                                            <!-- Profile available -->
-                                            <form action="../actions/candidatura_insert.php" method="post">
-                                                <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
-                                                <input type="hidden" name="nome_profilo" value="<?php echo htmlspecialchars($nome_profilo); ?>">
-                                                <button type="submit" class="btn btn-primary w-100">Candidati</button>
-                                            </form>
+                                            <?php
+                                            // Controllo se l'utente ha già inviato una candidatura
+                                            $userHasApplied = false;
+                                            $userWasRejected = false;
+
+                                            // Recupero lo stato della candidatura
+                                            try {
+                                                $in = [
+                                                    'p_email_utente' => $_SESSION['email'],
+                                                    'p_nome_progetto' => $progetto['nome'],
+                                                    'p_nome_profilo' => $nome_profilo
+                                                ];
+                                                $result = sp_invoke('sp_partecipante_getStatus', $in);
+
+                                                if (!empty($result)) {
+                                                    $status = $result[0]['stato'] ?? '';
+                                                    if ($status === 'potenziale') {
+                                                        $userHasApplied = true;
+                                                    } elseif ($status === 'rifiutato') {
+                                                        $userWasRejected = true;
+                                                    }
+                                                }
+
+                                                // Controllo se l'utente è idoneo per la candidatura
+                                                if (!$userHasApplied && !$userWasRejected) {
+                                                    $eligibilityResult = sp_invoke('sp_util_verify_partecipante_eligibility', $in);
+                                                    $userIsEligible = !empty($eligibilityResult) && ($eligibilityResult[0]['eligible'] ?? false);
+                                                }
+                                            } catch (PDOException $ex) {}
+                                            ?>
+
+                                            <?php if ($userHasApplied): ?>
+                                                <!-- Utenza ha già inviato una candidatura -->
+                                                <button class="btn btn-warning w-100" disabled>Candidatura in attesa</button>
+                                            <?php elseif ($userWasRejected): ?>
+                                                <!-- Utente è stato rifiutato -->
+                                                <button class="btn btn-danger w-100" disabled>Candidatura rifiutata</button>
+                                            <?php elseif (!$userIsEligible): ?>
+                                                <!-- Utente non è idoneo per la candidatura -->
+                                                <button class="btn btn-secondary w-100" disabled>Competenze insufficienti</button>
+                                            <?php else: ?>
+                                                <!-- Utente può inviare una candidatura -->
+                                                <form action="../actions/candidatura_insert.php" method="post">
+                                                    <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
+                                                    <input type="hidden" name="nome_profilo" value="<?php echo htmlspecialchars($nome_profilo); ?>">
+                                                    <button type="submit" class="btn btn-primary w-100">Candidati</button>
+                                                </form>
+                                            <?php endif; ?>
                                         <?php endif; ?>
                                     </div>
                                 </div>
