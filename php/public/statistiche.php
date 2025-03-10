@@ -44,6 +44,12 @@ try {
 
 <?php require '../components/header.php'; ?>
     <div class="container my-4 flex-grow-1">
+        <!-- Messaggio di successo/errore post-azione -->
+        <?php include '../components/error_alert.php'; ?>
+        <?php include '../components/success_alert.php'; ?>
+
+        <h1 class="mb-4">Statistiche</h1>
+
         <div class="row">
             <!-- Top 3 Creatori (Affidabilità) -->
             <div class="col-md-4 mb-3">

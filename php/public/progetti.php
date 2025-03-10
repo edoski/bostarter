@@ -69,7 +69,7 @@ foreach ($progetti as &$progetto) {
     <div class="container my-4">
         <!-- Titolo e pulsante di creazione progetto / conversione creatore -->
         <div class="d-flex justify-content-between align-items-center">
-            <h1 class="mb-4">Tutti i Progetti</h1>
+            <h1 class="mb-4">Progetti</h1>
             <?php if ($_SESSION['is_creatore']): ?>
                 <form action="../public/progetto_crea.php">
                     <button class="btn btn-outline-primary" type="submit">Crea Progetto</button>
