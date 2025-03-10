@@ -11,283 +11,267 @@ USE BOSTARTER;
 -- ==================================================
 
 -- 1. UTENTE
-CREATE TABLE UTENTE
-(
-    email         VARCHAR(100) NOT NULL,
-    password      VARCHAR(255) NOT NULL,
-    nickname      VARCHAR(50)  NOT NULL UNIQUE CHECK ( LENGTH(nickname) > 0 ), -- Minimo 1 carattere
-    nome          VARCHAR(50)  NOT NULL,
-    cognome       VARCHAR(50)  NOT NULL,
-    anno_nascita  INT          NOT NULL CHECK ( anno_nascita < 2007 ),         -- età > 18
-    luogo_nascita VARCHAR(50)  NOT NULL,
-    PRIMARY KEY (email)
+CREATE TABLE UTENTE (
+	email         VARCHAR(100) NOT NULL,
+	password      VARCHAR(255) NOT NULL,
+	nickname      VARCHAR(50)  NOT NULL UNIQUE CHECK ( LENGTH(nickname) > 0 ), -- Minimo 1 carattere
+	nome          VARCHAR(50)  NOT NULL,
+	cognome       VARCHAR(50)  NOT NULL,
+	anno_nascita  INT          NOT NULL CHECK ( anno_nascita < 2007 ),         -- età > 18
+	luogo_nascita VARCHAR(50)  NOT NULL,
+	PRIMARY KEY (email)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 2. ADMIN
-CREATE TABLE ADMIN
-(
-    email_utente     VARCHAR(100) NOT NULL,
-    codice_sicurezza VARCHAR(100) NOT NULL CHECK ( LENGTH(codice_sicurezza) >= 8 ), -- Minimo 8 caratteri
-    PRIMARY KEY (email_utente),
-    CONSTRAINT fk_admin_utente
-        FOREIGN KEY (email_utente)
-            REFERENCES UTENTE (email)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE ADMIN (
+	email_utente     VARCHAR(100) NOT NULL,
+	codice_sicurezza VARCHAR(100) NOT NULL CHECK ( LENGTH(codice_sicurezza) >= 8 ), -- Minimo 8 caratteri
+	PRIMARY KEY (email_utente),
+	CONSTRAINT fk_admin_utente
+		FOREIGN KEY (email_utente)
+			REFERENCES UTENTE (email)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 3. CREATORE
-CREATE TABLE CREATORE
-(
-    email_utente VARCHAR(100) NOT NULL,
-    nr_progetti  INT UNSIGNED  DEFAULT 0,
-    affidabilita DECIMAL(5, 2) DEFAULT 0.00 CHECK ( affidabilita BETWEEN 0.00 AND 100.00 ), -- Progetti finanziati / Progetti creati
-    PRIMARY KEY (email_utente),
-    CONSTRAINT fk_creatore_utente
-        FOREIGN KEY (email_utente)
-            REFERENCES UTENTE (email)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE CREATORE (
+	email_utente VARCHAR(100) NOT NULL,
+	nr_progetti  INT UNSIGNED  DEFAULT 0,
+	affidabilita DECIMAL(5, 2) DEFAULT 0.00 CHECK ( affidabilita BETWEEN 0.00 AND 100.00 ), -- Progetti finanziati / Progetti creati
+	PRIMARY KEY (email_utente),
+	CONSTRAINT fk_creatore_utente
+		FOREIGN KEY (email_utente)
+			REFERENCES UTENTE (email)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 4. PROGETTO
-CREATE TABLE PROGETTO
-(
-    nome             VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome) > 0 ),        -- Minimo 1 carattere
-    email_creatore   VARCHAR(100)   NOT NULL,
-    descrizione      TEXT           NOT NULL CHECK ( LENGTH(descrizione) > 0 ), -- Minimo 1 carattere
-    budget           DECIMAL(10, 2) NOT NULL CHECK ( budget > 0 ),
-    stato            ENUM ('aperto','chiuso') DEFAULT 'aperto',
-    data_inserimento DATE           NOT NULL  DEFAULT CURRENT_DATE,
-    data_limite      DATE           NOT NULL,
-    PRIMARY KEY (nome),
-    CONSTRAINT fk_progetto_creatore
-        FOREIGN KEY (email_creatore)
-            REFERENCES UTENTE (email)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE PROGETTO (
+	nome             VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome) > 0 ),        -- Minimo 1 carattere
+	email_creatore   VARCHAR(100)   NOT NULL,
+	descrizione      TEXT           NOT NULL CHECK ( LENGTH(descrizione) > 0 ), -- Minimo 1 carattere
+	budget           DECIMAL(10, 2) NOT NULL CHECK ( budget > 0 ),
+	stato            ENUM ('aperto','chiuso') DEFAULT 'aperto',
+	data_inserimento DATE           NOT NULL  DEFAULT CURRENT_DATE,
+	data_limite      DATE           NOT NULL,
+	PRIMARY KEY (nome),
+	CONSTRAINT fk_progetto_creatore
+		FOREIGN KEY (email_creatore)
+			REFERENCES UTENTE (email)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 5. PROGETTO_SOFTWARE
-CREATE TABLE PROGETTO_SOFTWARE
-(
-    nome_progetto VARCHAR(100) NOT NULL,
-    PRIMARY KEY (nome_progetto),
-    CONSTRAINT fk_psw_progetto
-        FOREIGN KEY (nome_progetto)
-            REFERENCES PROGETTO (nome)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE PROGETTO_SOFTWARE (
+	nome_progetto VARCHAR(100) NOT NULL,
+	PRIMARY KEY (nome_progetto),
+	CONSTRAINT fk_psw_progetto
+		FOREIGN KEY (nome_progetto)
+			REFERENCES PROGETTO (nome)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 6. PROGETTO_HARDWARE
-CREATE TABLE PROGETTO_HARDWARE
-(
-    nome_progetto VARCHAR(100) NOT NULL,
-    PRIMARY KEY (nome_progetto),
-    CONSTRAINT fk_phw_progetto
-        FOREIGN KEY (nome_progetto)
-            REFERENCES PROGETTO (nome)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE PROGETTO_HARDWARE (
+	nome_progetto VARCHAR(100) NOT NULL,
+	PRIMARY KEY (nome_progetto),
+	CONSTRAINT fk_phw_progetto
+		FOREIGN KEY (nome_progetto)
+			REFERENCES PROGETTO (nome)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 7. FOTO
-CREATE TABLE FOTO
-(
-    id            INT          NOT NULL AUTO_INCREMENT,
-    nome_progetto VARCHAR(100) NOT NULL,
-    foto          MEDIUMBLOB   NOT NULL, -- Max 16 MB per foto
-    PRIMARY KEY (id, nome_progetto),
-    CONSTRAINT fk_foto_progetto
-        FOREIGN KEY (nome_progetto)
-            REFERENCES PROGETTO (nome)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE FOTO (
+	id            INT          NOT NULL AUTO_INCREMENT,
+	nome_progetto VARCHAR(100) NOT NULL,
+	foto          MEDIUMBLOB   NOT NULL, -- Max 16 MB per foto
+	PRIMARY KEY (id, nome_progetto),
+	CONSTRAINT fk_foto_progetto
+		FOREIGN KEY (nome_progetto)
+			REFERENCES PROGETTO (nome)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 8. REWARD
-CREATE TABLE REWARD
-(
-    codice        VARCHAR(50)    NOT NULL,
-    nome_progetto VARCHAR(100)   NOT NULL,
-    descrizione   TEXT           NOT NULL CHECK ( LENGTH(descrizione) > 0 ), -- Minimo 1 carattere
-    foto          MEDIUMBLOB     NOT NULL,
-    min_importo   DECIMAL(10, 2) NOT NULL CHECK ( min_importo > 0 ),
-    PRIMARY KEY (codice, nome_progetto),
-    CONSTRAINT fk_reward_progetto
-        FOREIGN KEY (nome_progetto)
-            REFERENCES PROGETTO (nome)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE REWARD (
+	codice        VARCHAR(50)    NOT NULL,
+	nome_progetto VARCHAR(100)   NOT NULL,
+	descrizione   TEXT           NOT NULL CHECK ( LENGTH(descrizione) > 0 ), -- Minimo 1 carattere
+	foto          MEDIUMBLOB     NOT NULL,
+	min_importo   DECIMAL(10, 2) NOT NULL CHECK ( min_importo > 0 ),
+	PRIMARY KEY (codice, nome_progetto),
+	CONSTRAINT fk_reward_progetto
+		FOREIGN KEY (nome_progetto)
+			REFERENCES PROGETTO (nome)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 9. COMPONENTE
-CREATE TABLE COMPONENTE
-(
-    nome_componente VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome_componente) > 0 ), -- Minimo 1 carattere
-    nome_progetto   VARCHAR(100)   NOT NULL,
-    descrizione     TEXT           NOT NULL CHECK ( LENGTH(descrizione) > 0 ),     -- Minimo 1 carattere
-    quantita        INT            NOT NULL CHECK ( quantita > 0 ),                -- Business Rule #3
-    prezzo          DECIMAL(10, 2) NOT NULL CHECK ( prezzo > 0 ),
-    PRIMARY KEY (nome_componente, nome_progetto),
-    CONSTRAINT fk_comp_phw
-        FOREIGN KEY (nome_progetto)
-            REFERENCES PROGETTO_HARDWARE (nome_progetto)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE COMPONENTE (
+	nome_componente VARCHAR(100)   NOT NULL CHECK ( LENGTH(nome_componente) > 0 ), -- Minimo 1 carattere
+	nome_progetto   VARCHAR(100)   NOT NULL,
+	descrizione     TEXT           NOT NULL CHECK ( LENGTH(descrizione) > 0 ),     -- Minimo 1 carattere
+	quantita        INT            NOT NULL CHECK ( quantita > 0 ),                -- Business Rule #3
+	prezzo          DECIMAL(10, 2) NOT NULL CHECK ( prezzo > 0 ),
+	PRIMARY KEY (nome_componente, nome_progetto),
+	CONSTRAINT fk_comp_phw
+		FOREIGN KEY (nome_progetto)
+			REFERENCES PROGETTO_HARDWARE (nome_progetto)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 10. PROFILO
-CREATE TABLE PROFILO
-(
-    nome_profilo  VARCHAR(100) NOT NULL CHECK ( LENGTH(nome_profilo) > 0 ), -- Minimo 1 carattere
-    nome_progetto VARCHAR(100) NOT NULL,
-    PRIMARY KEY (nome_profilo, nome_progetto),
-    CONSTRAINT fk_profilo_progetto
-        FOREIGN KEY (nome_progetto)
-            REFERENCES PROGETTO (nome)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE PROFILO (
+	nome_profilo  VARCHAR(100) NOT NULL CHECK ( LENGTH(nome_profilo) > 0 ), -- Minimo 1 carattere
+	nome_progetto VARCHAR(100) NOT NULL,
+	PRIMARY KEY (nome_profilo, nome_progetto),
+	CONSTRAINT fk_profilo_progetto
+		FOREIGN KEY (nome_progetto)
+			REFERENCES PROGETTO (nome)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 11. SKILL
-CREATE TABLE SKILL
-(
-    competenza VARCHAR(100) NOT NULL CHECK ( LENGTH(competenza) > 0 ), -- Minimo 1 carattere
-    PRIMARY KEY (competenza)
+CREATE TABLE SKILL (
+	competenza VARCHAR(100) NOT NULL CHECK ( LENGTH(competenza) > 0 ), -- Minimo 1 carattere
+	PRIMARY KEY (competenza)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 12. FINANZIAMENTO
-CREATE TABLE FINANZIAMENTO
-(
-    data          DATE           NOT NULL DEFAULT CURRENT_DATE,
-    email_utente  VARCHAR(100)   NOT NULL,
-    nome_progetto VARCHAR(100)   NOT NULL,
-    codice_reward VARCHAR(50)    NOT NULL,
-    importo       DECIMAL(10, 2) NOT NULL CHECK ( importo > 0 ),
-    PRIMARY KEY (data, email_utente, nome_progetto),
-    CONSTRAINT fk_fin_utente
-        FOREIGN KEY (email_utente)
-            REFERENCES UTENTE (email)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-    CONSTRAINT fk_fin_progetto
-        FOREIGN KEY (nome_progetto)
-            REFERENCES PROGETTO (nome)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-    CONSTRAINT fk_fin_reward
-        FOREIGN KEY (codice_reward, nome_progetto)
-            REFERENCES REWARD (codice, nome_progetto)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE FINANZIAMENTO (
+	data          DATE           NOT NULL DEFAULT CURRENT_DATE,
+	email_utente  VARCHAR(100)   NOT NULL,
+	nome_progetto VARCHAR(100)   NOT NULL,
+	codice_reward VARCHAR(50)    NOT NULL,
+	importo       DECIMAL(10, 2) NOT NULL CHECK ( importo > 0 ),
+	PRIMARY KEY (data, email_utente, nome_progetto),
+	CONSTRAINT fk_fin_utente
+		FOREIGN KEY (email_utente)
+			REFERENCES UTENTE (email)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE,
+	CONSTRAINT fk_fin_progetto
+		FOREIGN KEY (nome_progetto)
+			REFERENCES PROGETTO (nome)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE,
+	CONSTRAINT fk_fin_reward
+		FOREIGN KEY (codice_reward, nome_progetto)
+			REFERENCES REWARD (codice, nome_progetto)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 13. COMMENTO
-CREATE TABLE COMMENTO
-(
-    id            INT          NOT NULL AUTO_INCREMENT,
-    email_utente  VARCHAR(100) NOT NULL,
-    nome_progetto VARCHAR(100) NOT NULL,
-    data          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    testo         TEXT         NOT NULL CHECK ( LENGTH(testo) > 0 ), -- Minimo 1 carattere
-    risposta      TEXT         NULL,                                 -- Business Rule #8
-    PRIMARY KEY (id),
-    CONSTRAINT fk_com_utente
-        FOREIGN KEY (email_utente)
-            REFERENCES UTENTE (email)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-    CONSTRAINT fk_com_progetto
-        FOREIGN KEY (nome_progetto)
-            REFERENCES PROGETTO (nome)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE COMMENTO (
+	id            INT          NOT NULL AUTO_INCREMENT,
+	email_utente  VARCHAR(100) NOT NULL,
+	nome_progetto VARCHAR(100) NOT NULL,
+	data          DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	testo         TEXT         NOT NULL CHECK ( LENGTH(testo) > 0 ), -- Minimo 1 carattere
+	risposta      TEXT         NULL,                                 -- Business Rule #8
+	PRIMARY KEY (id),
+	CONSTRAINT fk_com_utente
+		FOREIGN KEY (email_utente)
+			REFERENCES UTENTE (email)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE,
+	CONSTRAINT fk_com_progetto
+		FOREIGN KEY (nome_progetto)
+			REFERENCES PROGETTO (nome)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 14. SKILL_CURRICULUM
-CREATE TABLE SKILL_CURRICULUM
-(
-    email_utente      VARCHAR(100) NOT NULL,
-    competenza        VARCHAR(100) NOT NULL,
-    livello_effettivo TINYINT      NOT NULL CHECK ( livello_effettivo BETWEEN 0 AND 5 ), -- Business Rule #1
-    PRIMARY KEY (email_utente, competenza),
-    CONSTRAINT fk_skcurr_utente
-        FOREIGN KEY (email_utente)
-            REFERENCES UTENTE (email)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-    CONSTRAINT fk_skcurr_skill
-        FOREIGN KEY (competenza)
-            REFERENCES SKILL (competenza)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE SKILL_CURRICULUM (
+	email_utente      VARCHAR(100) NOT NULL,
+	competenza        VARCHAR(100) NOT NULL,
+	livello_effettivo TINYINT      NOT NULL CHECK ( livello_effettivo BETWEEN 0 AND 5 ), -- Business Rule #1
+	PRIMARY KEY (email_utente, competenza),
+	CONSTRAINT fk_skcurr_utente
+		FOREIGN KEY (email_utente)
+			REFERENCES UTENTE (email)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE,
+	CONSTRAINT fk_skcurr_skill
+		FOREIGN KEY (competenza)
+			REFERENCES SKILL (competenza)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 15. SKILL_PROFILO
-CREATE TABLE SKILL_PROFILO
-(
-    nome_profilo      VARCHAR(100) NOT NULL,
-    competenza        VARCHAR(100) NOT NULL,
-    nome_progetto     VARCHAR(100) NOT NULL,
-    livello_richiesto TINYINT      NOT NULL CHECK ( livello_richiesto BETWEEN 0 AND 5 ), -- Business Rule #2
-    PRIMARY KEY (nome_profilo, competenza, nome_progetto),
-    CONSTRAINT fk_skprof_profilo
-        FOREIGN KEY (nome_profilo, nome_progetto)
-            REFERENCES PROFILO (nome_profilo, nome_progetto)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-    CONSTRAINT fk_skprof_skill
-        FOREIGN KEY (competenza)
-            REFERENCES SKILL (competenza)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-    CONSTRAINT fk_skprof_progetto
-        FOREIGN KEY (nome_progetto)
-            REFERENCES PROGETTO (nome)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE SKILL_PROFILO (
+	nome_profilo      VARCHAR(100) NOT NULL,
+	competenza        VARCHAR(100) NOT NULL,
+	nome_progetto     VARCHAR(100) NOT NULL,
+	livello_richiesto TINYINT      NOT NULL CHECK ( livello_richiesto BETWEEN 0 AND 5 ), -- Business Rule #2
+	PRIMARY KEY (nome_profilo, competenza, nome_progetto),
+	CONSTRAINT fk_skprof_profilo
+		FOREIGN KEY (nome_profilo, nome_progetto)
+			REFERENCES PROFILO (nome_profilo, nome_progetto)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE,
+	CONSTRAINT fk_skprof_skill
+		FOREIGN KEY (competenza)
+			REFERENCES SKILL (competenza)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE,
+	CONSTRAINT fk_skprof_progetto
+		FOREIGN KEY (nome_progetto)
+			REFERENCES PROGETTO (nome)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
 -- 16. PARTECIPANTE
-CREATE TABLE PARTECIPANTE
-(
-    email_utente  VARCHAR(100) NOT NULL,
-    nome_progetto VARCHAR(100) NOT NULL,
-    nome_profilo  VARCHAR(100) NOT NULL,
-    stato         ENUM ('accettato','rifiutato','potenziale') DEFAULT 'potenziale',
-    PRIMARY KEY (email_utente, nome_progetto, nome_profilo),
-    CONSTRAINT fk_part_utente
-        FOREIGN KEY (email_utente)
-            REFERENCES UTENTE (email)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-    CONSTRAINT fk_part_progetto
-        FOREIGN KEY (nome_progetto)
-            REFERENCES PROGETTO (nome)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE,
-    CONSTRAINT fk_part_profilo
-        FOREIGN KEY (nome_profilo, nome_progetto)
-            REFERENCES PROFILO (nome_profilo, nome_progetto)
-            ON DELETE CASCADE
-            ON UPDATE CASCADE
+CREATE TABLE PARTECIPANTE (
+	email_utente  VARCHAR(100) NOT NULL,
+	nome_progetto VARCHAR(100) NOT NULL,
+	nome_profilo  VARCHAR(100) NOT NULL,
+	stato         ENUM ('accettato','rifiutato','potenziale') DEFAULT 'potenziale',
+	PRIMARY KEY (email_utente, nome_progetto, nome_profilo),
+	CONSTRAINT fk_part_utente
+		FOREIGN KEY (email_utente)
+			REFERENCES UTENTE (email)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE,
+	CONSTRAINT fk_part_progetto
+		FOREIGN KEY (nome_progetto)
+			REFERENCES PROGETTO (nome)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE,
+	CONSTRAINT fk_part_profilo
+		FOREIGN KEY (nome_profilo, nome_progetto)
+			REFERENCES PROFILO (nome_profilo, nome_progetto)
+			ON DELETE CASCADE
+			ON UPDATE CASCADE
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
@@ -318,15 +302,15 @@ DELIMITER //
 *  @throws 45000 - UTENTE NON ADMIN
 */
 CREATE PROCEDURE sp_util_is_utente_admin(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    IF NOT EXISTS (SELECT 1
-                   FROM ADMIN
-                   WHERE email_utente = p_email) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'UTENTE NON ADMIN';
-    END IF;
+	IF NOT EXISTS (SELECT 1
+	               FROM ADMIN
+	               WHERE email_utente = p_email) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'UTENTE NON ADMIN';
+	END IF;
 END//
 
 /*
@@ -338,15 +322,15 @@ END//
 *  @throws 45000 - UTENTE NON CREATORE
 */
 CREATE PROCEDURE sp_util_is_utente_creatore(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    IF NOT EXISTS (SELECT 1
-                   FROM CREATORE
-                   WHERE email_utente = p_email) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'UTENTE NON CREATORE';
-    END IF;
+	IF NOT EXISTS (SELECT 1
+	               FROM CREATORE
+	               WHERE email_utente = p_email) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'UTENTE NON CREATORE';
+	END IF;
 END//
 
 /*
@@ -359,17 +343,42 @@ END//
 *  @throws 45000 - UTENTE NON CREATORE DEL PROGETTO
 */
 CREATE PROCEDURE sp_util_is_creatore_progetto_owner(
-    IN p_email VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100)
+	IN p_email VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    IF NOT EXISTS (SELECT 1
-                   FROM PROGETTO
-                   WHERE nome = p_nome_progetto
-                     AND email_creatore = p_email) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'UTENTE NON CREATORE DEL PROGETTO';
-    END IF;
+	IF NOT EXISTS (SELECT 1
+	               FROM PROGETTO
+	               WHERE nome = p_nome_progetto
+		             AND email_creatore = p_email) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'UTENTE NON CREATORE DEL PROGETTO';
+	END IF;
+END//
+
+/*
+*  PROCEDURE: sp_util_get_reward_by_code
+*  PURPOSE: Recupera i dettagli di una reward dato il suo codice e il nome del progetto associato.
+*  USED BY: ALL
+*
+*  @param IN p_nome_progetto - Nome del progetto associato alla reward
+*  @param IN p_codice_reward - Codice della reward da recuperare
+*/
+CREATE PROCEDURE sp_util_get_reward_by_code(
+	IN p_nome_progetto VARCHAR(100),
+	IN p_codice_reward VARCHAR(50)
+)
+BEGIN
+	START TRANSACTION;
+	SELECT codice,
+	       nome_progetto,
+	       descrizione,
+	       foto,
+	       min_importo
+	FROM REWARD
+	WHERE nome_progetto = p_nome_progetto
+	  AND codice = p_codice_reward;
+	COMMIT;
 END//
 
 /*
@@ -381,15 +390,15 @@ END//
 *  @throws 45000 - PROGETTO NON ESISTENTE
 */
 CREATE PROCEDURE sp_util_progetto_exists(
-    IN p_nome_progetto VARCHAR(100)
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    IF NOT EXISTS (SELECT 1
-                   FROM PROGETTO
-                   WHERE nome = p_nome_progetto) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'PROGETTO NON ESISTENTE';
-    END IF;
+	IF NOT EXISTS (SELECT 1
+	               FROM PROGETTO
+	               WHERE nome = p_nome_progetto) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROGETTO NON ESISTENTE';
+	END IF;
 END//
 
 /*
@@ -401,15 +410,15 @@ END//
 *  @throws 45000 - PROGETTO NON DI TIPO SOFTWARE
 */
 CREATE PROCEDURE sp_util_is_progetto_software(
-    IN p_nome_progetto VARCHAR(100)
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    IF NOT EXISTS (SELECT 1
-                   FROM PROGETTO_SOFTWARE
-                   WHERE nome_progetto = p_nome_progetto) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'PROGETTO NON DI TIPO SOFTWARE';
-    END IF;
+	IF NOT EXISTS (SELECT 1
+	               FROM PROGETTO_SOFTWARE
+	               WHERE nome_progetto = p_nome_progetto) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROGETTO NON DI TIPO SOFTWARE';
+	END IF;
 END//
 
 /*
@@ -421,15 +430,15 @@ END//
 *  @throws 45000 - PROGETTO NON DI TIPO HARDWARE
 */
 CREATE PROCEDURE sp_util_is_progetto_hardware(
-    IN p_nome_progetto VARCHAR(100)
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    IF NOT EXISTS (SELECT 1
-                   FROM PROGETTO_HARDWARE
-                   WHERE nome_progetto = p_nome_progetto) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'PROGETTO NON DI TIPO HARDWARE';
-    END IF;
+	IF NOT EXISTS (SELECT 1
+	               FROM PROGETTO_HARDWARE
+	               WHERE nome_progetto = p_nome_progetto) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROGETTO NON DI TIPO HARDWARE';
+	END IF;
 END//
 
 /*
@@ -442,17 +451,17 @@ END//
 *  @throws 45000 - PROFILO NON ESISTENTE
 */
 CREATE PROCEDURE sp_util_profilo_exists(
-    IN p_nome_profilo VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100)
+	IN p_nome_profilo VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    IF NOT EXISTS (SELECT 1
-                   FROM PROFILO
-                   WHERE nome_profilo = p_nome_profilo
-                     AND nome_progetto = p_nome_progetto) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'PROFILO NON ESISTENTE';
-    END IF;
+	IF NOT EXISTS (SELECT 1
+	               FROM PROFILO
+	               WHERE nome_profilo = p_nome_profilo
+		             AND nome_progetto = p_nome_progetto) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROFILO NON ESISTENTE';
+	END IF;
 END//
 
 /*
@@ -466,19 +475,19 @@ END//
 *  @throws 45000 - COMPETENZA NON PRESENTE NEL PROFILO
 */
 CREATE PROCEDURE sp_util_skill_profilo_exists(
-    IN p_nome_profilo VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_competenza VARCHAR(100)
+	IN p_nome_profilo VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_competenza VARCHAR(100)
 )
 BEGIN
-    IF NOT EXISTS (SELECT 1
-                   FROM SKILL_PROFILO
-                   WHERE nome_profilo = p_nome_profilo
-                     AND nome_progetto = p_nome_progetto
-                     AND competenza = p_competenza) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'COMPETENZA NON PRESENTE NEL PROFILO';
-    END IF;
+	IF NOT EXISTS (SELECT 1
+	               FROM SKILL_PROFILO
+	               WHERE nome_profilo = p_nome_profilo
+		             AND nome_progetto = p_nome_progetto
+		             AND competenza = p_competenza) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'COMPETENZA NON PRESENTE NEL PROFILO';
+	END IF;
 END//
 
 /*
@@ -490,15 +499,15 @@ END//
 *  @throws 45000 - COMMENTO NON ESISTENTE
 */
 CREATE PROCEDURE sp_util_commento_exists(
-    IN p_id INT
+	IN p_id INT
 )
 BEGIN
-    IF NOT EXISTS (SELECT 1
-                   FROM COMMENTO
-                   WHERE id = p_id) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'COMMENTO NON ESISTENTE';
-    END IF;
+	IF NOT EXISTS (SELECT 1
+	               FROM COMMENTO
+	               WHERE id = p_id) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'COMMENTO NON ESISTENTE';
+	END IF;
 END//
 
 /*
@@ -508,16 +517,16 @@ END//
 *  @param IN p_email - Email dell'utente da controllare
 */
 CREATE PROCEDURE sp_util_admin_exists(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    IF EXISTS (SELECT 1 FROM ADMIN WHERE email_utente = p_email) THEN
-        SELECT TRUE AS is_admin;
-    ELSE
-        SELECT FALSE AS is_admin;
-    END IF;
-    COMMIT;
+	START TRANSACTION;
+	IF EXISTS (SELECT 1 FROM ADMIN WHERE email_utente = p_email) THEN
+		SELECT TRUE AS is_admin;
+	ELSE
+		SELECT FALSE AS is_admin;
+	END IF;
+	COMMIT;
 END//
 
 /*
@@ -527,16 +536,16 @@ END//
 *  @param IN p_email - Email dell'utente da controllare
 */
 CREATE PROCEDURE sp_util_creatore_exists(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    IF EXISTS (SELECT 1 FROM CREATORE WHERE email_utente = p_email) THEN
-        SELECT TRUE AS is_creatore;
-    ELSE
-        SELECT FALSE AS is_creatore;
-    END IF;
-    COMMIT;
+	START TRANSACTION;
+	IF EXISTS (SELECT 1 FROM CREATORE WHERE email_utente = p_email) THEN
+		SELECT TRUE AS is_creatore;
+	ELSE
+		SELECT FALSE AS is_creatore;
+	END IF;
+	COMMIT;
 END//
 
 /*
@@ -547,17 +556,17 @@ END//
 *  @param IN p_nome_progetto - Nome del progetto da controllare
 */
 CREATE PROCEDURE sp_util_progetto_owner_exists(
-    IN p_email VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100)
+	IN p_email VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    IF EXISTS (SELECT 1 FROM PROGETTO WHERE email_creatore = p_email AND nome = p_nome_progetto) THEN
-        SELECT TRUE AS is_owner;
-    ELSE
-        SELECT FALSE AS is_owner;
-    END IF;
-    COMMIT;
+	START TRANSACTION;
+	IF EXISTS (SELECT 1 FROM PROGETTO WHERE email_creatore = p_email AND nome = p_nome_progetto) THEN
+		SELECT TRUE AS is_owner;
+	ELSE
+		SELECT FALSE AS is_owner;
+	END IF;
+	COMMIT;
 END//
 
 /*
@@ -567,16 +576,16 @@ END//
 *  @param IN p_nome_progetto - Nome del progetto da controllare
 */
 CREATE PROCEDURE sp_util_progetto_type(
-    IN p_nome_progetto VARCHAR(100)
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    IF EXISTS (SELECT 1 FROM PROGETTO_SOFTWARE WHERE nome_progetto = p_nome_progetto) THEN
-        SELECT 'SOFTWARE' AS tipo_progetto;
-    ELSE
-        SELECT 'HARDWARE' AS tipo_progetto;
-    END IF;
-    COMMIT;
+	START TRANSACTION;
+	IF EXISTS (SELECT 1 FROM PROGETTO_SOFTWARE WHERE nome_progetto = p_nome_progetto) THEN
+		SELECT 'SOFTWARE' AS tipo_progetto;
+	ELSE
+		SELECT 'HARDWARE' AS tipo_progetto;
+	END IF;
+	COMMIT;
 END//
 
 /*
@@ -589,16 +598,16 @@ END//
 *  @param OUT p_codice_sicurezza_out - Codice di sicurezza dell'admin
 */
 CREATE PROCEDURE sp_util_get_admin_codice_sicurezza(
-    IN p_email VARCHAR(100),
-    OUT p_codice_sicurezza_out VARCHAR(100)
+	IN p_email VARCHAR(100),
+	OUT p_codice_sicurezza_out VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT codice_sicurezza
-    INTO p_codice_sicurezza_out
-    FROM ADMIN
-    WHERE email_utente = p_email;
-    COMMIT;
+	START TRANSACTION;
+	SELECT codice_sicurezza
+	INTO p_codice_sicurezza_out
+	FROM ADMIN
+	WHERE email_utente = p_email;
+	COMMIT;
 END//
 
 /*
@@ -612,31 +621,31 @@ END//
 *  @throws 45000 - UTENTE GIA' CREATORE
 */
 CREATE PROCEDURE sp_util_utente_convert_creatore(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che l'utente esista
-    IF NOT EXISTS (SELECT 1 FROM UTENTE WHERE email = p_email) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'EMAIL NON VALIDA';
-    END IF;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che l'utente esista
+	IF NOT EXISTS (SELECT 1 FROM UTENTE WHERE email = p_email) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'EMAIL NON VALIDA';
+	END IF;
 
-    -- Controllo che l'utente non sia già un creatore
-    IF EXISTS (SELECT 1 FROM CREATORE WHERE email_utente = p_email) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'UTENTE GIA\' CREATORE';
-    END IF;
+	-- Controllo che l'utente non sia già un creatore
+	IF EXISTS (SELECT 1 FROM CREATORE WHERE email_utente = p_email) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'UTENTE GIA\' CREATORE';
+	END IF;
 
-    -- Conversione dell'utente in creatore
-    INSERT INTO CREATORE (email_utente)
-    VALUES (p_email);
-    COMMIT;
+	-- Conversione dell'utente in creatore
+	INSERT INTO CREATORE (email_utente)
+	VALUES (p_email);
+	COMMIT;
 END//
 
 /*
@@ -647,14 +656,14 @@ END//
 *  @param IN p_email - Email del creatore
 */
 CREATE PROCEDURE sp_util_get_creatore_affidabilita(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT affidabilita
-    FROM CREATORE
-    WHERE email_utente = p_email;
-    COMMIT;
+	START TRANSACTION;
+	SELECT affidabilita
+	FROM CREATORE
+	WHERE email_utente = p_email;
+	COMMIT;
 END//
 
 /*
@@ -665,14 +674,14 @@ END//
 *  @param IN p_email - Email del creatore
 */
 CREATE PROCEDURE sp_util_get_creatore_nr_progetti(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT nr_progetti
-    FROM CREATORE
-    WHERE email_utente = p_email;
-    COMMIT;
+	START TRANSACTION;
+	SELECT nr_progetti
+	FROM CREATORE
+	WHERE email_utente = p_email;
+	COMMIT;
 END//
 
 /*
@@ -684,21 +693,43 @@ END//
 *  @param IN p_nome_progetto - Nome del progetto
 */
 CREATE PROCEDURE sp_util_finanziamento_progetto_utente_oggi_exists(
-    IN p_email VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100)
+	IN p_email VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    IF EXISTS (SELECT 1
-               FROM FINANZIAMENTO
-               WHERE email_utente = p_email
-                 AND nome_progetto = p_nome_progetto
-                 AND data = CURRENT_DATE) THEN
-        SELECT TRUE AS finanziato_oggi;
-    ELSE
-        SELECT FALSE AS finanziato_oggi;
-    END IF;
-    COMMIT;
+	START TRANSACTION;
+	IF EXISTS (SELECT 1
+	           FROM FINANZIAMENTO
+	           WHERE email_utente = p_email
+		         AND nome_progetto = p_nome_progetto
+		         AND data = CURRENT_DATE) THEN
+		SELECT TRUE AS finanziato_oggi;
+	ELSE
+		SELECT FALSE AS finanziato_oggi;
+	END IF;
+	COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_util_progetto_componenti_costo
+*  PURPOSE: Calcola il costo totale dei componenti di un progetto hardware.
+*  USED BY: CREATORE
+*
+*  @param IN p_nome_progetto - Nome del progetto
+*
+*  @param OUT p_costo_totale - Costo totale dei componenti
+*/
+CREATE PROCEDURE sp_util_progetto_componenti_costo(
+	IN p_nome_progetto VARCHAR(100),
+	OUT p_costo_totale_out DECIMAL(10, 2)
+)
+BEGIN
+	START TRANSACTION;
+	SELECT SUM(prezzo * quantita)
+	INTO p_costo_totale_out
+	FROM COMPONENTE
+	WHERE nome_progetto = p_nome_progetto;
+	COMMIT;
 END//
 
 -- SKILL_PROFILO: sp_skill_profilo_check, USATO IN:
@@ -718,24 +749,24 @@ END//
 *  @param IN p_is_insert - Flag per distinguere tra insert, update e delete
 */
 CREATE PROCEDURE sp_skill_profilo_check(
-    IN p_nome_profilo VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_competenza VARCHAR(100),
-    IN p_is_insert BOOLEAN
+	IN p_nome_profilo VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_competenza VARCHAR(100),
+	IN p_is_insert BOOLEAN
 )
 BEGIN
-    -- Controllo che il progetto sia creato dall'utente, e che sia di tipo software
-    CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
-    CALL sp_util_is_progetto_software(p_nome_progetto);
+	-- Controllo che il progetto sia creato dall'utente, e che sia di tipo software
+	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	CALL sp_util_is_progetto_software(p_nome_progetto);
 
-    -- Controllo che il profilo del progetto esista
-    CALL sp_util_profilo_exists(p_nome_profilo, p_nome_progetto);
+	-- Controllo che il profilo del progetto esista
+	CALL sp_util_profilo_exists(p_nome_profilo, p_nome_progetto);
 
-    -- Controllo che il profilo abbia la competenza richiesta (solo per update e delete)
-    IF NOT p_is_insert THEN
-        CALL sp_util_skill_profilo_exists(p_nome_profilo, p_nome_progetto, p_competenza);
-    END IF;
+	-- Controllo che il profilo abbia la competenza richiesta (solo per update e delete)
+	IF NOT p_is_insert THEN
+		CALL sp_util_skill_profilo_exists(p_nome_profilo, p_nome_progetto, p_competenza);
+	END IF;
 END//
 
 -- PROFILO: sp_profilo_check, USATO IN:
@@ -753,20 +784,20 @@ END//
 *  @param IN p_is_insert - Flag per distinguere tra insert e delete
 */
 CREATE PROCEDURE sp_profilo_check(
-    IN p_nome_profilo VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_is_insert BOOLEAN
+	IN p_nome_profilo VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_is_insert BOOLEAN
 )
 BEGIN
-    -- Controllo che il progetto sia creato dall'utente, e che sia di tipo software
-    CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
-    CALL sp_util_is_progetto_software(p_nome_progetto);
+	-- Controllo che il progetto sia creato dall'utente, e che sia di tipo software
+	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	CALL sp_util_is_progetto_software(p_nome_progetto);
 
-    -- Controllo che il profilo esista (solo per delete)
-    IF NOT p_is_insert THEN
-        CALL sp_util_profilo_exists(p_nome_profilo, p_nome_progetto);
-    END IF;
+	-- Controllo che il profilo esista (solo per delete)
+	IF NOT p_is_insert THEN
+		CALL sp_util_profilo_exists(p_nome_profilo, p_nome_progetto);
+	END IF;
 END//
 
 -- COMPONENTE: sp_componente_check USATO IN:
@@ -787,26 +818,26 @@ END//
 *  @throws 45000 - COMPONENTE NON ESISTENTE (+ altri throw specifici dalle sp_util utilizzate)
 */
 CREATE PROCEDURE sp_componente_check(
-    IN p_nome_componente VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_is_insert BOOLEAN
+	IN p_nome_componente VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_is_insert BOOLEAN
 )
 BEGIN
-    -- Controllo che il progetto sia creato dall'utente, e che sia di tipo hardware
-    CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
-    CALL sp_util_is_progetto_hardware(p_nome_progetto);
+	-- Controllo che il progetto sia creato dall'utente, e che sia di tipo hardware
+	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	CALL sp_util_is_progetto_hardware(p_nome_progetto);
 
-    -- Controllo che il componente esista (solo per update e delete)
-    IF NOT p_is_insert THEN
-        IF NOT EXISTS (SELECT 1
-                       FROM COMPONENTE
-                       WHERE nome_componente = p_nome_componente
-                         AND nome_progetto = p_nome_progetto) THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'COMPONENTE NON ESISTENTE';
-        END IF;
-    END IF;
+	-- Controllo che il componente esista (solo per update e delete)
+	IF NOT p_is_insert THEN
+		IF NOT EXISTS (SELECT 1
+		               FROM COMPONENTE
+		               WHERE nome_componente = p_nome_componente
+			             AND nome_progetto = p_nome_progetto) THEN
+			SIGNAL SQLSTATE '45000'
+				SET MESSAGE_TEXT = 'COMPONENTE NON ESISTENTE';
+		END IF;
+	END IF;
 END//
 
 -- PARTECIPANTE: sp_partecipante_check USATO IN:
@@ -822,15 +853,15 @@ END//
 *  @param IN p_nome_profilo - Nome del profilo richiesto dal partecipante
 */
 CREATE PROCEDURE sp_partecipante_check(
-    IN p_nome_progetto VARCHAR(100),
-    IN p_nome_profilo VARCHAR(100)
+	IN p_nome_progetto VARCHAR(100),
+	IN p_nome_profilo VARCHAR(100)
 )
 BEGIN
-    -- Controllo che:
-    -- 1. Il progetto sia di tipo software
-    -- 2. Il profilo esista
-    CALL sp_util_is_progetto_software(p_nome_progetto);
-    CALL sp_util_profilo_exists(p_nome_profilo, p_nome_progetto);
+	-- Controllo che:
+	-- 1. Il progetto sia di tipo software
+	-- 2. Il profilo esista
+	CALL sp_util_is_progetto_software(p_nome_progetto);
+	CALL sp_util_profilo_exists(p_nome_profilo, p_nome_progetto);
 END//
 
 /*
@@ -846,27 +877,27 @@ END//
 *  @throws 45000 - CANDIDATURA NON ESISTENTE (+ altri throw specifici dalle sp_util utilizzate)
 */
 CREATE PROCEDURE sp_partecipante_creatore_check(
-    IN p_email_creatore VARCHAR(100),
-    IN p_email_candidato VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_nome_profilo VARCHAR(100)
+	IN p_email_creatore VARCHAR(100),
+	IN p_email_candidato VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_nome_profilo VARCHAR(100)
 )
 BEGIN
-    -- Controllo comune a entrambe le stored procedure
-    CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
-    -- Controllo che l'utente sia il creatore del progetto
-    CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	-- Controllo comune a entrambe le stored procedure
+	CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
+	-- Controllo che l'utente sia il creatore del progetto
+	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
 
-    -- Controllo che la candidatura esista
-    IF NOT EXISTS (SELECT 1
-                   FROM PARTECIPANTE
-                   WHERE email_utente = p_email_candidato
-                     AND nome_progetto = p_nome_progetto
-                     AND nome_profilo = p_nome_profilo
-                     AND stato = 'potenziale') THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'CANDIDATURA NON ESISTENTE';
-    END IF;
+	-- Controllo che la candidatura esista
+	IF NOT EXISTS (SELECT 1
+	               FROM PARTECIPANTE
+	               WHERE email_utente = p_email_candidato
+		             AND nome_progetto = p_nome_progetto
+		             AND nome_profilo = p_nome_profilo
+		             AND stato = 'potenziale') THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'CANDIDATURA NON ESISTENTE';
+	END IF;
 END//
 
 /*
@@ -882,53 +913,53 @@ END//
 *         (+ altri throw specifici da sp_partecipante_check)
 */
 CREATE PROCEDURE sp_partecipante_utente_check(
-    IN p_email VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_nome_profilo VARCHAR(100)
+	IN p_email VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_nome_profilo VARCHAR(100)
 )
 BEGIN
-    -- Dichiarazione variabile per la competenza mancante/suo livello insufficiente (se esiste)
-    DECLARE missing_skill VARCHAR(100) DEFAULT NULL;
+	-- Dichiarazione variabile per la competenza mancante/suo livello insufficiente (se esiste)
+	DECLARE missing_skill VARCHAR(100) DEFAULT NULL;
 
-    -- Controllo comune a entrambe le stored procedure
-    CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
+	-- Controllo comune a entrambe le stored procedure
+	CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
 
-    -- Controllo che l'utente NON sia il creatore del progetto
-    IF EXISTS (SELECT 1
-               FROM PROGETTO
-               WHERE nome = p_nome_progetto
-                 AND email_creatore = p_email) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'UTENTE CREATORE DEL PROGETTO';
-    END IF;
+	-- Controllo che l'utente NON sia il creatore del progetto
+	IF EXISTS (SELECT 1
+	           FROM PROGETTO
+	           WHERE nome = p_nome_progetto
+		         AND email_creatore = p_email) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'UTENTE CREATORE DEL PROGETTO';
+	END IF;
 
-    -- Controllo che l'utente non abbia già una candidatura per quel profilo del progetto
-    IF EXISTS (SELECT 1
-               FROM PARTECIPANTE
-               WHERE email_utente = p_email
-                 AND nome_progetto = p_nome_progetto
-                 AND nome_profilo = p_nome_profilo) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'CANDIDATURA INSERITA PRECEDENTEMENTE';
-    END IF;
+	-- Controllo che l'utente non abbia già una candidatura per quel profilo del progetto
+	IF EXISTS (SELECT 1
+	           FROM PARTECIPANTE
+	           WHERE email_utente = p_email
+		         AND nome_progetto = p_nome_progetto
+		         AND nome_profilo = p_nome_profilo) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'CANDIDATURA INSERITA PRECEDENTEMENTE';
+	END IF;
 
-    -- Per ogni competenza richiesta dal profilo, controlla che il candidato abbia una entry in SKILL_CURRICULUM
-    -- con un livello_effettivo maggiore o uguale al livello_richiesto.
-    SELECT sp.competenza
-    INTO missing_skill
-    FROM SKILL_PROFILO sp
-             LEFT JOIN SKILL_CURRICULUM sc
-                       ON sp.competenza = sc.competenza AND sc.email_utente = p_email
-    WHERE sp.nome_profilo = p_nome_profilo
-      AND sp.nome_progetto = p_nome_progetto
-      AND (sc.livello_effettivo IS NULL OR sc.livello_effettivo < sp.livello_richiesto)
-    LIMIT 1;
+	-- Per ogni competenza richiesta dal profilo, controlla che il candidato abbia una entry in SKILL_CURRICULUM
+	-- con un livello_effettivo maggiore o uguale al livello_richiesto.
+	SELECT sp.competenza
+	INTO missing_skill
+	FROM SKILL_PROFILO sp
+		     LEFT JOIN SKILL_CURRICULUM sc
+		               ON sp.competenza = sc.competenza AND sc.email_utente = p_email
+	WHERE sp.nome_profilo = p_nome_profilo
+	  AND sp.nome_progetto = p_nome_progetto
+	  AND (sc.livello_effettivo IS NULL OR sc.livello_effettivo < sp.livello_richiesto)
+	LIMIT 1;
 
-    -- Se almeno una competenza problematica viene trovata, lancia un errore.
-    IF missing_skill IS NOT NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'COMPETENZA MANCANTE O LIVELLO INSUFFICIENTE';
-    END IF;
+	-- Se almeno una competenza problematica viene trovata, lancia un errore.
+	IF missing_skill IS NOT NULL THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'COMPETENZA MANCANTE O LIVELLO INSUFFICIENTE';
+	END IF;
 END//
 
 -- COMMENTO: sp_commento_check e sp_commento_risposta_check USATI IN:
@@ -950,28 +981,28 @@ END//
 *  @throws 45000 - NON SEI AUTORIZZATO A CANCELLARE QUESTO COMMENTO (+ altri throw specifici dalle sp_util utilizzate)
 */
 CREATE PROCEDURE sp_commento_check(
-    IN p_id INT,
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_autore VARCHAR(100),
-    IN p_is_insert BOOLEAN
+	IN p_id INT,
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_autore VARCHAR(100),
+	IN p_is_insert BOOLEAN
 )
 BEGIN
-    -- Controllo che il progetto esista
-    CALL sp_util_progetto_exists(p_nome_progetto);
+	-- Controllo che il progetto esista
+	CALL sp_util_progetto_exists(p_nome_progetto);
 
-    -- Controllo che il commento esista (solo per delete)
-    IF NOT p_is_insert THEN
-        CALL sp_util_commento_exists(p_id);
-        -- Controllo che l'utente sia l'autore del commento, OPPURE un admin
-        IF NOT (
-            EXISTS (SELECT 1 FROM COMMENTO WHERE id = p_id AND email_utente = p_email_autore)
-                OR
-            EXISTS (SELECT 1 FROM ADMIN WHERE email_utente = p_email_autore)
-            ) THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'NON SEI AUTORIZZATO A CANCELLARE QUESTO COMMENTO';
-        END IF;
-    END IF;
+	-- Controllo che il commento esista (solo per delete)
+	IF NOT p_is_insert THEN
+		CALL sp_util_commento_exists(p_id);
+		-- Controllo che l'utente sia l'autore del commento, OPPURE un admin
+		IF NOT (
+			EXISTS (SELECT 1 FROM COMMENTO WHERE id = p_id AND email_utente = p_email_autore)
+				OR
+			EXISTS (SELECT 1 FROM ADMIN WHERE email_utente = p_email_autore)
+			) THEN
+			SIGNAL SQLSTATE '45000'
+				SET MESSAGE_TEXT = 'NON SEI AUTORIZZATO A CANCELLARE QUESTO COMMENTO';
+		END IF;
+	END IF;
 END//
 
 /*
@@ -990,42 +1021,42 @@ END//
 *          (+ altri throw specifici dalle sp_util utilizzate)
 */
 CREATE PROCEDURE sp_commento_risposta_check(
-    IN p_commento_id INT,
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_is_insert BOOLEAN
+	IN p_commento_id INT,
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_is_insert BOOLEAN
 )
 BEGIN
-    -- Controllo che il progetto e il commento esistano
-    CALL sp_util_progetto_exists(p_nome_progetto);
-    CALL sp_util_commento_exists(p_commento_id);
+	-- Controllo che il progetto e il commento esistano
+	CALL sp_util_progetto_exists(p_nome_progetto);
+	CALL sp_util_commento_exists(p_commento_id);
 
-    -- Se l'intento è di inserire una risposta...
-    IF p_is_insert THEN
-        -- Controllo che l'utente sia il creatore del progetto
-        CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
-        -- Controllo che il commento NON ABBIA una risposta
-        IF EXISTS (SELECT 1 FROM COMMENTO WHERE id = p_commento_id AND risposta IS NOT NULL) THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'COMMENTO CONTIENE RISPOSTA';
-        END IF;
-    ELSE
-        -- Altrimenti si intende cancellare una risposta...
-        IF NOT ( -- L'utente deve essere il creatore del progetto o un admin
-            EXISTS (SELECT 1 FROM PROGETTO WHERE nome = p_nome_progetto AND email_creatore = p_email_creatore)
-                OR
-            EXISTS (SELECT 1 FROM ADMIN WHERE email_utente = p_email_creatore)
-            ) THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'UTENTE NON CREATORE O ADMIN (CANCELLAZIONE RISPOSTA)';
-        END IF;
+	-- Se l'intento è di inserire una risposta...
+	IF p_is_insert THEN
+		-- Controllo che l'utente sia il creatore del progetto
+		CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+		-- Controllo che il commento NON ABBIA una risposta
+		IF EXISTS (SELECT 1 FROM COMMENTO WHERE id = p_commento_id AND risposta IS NOT NULL) THEN
+			SIGNAL SQLSTATE '45000'
+				SET MESSAGE_TEXT = 'COMMENTO CONTIENE RISPOSTA';
+		END IF;
+	ELSE
+		-- Altrimenti si intende cancellare una risposta...
+		IF NOT ( -- L'utente deve essere il creatore del progetto o un admin
+			EXISTS (SELECT 1 FROM PROGETTO WHERE nome = p_nome_progetto AND email_creatore = p_email_creatore)
+				OR
+			EXISTS (SELECT 1 FROM ADMIN WHERE email_utente = p_email_creatore)
+			) THEN
+			SIGNAL SQLSTATE '45000'
+				SET MESSAGE_TEXT = 'UTENTE NON CREATORE O ADMIN (CANCELLAZIONE RISPOSTA)';
+		END IF;
 
-        -- Controllo che il commento ABBIA una risposta da cancellare
-        IF EXISTS (SELECT 1 FROM COMMENTO WHERE id = p_commento_id AND risposta IS NULL) THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'COMMENTO NON CONTIENE RISPOSTA';
-        END IF;
-    END IF;
+		-- Controllo che il commento ABBIA una risposta da cancellare
+		IF EXISTS (SELECT 1 FROM COMMENTO WHERE id = p_commento_id AND risposta IS NULL) THEN
+			SIGNAL SQLSTATE '45000'
+				SET MESSAGE_TEXT = 'COMMENTO NON CONTIENE RISPOSTA';
+		END IF;
+	END IF;
 END//
 
 -- FOTO: sp_foto_check USATO IN:
@@ -1045,23 +1076,23 @@ END//
 *  @throws 45000 - FOTO NON ESISTENTE (+ altri throw specifici da sp_util_is_creatore_progetto_owner)
 */
 CREATE PROCEDURE sp_foto_check(
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_foto_id INT,
-    IN p_is_insert BOOLEAN
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_foto_id INT,
+	IN p_is_insert BOOLEAN
 )
 BEGIN
-    -- Controllo che l'utente sia il creatore del progetto
-    CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	-- Controllo che l'utente sia il creatore del progetto
+	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
 
-    -- Controllo che la foto esista (solo per delete)
-    IF NOT p_is_insert AND NOT EXISTS (SELECT 1
-                                       FROM FOTO
-                                       WHERE nome_progetto = p_nome_progetto
-                                         AND id = p_foto_id) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'FOTO NON ESISTENTE';
-    END IF;
+	-- Controllo che la foto esista (solo per delete)
+	IF NOT p_is_insert AND NOT EXISTS (SELECT 1
+	                                   FROM FOTO
+	                                   WHERE nome_progetto = p_nome_progetto
+		                                 AND id = p_foto_id) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'FOTO NON ESISTENTE';
+	END IF;
 END//
 
 DELIMITER ;
@@ -1103,37 +1134,37 @@ DELIMITER //
 *  @param IN p_is_creatore - Flag che indica se l'utente è un creatore
 */
 CREATE PROCEDURE sp_utente_register(
-    IN p_email VARCHAR(100),
-    IN p_password VARCHAR(255),
-    IN p_nickname VARCHAR(50),
-    IN p_nome VARCHAR(50),
-    IN p_cognome VARCHAR(50),
-    IN p_anno_nascita INT,
-    IN p_luogo_nascita VARCHAR(50),
-    IN p_is_creatore BOOLEAN, -- Definito a livello di interfaccia
-    IN p_is_admin BOOLEAN, -- Definito a livello di interfaccia
-    IN p_codice_sicurezza VARCHAR(100) -- Definito a livello di interfaccia
+	IN p_email VARCHAR(100),
+	IN p_password VARCHAR(255),
+	IN p_nickname VARCHAR(50),
+	IN p_nome VARCHAR(50),
+	IN p_cognome VARCHAR(50),
+	IN p_anno_nascita INT,
+	IN p_luogo_nascita VARCHAR(50),
+	IN p_is_creatore BOOLEAN, -- Definito a livello di interfaccia
+	IN p_is_admin BOOLEAN, -- Definito a livello di interfaccia
+	IN p_codice_sicurezza VARCHAR(100) -- Definito a livello di interfaccia
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION -- Gestione delle eccezioni, rollback e propagazione dell'errore
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION; -- Uso di transazione per garantire l'integrità dei dati
-    INSERT INTO UTENTE (email, password, nickname, nome, cognome, anno_nascita, luogo_nascita)
-    VALUES (p_email, p_password, p_nickname, p_nome, p_cognome, p_anno_nascita, p_luogo_nascita);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION -- Gestione delle eccezioni, rollback e propagazione dell'errore
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION; -- Uso di transazione per garantire l'integrità dei dati
+	INSERT INTO UTENTE (email, password, nickname, nome, cognome, anno_nascita, luogo_nascita)
+	VALUES (p_email, p_password, p_nickname, p_nome, p_cognome, p_anno_nascita, p_luogo_nascita);
 
-    IF p_is_creatore THEN
-        INSERT INTO CREATORE (email_utente)
-        VALUES (p_email);
-    END IF;
+	IF p_is_creatore THEN
+		INSERT INTO CREATORE (email_utente)
+		VALUES (p_email);
+	END IF;
 
-    IF p_is_admin THEN
-        INSERT INTO ADMIN (email_utente, codice_sicurezza)
-        VALUES (p_email, p_codice_sicurezza);
-    END IF;
-    COMMIT;
+	IF p_is_admin THEN
+		INSERT INTO ADMIN (email_utente, codice_sicurezza)
+		VALUES (p_email, p_codice_sicurezza);
+	END IF;
+	COMMIT;
 END//
 
 /*
@@ -1148,30 +1179,30 @@ END//
 *  @param OUT p_password_hash_out - Hash della password dell'utente
 */
 CREATE PROCEDURE sp_utente_login(
-    IN p_email VARCHAR(100),
-    OUT p_nickname_out VARCHAR(50),
-    OUT p_email_out VARCHAR(100),
-    OUT p_password_hash_out VARCHAR(255)
+	IN p_email VARCHAR(100),
+	OUT p_nickname_out VARCHAR(50),
+	OUT p_email_out VARCHAR(100),
+	OUT p_password_hash_out VARCHAR(255)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- (ALL) Controllo che l'utente esista
-    IF NOT EXISTS (SELECT 1 FROM UTENTE WHERE email = p_email) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'EMAIL NON VALIDA';
-    END IF;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- (ALL) Controllo che l'utente esista
+	IF NOT EXISTS (SELECT 1 FROM UTENTE WHERE email = p_email) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'EMAIL NON VALIDA';
+	END IF;
 
-    -- Se il controllo passa, restituisco i dati dell'utente
-    SELECT nickname, email, password
-    INTO p_nickname_out, p_email_out, p_password_hash_out
-    FROM UTENTE
-    WHERE email = p_email;
-    COMMIT;
+	-- Se il controllo passa, restituisco i dati dell'utente
+	SELECT nickname, email, password
+	INTO p_nickname_out, p_email_out, p_password_hash_out
+	FROM UTENTE
+	WHERE email = p_email;
+	COMMIT;
 END//
 
 /*
@@ -1182,14 +1213,14 @@ END//
 *  @param IN p_email - Email dell'utente
 */
 CREATE PROCEDURE sp_utente_select(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT nome, cognome, nickname, anno_nascita, luogo_nascita
-    FROM UTENTE
-    WHERE email = p_email;
-    COMMIT;
+	START TRANSACTION;
+	SELECT nome, cognome, nickname, anno_nascita, luogo_nascita
+	FROM UTENTE
+	WHERE email = p_email;
+	COMMIT;
 END//
 
 -- SKILL_CURRICULUM:
@@ -1207,20 +1238,20 @@ END//
 *  @param IN p_livello - Livello della competenza da inserire (da 0 a 5)
 */
 CREATE PROCEDURE sp_skill_curriculum_insert(
-    IN p_email VARCHAR(100),
-    IN p_competenza VARCHAR(100),
-    IN p_livello TINYINT
+	IN p_email VARCHAR(100),
+	IN p_competenza VARCHAR(100),
+	IN p_livello TINYINT
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    INSERT INTO SKILL_CURRICULUM (email_utente, competenza, livello_effettivo)
-    VALUES (p_email, p_competenza, p_livello);
-    COMMIT;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	INSERT INTO SKILL_CURRICULUM (email_utente, competenza, livello_effettivo)
+	VALUES (p_email, p_competenza, p_livello);
+	COMMIT;
 END//
 
 /*
@@ -1231,14 +1262,14 @@ END//
 *  @param IN p_email - Email dell'utente
 */
 CREATE PROCEDURE sp_skill_curriculum_selectAll(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT competenza, livello_effettivo
-    FROM SKILL_CURRICULUM
-    WHERE email_utente = p_email;
-    COMMIT;
+	START TRANSACTION;
+	SELECT competenza, livello_effettivo
+	FROM SKILL_CURRICULUM
+	WHERE email_utente = p_email;
+	COMMIT;
 END//
 
 /*
@@ -1249,16 +1280,16 @@ END//
 *  @param IN p_email - Email dell'utente
 */
 CREATE PROCEDURE sp_skill_curriculum_selectDiff(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT competenza
-    FROM SKILL
-    WHERE competenza NOT IN (SELECT competenza
-                             FROM SKILL_CURRICULUM
-                             WHERE email_utente = p_email);
-    COMMIT;
+	START TRANSACTION;
+	SELECT competenza
+	FROM SKILL
+	WHERE competenza NOT IN (SELECT competenza
+	                         FROM SKILL_CURRICULUM
+	                         WHERE email_utente = p_email);
+	COMMIT;
 END//
 
 -- PROGETTO:
@@ -1277,12 +1308,12 @@ END//
 *  @param IN p_nome - Nome del progetto
 */
 CREATE PROCEDURE sp_progetto_select(
-    IN p_nome VARCHAR(100)
+	IN p_nome VARCHAR(100)
 )
 BEGIN
-    SELECT *
-    FROM PROGETTO
-    WHERE nome = p_nome;
+	SELECT *
+	FROM PROGETTO
+	WHERE nome = p_nome;
 END//
 
 /*
@@ -1292,7 +1323,7 @@ END//
 */
 CREATE PROCEDURE sp_progetto_selectAll()
 BEGIN
-    SELECT * FROM PROGETTO;
+	SELECT * FROM PROGETTO;
 END//
 
 /*
@@ -1303,12 +1334,12 @@ END//
 *  @param IN p_email - Email del creatore
 */
 CREATE PROCEDURE sp_progetto_selectByCreatore(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    SELECT *
-    FROM PROGETTO
-    WHERE email_creatore = p_email;
+	SELECT *
+	FROM PROGETTO
+	WHERE email_creatore = p_email;
 END//
 
 /*
@@ -1325,41 +1356,41 @@ END//
 *  @param IN p_tipo - Tipo di progetto (software o hardware)
 */
 CREATE PROCEDURE sp_progetto_insert(
-    IN p_nome VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_descrizione TEXT,
-    IN p_budget DECIMAL(10, 2),
-    IN p_data_limite DATE,
-    IN p_tipo ENUM ('software','hardware') -- Tipo di progetto, definito a livello di interfaccia (checkbox)
+	IN p_nome VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_descrizione TEXT,
+	IN p_budget DECIMAL(10, 2),
+	IN p_data_limite DATE,
+	IN p_tipo ENUM ('software','hardware') -- Tipo di progetto, definito a livello di interfaccia (checkbox)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che l'utente sia un creatore
-    CALL sp_util_is_utente_creatore(p_email_creatore);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che l'utente sia un creatore
+	CALL sp_util_is_utente_creatore(p_email_creatore);
 
-    -- Controllo che la data_limite sia futura alla data attuale
-    IF p_data_limite <= CURRENT_DATE THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'DATA LIMITE DEVE ESSERE FUTURA';
-    END IF;
+	-- Controllo che la data_limite sia futura alla data attuale
+	IF p_data_limite <= CURRENT_DATE THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'DATA LIMITE DEVE ESSERE FUTURA';
+	END IF;
 
-    INSERT INTO PROGETTO (nome, email_creatore, descrizione, budget, data_limite)
-    VALUES (p_nome, p_email_creatore, p_descrizione, p_budget, p_data_limite);
+	INSERT INTO PROGETTO (nome, email_creatore, descrizione, budget, data_limite)
+	VALUES (p_nome, p_email_creatore, p_descrizione, p_budget, p_data_limite);
 
-    -- Insert in tabella specifica in base al tipo di progetto
-    IF p_tipo = 'software' THEN
-        INSERT INTO PROGETTO_SOFTWARE (nome_progetto)
-        VALUES (p_nome);
-    ELSEIF p_tipo = 'hardware' THEN
-        INSERT INTO PROGETTO_HARDWARE (nome_progetto)
-        VALUES (p_nome);
-    END IF;
-    COMMIT;
+	-- Insert in tabella specifica in base al tipo di progetto
+	IF p_tipo = 'software' THEN
+		INSERT INTO PROGETTO_SOFTWARE (nome_progetto)
+		VALUES (p_nome);
+	ELSEIF p_tipo = 'hardware' THEN
+		INSERT INTO PROGETTO_HARDWARE (nome_progetto)
+		VALUES (p_nome);
+	END IF;
+	COMMIT;
 END//
 
 /*
@@ -1372,32 +1403,32 @@ END//
 *  @param IN p_descrizione - Nuova descrizione del progetto
 */
 CREATE PROCEDURE sp_progetto_descrizione_update(
-    IN p_nome VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_descrizione TEXT
+	IN p_nome VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_descrizione TEXT
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    -- 1. L'utente sia il creatore del progetto
-    -- 2. La descrizione non sia nulla
-    CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	-- 1. L'utente sia il creatore del progetto
+	-- 2. La descrizione non sia nulla
+	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome);
 
-    IF p_descrizione IS NULL THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'DESCRIZIONE NON VALIDA';
-    END IF;
+	IF p_descrizione IS NULL THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'DESCRIZIONE NON VALIDA';
+	END IF;
 
-    -- Se i controlli passano, aggiorno la descrizione
-    UPDATE PROGETTO
-    SET descrizione = p_descrizione
-    WHERE nome = p_nome;
-    COMMIT;
+	-- Se i controlli passano, aggiorno la descrizione
+	UPDATE PROGETTO
+	SET descrizione = p_descrizione
+	WHERE nome = p_nome;
+	COMMIT;
 END//
 
 /*
@@ -1410,84 +1441,82 @@ END//
 *  @param IN p_budget - Nuovo budget del progetto
 */
 CREATE PROCEDURE sp_progetto_budget_update(
-    IN p_nome VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_budget DECIMAL(10, 2)
+	IN p_nome VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_budget DECIMAL(10, 2)
 )
 BEGIN
-    DECLARE current_budget DECIMAL(10,2);
-    DECLARE current_state VARCHAR(20);
-    DECLARE tot_finanziamento DECIMAL(10,2);
-    DECLARE tot_componenti DECIMAL(10,2);
+	DECLARE current_budget DECIMAL(10, 2);
+	DECLARE current_state VARCHAR(20);
+	DECLARE tot_finanziamento DECIMAL(10, 2);
+	DECLARE tot_componenti DECIMAL(10, 2);
 
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        RESIGNAL;
-    END;
-    START TRANSACTION;
-    -- Controllo che l'utente sia il creatore del progetto
-    CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che l'utente sia il creatore del progetto
+	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome);
 
-    -- Recupero il budget corrente e lo stato del progetto
-    SELECT budget, stato
-    INTO current_budget, current_state
-    FROM PROGETTO
-    WHERE nome = p_nome;
+	-- Recupero il budget corrente e lo stato del progetto
+	SELECT budget, stato
+	INTO current_budget, current_state
+	FROM PROGETTO
+	WHERE nome = p_nome;
 
-    -- Se il progetto non è aperto, restituisce un errore (non è possibile modificare un progetto chiuso)
-    IF current_state != 'aperto' THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'IMPOSSIBILE MODIFICARE BUDGET DI PROGETTO CHIUSO';
-    END IF;
+	-- Se il progetto non è aperto, restituisce un errore (non è possibile modificare un progetto chiuso)
+	IF current_state != 'aperto' THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'IMPOSSIBILE MODIFICARE BUDGET DI PROGETTO CHIUSO';
+	END IF;
 
-    -- Mi assicuro che il nuovo budget sia maggiore di 0
-    IF p_budget <= 0 THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'BUDGET PROGETTO DEVE ESSERE > 0';
-    END IF;
+	-- Mi assicuro che il nuovo budget sia maggiore di 0
+	IF p_budget <= 0 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'BUDGET PROGETTO DEVE ESSERE > 0';
+	END IF;
 
-    -- Se il budget viene modificato, controllo il totale dei finanziamenti
-    IF p_budget != current_budget THEN
-        SELECT IFNULL(SUM(importo), 0)
-        INTO tot_finanziamento
-        FROM FINANZIAMENTO
-        WHERE nome_progetto = p_nome;
+	-- Per i progetti hardware, verifico che il nuovo budget sia almeno uguale al costo totale dei componenti
+	IF EXISTS(SELECT 1 FROM PROGETTO_HARDWARE WHERE nome_progetto = p_nome) THEN
+		SELECT IFNULL(SUM(prezzo * quantita), 0)
+		INTO tot_componenti
+		FROM COMPONENTE
+		WHERE nome_progetto = p_nome;
 
-        -- Se il totale dei finanziamenti è maggiore o uguale al nuovo budget,
-        -- aggiorno il budget del progetto e imposta lo stato a 'chiuso'
-        IF tot_finanziamento >= p_budget THEN
-            UPDATE PROGETTO
-            SET budget = p_budget,
-                stato = 'chiuso'
-            WHERE nome = p_nome;
-            COMMIT;
-        END IF;
-    END IF;
+		IF p_budget < tot_componenti THEN
+			SIGNAL SQLSTATE '45000'
+				SET MESSAGE_TEXT = 'BUDGET PROGETTO DEVE ESSERE >= SOMMA COSTO COMPONENTI';
+		END IF;
+	END IF;
 
-    -- Per i progetti hardware, verifico che il nuovo budget sia almeno uguale al costo totale dei componenti
-    IF EXISTS(SELECT 1 FROM PROGETTO_HARDWARE WHERE nome_progetto = p_nome) THEN
-        SELECT IFNULL(SUM(prezzo * quantita), 0)
-        INTO tot_componenti
-        FROM COMPONENTE
-        WHERE nome_progetto = p_nome;
+	-- Se il budget viene modificato, controllo il totale dei finanziamenti
+	IF p_budget != current_budget THEN
+		SELECT IFNULL(SUM(importo), 0)
+		INTO tot_finanziamento
+		FROM FINANZIAMENTO
+		WHERE nome_progetto = p_nome;
 
-        IF p_budget < tot_componenti THEN
-            SIGNAL SQLSTATE '45000'
-                SET MESSAGE_TEXT = 'BUDGET PROGETTO DEVE ESSERE >= SOMMA COSTO COMPONENTI';
-        END IF;
-    END IF;
+		-- Se la somma finanziamenti è >= al nuovo budget imposto lo stato a 'chiuso'
+		IF tot_finanziamento >= p_budget THEN
+			UPDATE PROGETTO
+			SET stato = 'chiuso'
+			WHERE nome = p_nome;
+			COMMIT;
+		END IF;
+	END IF;
 
-    -- Se tutti i controlli passano, aggiorno il budget del progetto (lo stato rimane invariato)
-    UPDATE PROGETTO
-    SET budget = p_budget
-    WHERE nome = p_nome;
-
-    COMMIT;
+	-- Se tutti i controlli passano, aggiorno il budget del progetto
+	UPDATE PROGETTO
+	SET budget = p_budget
+	WHERE nome = p_nome;
+	COMMIT;
 END//
 
 -- FINANZIAMENTO:
 --  sp_finanziamento_insert
+--  sp_finanziamento_selectSumByProgetto
 --  sp_finanziamento_selectAllByProgetto
 --  sp_finanziamento_selectAllByUtente
 
@@ -1506,65 +1535,110 @@ END//
 *  @param IN p_importo - Importo del finanziamento
 */
 CREATE PROCEDURE sp_finanziamento_insert(
-    IN p_email VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_codice_reward VARCHAR(50), -- Scelto al livello di interfaccia
-    IN p_importo DECIMAL(10, 2)
+	IN p_email VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_codice_reward VARCHAR(50), -- Scelto al livello di interfaccia
+	IN p_importo DECIMAL(10, 2)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che il progetto sia aperto
-    IF NOT EXISTS (SELECT 1
-                   FROM PROGETTO
-                   WHERE nome = p_nome_progetto
-                     AND stato = 'aperto') THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'PROGETTO CHIUSO O NON ESISTENTE';
-    END IF;
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che il progetto sia aperto
+	IF NOT EXISTS (SELECT 1
+	               FROM PROGETTO
+	               WHERE nome = p_nome_progetto
+		             AND stato = 'aperto') THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROGETTO CHIUSO O NON ESISTENTE';
+	END IF;
 
-    -- Se il controllo passa, inserisco il finanziamento
-    INSERT INTO FINANZIAMENTO (email_utente, nome_progetto, codice_reward, importo)
-    VALUES (p_email, p_nome_progetto, p_codice_reward, p_importo);
-    COMMIT;
+	-- Se il controllo passa, inserisco il finanziamento
+	INSERT INTO FINANZIAMENTO (email_utente, nome_progetto, codice_reward, importo)
+	VALUES (p_email, p_nome_progetto, p_codice_reward, p_importo);
+	COMMIT;
 END//
 
 /*
-*  PROCEDURE: sp_finanziamento_selectAllByProgetto
+*  PROCEDURE: sp_finanziamento_selectSumByProgetto
 *  PURPOSE: Restituisce la somma degli importi dei finanziamenti ricevuti da un progetto.
 *
 *  @param IN p_nome_progetto - Nome del progetto da cui si vuole ottenere il totale dei finanziamenti
 */
-CREATE PROCEDURE sp_finanziamento_selectAllByProgetto(
-    IN p_nome_progetto VARCHAR(100)
+CREATE PROCEDURE sp_finanziamento_selectSumByProgetto(
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT SUM(importo) AS totale_finanziamenti
-    FROM FINANZIAMENTO
-    WHERE nome_progetto = p_nome_progetto;
-    COMMIT;
+	START TRANSACTION;
+	SELECT SUM(importo) AS totale_finanziamenti
+	FROM FINANZIAMENTO
+	WHERE nome_progetto = p_nome_progetto;
+	COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_finanziamento_selectAllByProgetto
+*  PURPOSE: Restituisce tutti i finanziamenti ricevuti dai progetti creati da un utente specifico.
+*  USED BY: CREATORE
+*
+*  @param IN p_email_creatore - Email del creatore di cui si vogliono ottenere i finanziamenti ricevuti
+*/
+CREATE PROCEDURE sp_finanziamento_selectAllByProgetto(
+	IN p_email_creatore VARCHAR(100)
+)
+BEGIN
+	START TRANSACTION;
+	SELECT F.data,
+	       F.email_utente,
+	       U.nickname    AS finanziatore_nickname,
+	       F.nome_progetto,
+	       F.codice_reward,
+	       F.importo,
+	       R.descrizione AS reward_descrizione,
+	       R.foto        AS reward_foto,
+	       P.budget      AS progetto_budget,
+	       P.stato       AS progetto_stato
+	FROM FINANZIAMENTO F
+		     JOIN PROGETTO P ON F.nome_progetto = P.nome
+		     JOIN UTENTE U ON F.email_utente = U.email
+		     JOIN REWARD R ON F.codice_reward = R.codice AND F.nome_progetto = R.nome_progetto
+	WHERE P.email_creatore = p_email_creatore
+	ORDER BY F.data DESC;
+	COMMIT;
 END//
 
 /*
 *  PROCEDURE: sp_finanziamento_selectAllByUtente
-*  PURPOSE: Restituisce la lista degli importi dei finanziamenti effettuati da un utente.
+*  PURPOSE: Restituisce tutti i finanziamenti effettuati da un utente specifico con dettagli completi su reward e progetto.
 *
 *  @param IN p_email - Email dell'utente da cui si vuole ottenere la lista dei finanziamenti
 */
 CREATE PROCEDURE sp_finanziamento_selectAllByUtente(
-    IN p_email VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT nome_progetto, importo, data
-    FROM FINANZIAMENTO
-    WHERE email_utente = p_email;
-    COMMIT;
+	START TRANSACTION;
+	SELECT F.data,
+	       F.email_utente,
+	       F.nome_progetto,
+	       F.codice_reward,
+	       F.importo,
+	       R.descrizione AS reward_descrizione,
+	       R.foto        AS reward_foto,
+	       R.min_importo AS reward_min_importo,
+	       P.email_creatore,
+	       P.stato       AS progetto_stato,
+	       P.budget      AS progetto_budget,
+	       P.data_limite AS progetto_data_limite
+	FROM FINANZIAMENTO F
+		     JOIN PROGETTO P ON F.nome_progetto = P.nome
+		     JOIN REWARD R ON F.codice_reward = R.codice AND F.nome_progetto = R.nome_progetto
+	WHERE F.email_utente = p_email
+	ORDER BY F.data DESC;
+	COMMIT;
 END//
 
 -- COMMENTO:
@@ -1584,24 +1658,24 @@ END//
 *  @param IN p_testo - Testo del commento
 */
 CREATE PROCEDURE sp_commento_insert(
-    IN p_email_autore VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_testo TEXT
+	IN p_email_autore VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_testo TEXT
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che esista il progetto
-    CALL sp_commento_check(NULL, p_nome_progetto, p_email_autore, TRUE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che esista il progetto
+	CALL sp_commento_check(NULL, p_nome_progetto, p_email_autore, TRUE);
 
-    -- Se il controllo passa, inserisco il commento
-    INSERT INTO COMMENTO (email_utente, nome_progetto, testo)
-    VALUES (p_email_autore, p_nome_progetto, p_testo);
-    COMMIT;
+	-- Se il controllo passa, inserisco il commento
+	INSERT INTO COMMENTO (email_utente, nome_progetto, testo)
+	VALUES (p_email_autore, p_nome_progetto, p_testo);
+	COMMIT;
 END//
 
 /*
@@ -1615,28 +1689,28 @@ END//
 *  @param IN p_nome_progetto - Nome del progetto del quale fa parte il commento
 */
 CREATE PROCEDURE sp_commento_delete(
-    IN p_id INT,
-    IN p_email VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100)
+	IN p_id INT,
+	IN p_email VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. Esista il progetto
-    --  2. Esista il commento
-    --  3. L'utente sia l'autore del commento, OPPURE un admin
-    CALL sp_commento_check(p_id, p_nome_progetto, p_email, FALSE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. Esista il progetto
+	--  2. Esista il commento
+	--  3. L'utente sia l'autore del commento, OPPURE un admin
+	CALL sp_commento_check(p_id, p_nome_progetto, p_email, FALSE);
 
-    -- Se i controlli passano, cancello il commento
-    DELETE
-    FROM COMMENTO
-    WHERE id = p_id;
-    COMMIT;
+	-- Se i controlli passano, cancello il commento
+	DELETE
+	FROM COMMENTO
+	WHERE id = p_id;
+	COMMIT;
 END//
 
 /*
@@ -1647,13 +1721,13 @@ END//
 *  @param IN p_nome_progetto - Nome del progetto
 */
 CREATE PROCEDURE sp_commento_selectAll(
-    IN p_nome_progetto VARCHAR(100)
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    SELECT C.id, C.email_utente, U.nickname, C.testo, C.risposta, C.data
-    FROM COMMENTO C
-             JOIN UTENTE U ON U.email = C.email_utente
-    WHERE nome_progetto = p_nome_progetto;
+	SELECT C.id, C.email_utente, U.nickname, C.testo, C.risposta, C.data
+	FROM COMMENTO C
+		     JOIN UTENTE U ON U.email = C.email_utente
+	WHERE nome_progetto = p_nome_progetto;
 END//
 
 /*
@@ -1667,30 +1741,30 @@ END//
 *  @param IN p_risposta - Testo della risposta
 */
 CREATE PROCEDURE sp_commento_risposta_insert(
-    IN p_commento_id INT,
-    IN p_email_creatore VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_risposta TEXT
+	IN p_commento_id INT,
+	IN p_email_creatore VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_risposta TEXT
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. Esista il progetto
-    --  2. Esista il commento
-    --  3. L'utente sia il creatore del progetto
-    --  4. Il commento non abbia già una risposta
-    CALL sp_commento_risposta_check(p_commento_id, p_nome_progetto, p_email_creatore, TRUE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. Esista il progetto
+	--  2. Esista il commento
+	--  3. L'utente sia il creatore del progetto
+	--  4. Il commento non abbia già una risposta
+	CALL sp_commento_risposta_check(p_commento_id, p_nome_progetto, p_email_creatore, TRUE);
 
-    -- Se i controlli passano, inserisco la risposta
-    UPDATE COMMENTO
-    SET risposta = p_risposta
-    WHERE id = p_commento_id;
-    COMMIT;
+	-- Se i controlli passano, inserisco la risposta
+	UPDATE COMMENTO
+	SET risposta = p_risposta
+	WHERE id = p_commento_id;
+	COMMIT;
 END//
 
 /*
@@ -1704,29 +1778,29 @@ END//
 *  @param IN p_nome_progetto - Nome del progetto del quale fa parte il commento
 */
 CREATE PROCEDURE sp_commento_risposta_delete(
-    IN p_commento_id INT,
-    IN p_email_creatore VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100)
+	IN p_commento_id INT,
+	IN p_email_creatore VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. Esista il progetto
-    --  2. Esista il commento
-    --  3. L'utente sia il creatore del progetto, OPPURE un admin
-    --  4. Il commento abbia una risposta
-    CALL sp_commento_risposta_check(p_commento_id, p_nome_progetto, p_email_creatore, FALSE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. Esista il progetto
+	--  2. Esista il commento
+	--  3. L'utente sia il creatore del progetto, OPPURE un admin
+	--  4. Il commento abbia una risposta
+	CALL sp_commento_risposta_check(p_commento_id, p_nome_progetto, p_email_creatore, FALSE);
 
-    -- Se i controlli passano, cancello la risposta
-    UPDATE COMMENTO
-    SET risposta = NULL
-    WHERE id = p_commento_id;
-    COMMIT;
+	-- Se i controlli passano, cancello la risposta
+	UPDATE COMMENTO
+	SET risposta = NULL
+	WHERE id = p_commento_id;
+	COMMIT;
 END//
 
 -- PARTECIPANTE:
@@ -1748,29 +1822,29 @@ END//
 *  @param IN p_nome_profilo - Nome del profilo richiesto per il progetto
 */
 CREATE PROCEDURE sp_partecipante_utente_insert(
-    IN p_email VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_nome_profilo VARCHAR(100)
+	IN p_email VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_nome_profilo VARCHAR(100)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. Il progetto sia di tipo software
-    --  2. Il profilo per quel progetto esista
-    --  3. L'utente non sia il creatore del progetto
-    --  4. L'utente non abbia già una candidatura per quel profilo del progetto
-    --  5. L'utente, per ogni competenza richiesta, abbia il livello richiesto
-    CALL sp_partecipante_utente_check(p_email, p_nome_progetto, p_nome_profilo);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. Il progetto sia di tipo software
+	--  2. Il profilo per quel progetto esista
+	--  3. L'utente non sia il creatore del progetto
+	--  4. L'utente non abbia già una candidatura per quel profilo del progetto
+	--  5. L'utente, per ogni competenza richiesta, abbia il livello richiesto
+	CALL sp_partecipante_utente_check(p_email, p_nome_progetto, p_nome_profilo);
 
-    -- Se i controlli passano, inserisco la candidatura
-    INSERT INTO PARTECIPANTE (email_utente, nome_progetto, nome_profilo)
-    VALUES (p_email, p_nome_progetto, p_nome_profilo);
-    COMMIT;
+	-- Se i controlli passano, inserisco la candidatura
+	INSERT INTO PARTECIPANTE (email_utente, nome_progetto, nome_profilo)
+	VALUES (p_email, p_nome_progetto, p_nome_profilo);
+	COMMIT;
 END//
 
 /*
@@ -1786,33 +1860,33 @@ END//
 *  @param IN p_nuovo_stato - Nuovo stato della candidatura (accettato o rifiutato)
 */
 CREATE PROCEDURE sp_partecipante_creatore_update(
-    IN p_email_creatore VARCHAR(100),
-    IN p_email_candidato VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_nome_profilo VARCHAR(100),
-    IN p_nuovo_stato ENUM ('accettato','rifiutato')
+	IN p_email_creatore VARCHAR(100),
+	IN p_email_candidato VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_nome_profilo VARCHAR(100),
+	IN p_nuovo_stato ENUM ('accettato','rifiutato')
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. Il progetto sia di tipo software
-    --  2. Il profilo per quel progetto esista
-    --  3. L'utente sia il creatore del progetto
-    --  4. La candidatura esista
-    CALL sp_partecipante_creatore_check(p_email_creatore, p_email_candidato, p_nome_progetto, p_nome_profilo);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. Il progetto sia di tipo software
+	--  2. Il profilo per quel progetto esista
+	--  3. L'utente sia il creatore del progetto
+	--  4. La candidatura esista
+	CALL sp_partecipante_creatore_check(p_email_creatore, p_email_candidato, p_nome_progetto, p_nome_profilo);
 
-    -- Se i controlli passano, aggiorno lo stato della candidatura
-    UPDATE PARTECIPANTE
-    SET stato = p_nuovo_stato
-    WHERE email_utente = p_email_candidato
-      AND nome_progetto = p_nome_progetto
-      AND nome_profilo = p_nome_profilo;
-    COMMIT;
+	-- Se i controlli passano, aggiorno lo stato della candidatura
+	UPDATE PARTECIPANTE
+	SET stato = p_nuovo_stato
+	WHERE email_utente = p_email_candidato
+	  AND nome_progetto = p_nome_progetto
+	  AND nome_profilo = p_nome_profilo;
+	COMMIT;
 END//
 
 -- SKILL:
@@ -1828,23 +1902,23 @@ END//
 *  @param IN p_email - Email dell'utente admin che esegue la procedura
 */
 CREATE PROCEDURE sp_skill_insert(
-    IN p_competenza VARCHAR(100),
-    IN p_email VARCHAR(100)
+	IN p_competenza VARCHAR(100),
+	IN p_email VARCHAR(100)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che l'admin sia l'utente che esegue la procedura
-    CALL sp_util_is_utente_admin(p_email);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che l'admin sia l'utente che esegue la procedura
+	CALL sp_util_is_utente_admin(p_email);
 
-    -- Se il controllo passa, inserisco la competenza
-    INSERT INTO SKILL (competenza)
-    VALUES (p_competenza);
-    COMMIT;
+	-- Se il controllo passa, inserisco la competenza
+	INSERT INTO SKILL (competenza)
+	VALUES (p_competenza);
+	COMMIT;
 END//
 
 /*
@@ -1854,10 +1928,10 @@ END//
 */
 CREATE PROCEDURE sp_skill_selectAll()
 BEGIN
-    START TRANSACTION;
-    SELECT competenza
-    FROM SKILL;
-    COMMIT;
+	START TRANSACTION;
+	SELECT competenza
+	FROM SKILL;
+	COMMIT;
 END//
 
 -- REWARD:
@@ -1881,30 +1955,30 @@ END//
 *  @param IN p_min_importo - Importo minimo per essere eleggibili alla reward
 */
 CREATE PROCEDURE sp_reward_insert(
-    IN p_codice VARCHAR(50),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_descrizione TEXT,
-    IN p_foto MEDIUMBLOB,
-    IN p_min_importo DECIMAL(10, 2)
+	IN p_codice VARCHAR(50),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_descrizione TEXT,
+	IN p_foto MEDIUMBLOB,
+	IN p_min_importo DECIMAL(10, 2)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. Il progetto esista
-    --  2. L'utente sia il creatore del progetto
-    CALL sp_util_progetto_exists(p_nome_progetto);
-    CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. Il progetto esista
+	--  2. L'utente sia il creatore del progetto
+	CALL sp_util_progetto_exists(p_nome_progetto);
+	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
 
-    -- Se i controlli passano, inserisco la reward
-    INSERT INTO REWARD (codice, nome_progetto, descrizione, foto, min_importo)
-    VALUES (p_codice, p_nome_progetto, p_descrizione, p_foto, p_min_importo);
-    COMMIT;
+	-- Se i controlli passano, inserisco la reward
+	INSERT INTO REWARD (codice, nome_progetto, descrizione, foto, min_importo)
+	VALUES (p_codice, p_nome_progetto, p_descrizione, p_foto, p_min_importo);
+	COMMIT;
 END//
 
 /*
@@ -1915,18 +1989,18 @@ END//
 *  @param IN p_nome_progetto - Nome del progetto
 */
 CREATE PROCEDURE sp_reward_selectAllByProgetto(
-    IN p_nome_progetto VARCHAR(100)
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    -- Controllo che il progetto esista
-    CALL sp_util_progetto_exists(p_nome_progetto);
+	START TRANSACTION;
+	-- Controllo che il progetto esista
+	CALL sp_util_progetto_exists(p_nome_progetto);
 
-    -- Se il controllo passa, restituisco le reward
-    SELECT codice, descrizione, foto, min_importo
-    FROM REWARD
-    WHERE nome_progetto = p_nome_progetto;
-    COMMIT;
+	-- Se il controllo passa, restituisco le reward
+	SELECT codice, descrizione, foto, min_importo
+	FROM REWARD
+	WHERE nome_progetto = p_nome_progetto;
+	COMMIT;
 END//
 
 /*
@@ -1939,16 +2013,16 @@ END//
 *  @param IN p_importo - Importo del finanziamento effettuato dall'utente
 */
 CREATE PROCEDURE sp_reward_selectAllByFinanziamentoImporto(
-    IN p_nome_progetto VARCHAR(100),
-    IN p_importo DECIMAL(10, 2)
+	IN p_nome_progetto VARCHAR(100),
+	IN p_importo DECIMAL(10, 2)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT codice, descrizione, foto, min_importo
-    FROM REWARD
-    WHERE nome_progetto = p_nome_progetto
-      AND min_importo <= p_importo;
-    COMMIT;
+	START TRANSACTION;
+	SELECT codice, descrizione, foto, min_importo
+	FROM REWARD
+	WHERE nome_progetto = p_nome_progetto
+	  AND min_importo <= p_importo;
+	COMMIT;
 END//
 
 -- COMPONENTE:
@@ -1975,29 +2049,29 @@ END//
 *  @param IN p_email_creatore - Email del creatore del progetto che richiede l'inserimento
 */
 CREATE PROCEDURE sp_componente_insert(
-    IN p_nome_componente VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_descrizione TEXT,
-    IN p_quantita INT,
-    IN p_prezzo DECIMAL(10, 2),
-    IN p_email_creatore VARCHAR(100)
+	IN p_nome_componente VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_descrizione TEXT,
+	IN p_quantita INT,
+	IN p_prezzo DECIMAL(10, 2),
+	IN p_email_creatore VARCHAR(100)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. L'utente sia il creatore del progetto
-    --  2. Il progetto sia di tipo hardware
-    CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, TRUE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. L'utente sia il creatore del progetto
+	--  2. Il progetto sia di tipo hardware
+	CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, TRUE);
 
-    -- Se i controlli passano, inserisco il componente
-    INSERT INTO COMPONENTE (nome_componente, nome_progetto, descrizione, quantita, prezzo)
-    VALUES (p_nome_componente, p_nome_progetto, p_descrizione, p_quantita, p_prezzo);
-    COMMIT;
+	-- Se i controlli passano, inserisco il componente
+	INSERT INTO COMPONENTE (nome_componente, nome_progetto, descrizione, quantita, prezzo)
+	VALUES (p_nome_componente, p_nome_progetto, p_descrizione, p_quantita, p_prezzo);
+	COMMIT;
 END//
 
 /*
@@ -2011,29 +2085,29 @@ END//
 *  @param IN p_email_creatore - Email del creatore del progetto che richiede la rimozione
 */
 CREATE PROCEDURE sp_componente_delete(
-    IN p_nome_componente VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_creatore VARCHAR(100)
+	IN p_nome_componente VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_creatore VARCHAR(100)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. L'utente sia il creatore del progetto
-    --  2. Il progetto sia di tipo hardware
-    --  3. Il componente esista
-    CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, FALSE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. L'utente sia il creatore del progetto
+	--  2. Il progetto sia di tipo hardware
+	--  3. Il componente esista
+	CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, FALSE);
 
-    -- Se i controlli passano, rimuovo il componente
-    DELETE
-    FROM COMPONENTE
-    WHERE nome_componente = p_nome_componente
-      AND nome_progetto = p_nome_progetto;
-    COMMIT;
+	-- Se i controlli passano, rimuovo il componente
+	DELETE
+	FROM COMPONENTE
+	WHERE nome_componente = p_nome_componente
+	  AND nome_progetto = p_nome_progetto;
+	COMMIT;
 END//
 
 /*
@@ -2054,34 +2128,34 @@ END//
 *  @param IN p_email_creatore - Email del creatore del progetto che richiede l'aggiornamento
 */
 CREATE PROCEDURE sp_componente_update(
-    IN p_nome_componente VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_descrizione TEXT,
-    IN p_quantita INT,
-    IN p_prezzo DECIMAL(10, 2),
-    IN p_email_creatore VARCHAR(100)
+	IN p_nome_componente VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_descrizione TEXT,
+	IN p_quantita INT,
+	IN p_prezzo DECIMAL(10, 2),
+	IN p_email_creatore VARCHAR(100)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. L'utente sia il creatore del progetto
-    --  2. Il progetto sia di tipo hardware
-    --  3. Il componente esista
-    CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, FALSE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. L'utente sia il creatore del progetto
+	--  2. Il progetto sia di tipo hardware
+	--  3. Il componente esista
+	CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, FALSE);
 
-    -- Se i controlli passano, aggiorno il componente
-    UPDATE COMPONENTE
-    SET descrizione = p_descrizione,
-        quantita    = p_quantita,
-        prezzo      = p_prezzo
-    WHERE nome_componente = p_nome_componente
-      AND nome_progetto = p_nome_progetto;
-    COMMIT;
+	-- Se i controlli passano, aggiorno il componente
+	UPDATE COMPONENTE
+	SET descrizione = p_descrizione,
+	    quantita    = p_quantita,
+	    prezzo      = p_prezzo
+	WHERE nome_componente = p_nome_componente
+	  AND nome_progetto = p_nome_progetto;
+	COMMIT;
 END//
 
 /*
@@ -2092,14 +2166,14 @@ END//
 *  @param IN p_nome_progetto - Nome del progetto hardware di cui si vogliono ottenere i componenti
 */
 CREATE PROCEDURE sp_componente_selectAllByProgetto(
-    IN p_nome_progetto VARCHAR(100)
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT nome_componente, descrizione, quantita, prezzo
-    FROM COMPONENTE
-    WHERE nome_progetto = p_nome_progetto;
-    COMMIT;
+	START TRANSACTION;
+	SELECT nome_componente, descrizione, quantita, prezzo
+	FROM COMPONENTE
+	WHERE nome_progetto = p_nome_progetto;
+	COMMIT;
 END//
 
 -- PROFILO:
@@ -2117,26 +2191,26 @@ END//
 *  @param IN p_email_creatore - Email del creatore del progetto che richiede l'inserimento
 */
 CREATE PROCEDURE sp_profilo_insert(
-    IN p_nome_profilo VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_creatore VARCHAR(100)
+	IN p_nome_profilo VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_creatore VARCHAR(100)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. L'utente sia il creatore del progetto
-    --  2. Il progetto sia di tipo software
-    CALL sp_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, TRUE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. L'utente sia il creatore del progetto
+	--  2. Il progetto sia di tipo software
+	CALL sp_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, TRUE);
 
-    -- Se i controlli passano, inserisco il profilo
-    INSERT INTO PROFILO (nome_profilo, nome_progetto)
-    VALUES (p_nome_profilo, p_nome_progetto);
-    COMMIT;
+	-- Se i controlli passano, inserisco il profilo
+	INSERT INTO PROFILO (nome_profilo, nome_progetto)
+	VALUES (p_nome_profilo, p_nome_progetto);
+	COMMIT;
 END//
 
 /*
@@ -2150,29 +2224,29 @@ END//
 *  @param IN p_email_creatore - Email del creatore del progetto che richiede la rimozione
 */
 CREATE PROCEDURE sp_profilo_delete(
-    IN p_nome_profilo VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_creatore VARCHAR(100)
+	IN p_nome_profilo VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_creatore VARCHAR(100)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. L'utente sia il creatore del progetto
-    --  2. Il progetto sia di tipo software
-    --  3. Il profilo esista
-    CALL sp_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, FALSE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. L'utente sia il creatore del progetto
+	--  2. Il progetto sia di tipo software
+	--  3. Il profilo esista
+	CALL sp_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, FALSE);
 
-    -- Se i controlli passano, rimuovo il profilo
-    DELETE
-    FROM PROFILO
-    WHERE nome_profilo = p_nome_profilo
-      AND nome_progetto = p_nome_progetto;
-    COMMIT;
+	-- Se i controlli passano, rimuovo il profilo
+	DELETE
+	FROM PROFILO
+	WHERE nome_profilo = p_nome_profilo
+	  AND nome_progetto = p_nome_progetto;
+	COMMIT;
 END//
 
 /*
@@ -2184,19 +2258,19 @@ END//
 *  @param IN p_nome_progetto - Nome del progetto software di cui si vogliono ottenere i profili
 */
 CREATE PROCEDURE sp_profilo_selectAllByProgetto(
-    IN p_nome_progetto VARCHAR(100)
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT P.nome_profilo,
-           GROUP_CONCAT(CONCAT(sp.competenza, '|', sp.livello_richiesto) SEPARATOR ',') AS skills
-    FROM PROFILO P
-             JOIN SKILL_PROFILO sp
-                  ON P.nome_profilo = sp.nome_profilo
-                      AND P.nome_progetto = sp.nome_progetto
-    WHERE P.nome_progetto = p_nome_progetto
-    GROUP BY P.nome_profilo;
-    COMMIT;
+	START TRANSACTION;
+	SELECT P.nome_profilo,
+	       GROUP_CONCAT(CONCAT(sp.competenza, '|', sp.livello_richiesto) SEPARATOR ',') AS skills
+	FROM PROFILO P
+		     JOIN SKILL_PROFILO sp
+		          ON P.nome_profilo = sp.nome_profilo
+			          AND P.nome_progetto = sp.nome_progetto
+	WHERE P.nome_progetto = p_nome_progetto
+	GROUP BY P.nome_profilo;
+	COMMIT;
 END//
 
 -- SKILL_PROFILO:
@@ -2216,29 +2290,29 @@ END//
 *  @param IN p_livello_richiesto - Livello richiesto per la competenza nel profilo del progetto (da 0 a 5)
 */
 CREATE PROCEDURE sp_skill_profilo_insert(
-    IN p_nome_profilo VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_competenza VARCHAR(100),
-    IN p_livello_richiesto TINYINT
+	IN p_nome_profilo VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_competenza VARCHAR(100),
+	IN p_livello_richiesto TINYINT
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. L'utente sia il creatore del progetto
-    --  2. Il progetto sia di tipo software
-    --  3. Il profilo esista
-    CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, TRUE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. L'utente sia il creatore del progetto
+	--  2. Il progetto sia di tipo software
+	--  3. Il profilo esista
+	CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, TRUE);
 
-    -- Se i controlli passano, inserisco la skill nel profilo del progetto
-    INSERT INTO SKILL_PROFILO (nome_profilo, competenza, nome_progetto, livello_richiesto)
-    VALUES (p_nome_profilo, p_competenza, p_nome_progetto, p_livello_richiesto);
-    COMMIT;
+	-- Se i controlli passano, inserisco la skill nel profilo del progetto
+	INSERT INTO SKILL_PROFILO (nome_profilo, competenza, nome_progetto, livello_richiesto)
+	VALUES (p_nome_profilo, p_competenza, p_nome_progetto, p_livello_richiesto);
+	COMMIT;
 END//
 
 /*
@@ -2253,32 +2327,32 @@ END//
 *  @param IN p_email_creatore - Email del creatore del progetto che richiede la rimozione
 */
 CREATE PROCEDURE sp_skill_profilo_delete(
-    IN p_nome_profilo VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_competenza VARCHAR(100),
-    IN p_email_creatore VARCHAR(100)
+	IN p_nome_profilo VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_competenza VARCHAR(100),
+	IN p_email_creatore VARCHAR(100)
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. L'utente sia il creatore del progetto
-    --  2. Il progetto sia di tipo software
-    --  3. Il profilo esista
-    --  4. Il profilo abbia la competenza richiesta
-    CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, FALSE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. L'utente sia il creatore del progetto
+	--  2. Il progetto sia di tipo software
+	--  3. Il profilo esista
+	--  4. Il profilo abbia la competenza richiesta
+	CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, FALSE);
 
-    -- Se i controlli passano, rimuovo la skill dal profilo
-    DELETE
-    FROM SKILL_PROFILO
-    WHERE nome_profilo = p_nome_profilo
-      AND competenza = p_competenza
-      AND nome_progetto = p_nome_progetto;
-    COMMIT;
+	-- Se i controlli passano, rimuovo la skill dal profilo
+	DELETE
+	FROM SKILL_PROFILO
+	WHERE nome_profilo = p_nome_profilo
+	  AND competenza = p_competenza
+	  AND nome_progetto = p_nome_progetto;
+	COMMIT;
 END//
 
 /*
@@ -2295,33 +2369,33 @@ END//
 *  @param IN p_nuovo_livello_richiesto - Nuovo livello richiesto per la competenza nel profilo del progetto (da 0 a 5)
 */
 CREATE PROCEDURE sp_skill_profilo_update(
-    IN p_nome_profilo VARCHAR(100),
-    IN p_competenza VARCHAR(100),
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_nuovo_livello_richiesto TINYINT
+	IN p_nome_profilo VARCHAR(100),
+	IN p_competenza VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_nuovo_livello_richiesto TINYINT
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. L'utente sia il creatore del progetto
-    --  2. Il progetto sia di tipo software
-    --  3. Il profilo esista
-    --  4. Il profilo abbia la competenza richiesta
-    CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, FALSE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. L'utente sia il creatore del progetto
+	--  2. Il progetto sia di tipo software
+	--  3. Il profilo esista
+	--  4. Il profilo abbia la competenza richiesta
+	CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, FALSE);
 
-    -- Se i controlli passano, aggiorno il livello richiesto della skill
-    UPDATE SKILL_PROFILO
-    SET livello_richiesto = p_nuovo_livello_richiesto
-    WHERE nome_profilo = p_nome_profilo
-      AND competenza = p_competenza
-      AND nome_progetto = p_nome_progetto;
-    COMMIT;
+	-- Se i controlli passano, aggiorno il livello richiesto della skill
+	UPDATE SKILL_PROFILO
+	SET livello_richiesto = p_nuovo_livello_richiesto
+	WHERE nome_profilo = p_nome_profilo
+	  AND competenza = p_competenza
+	  AND nome_progetto = p_nome_progetto;
+	COMMIT;
 END//
 
 -- FOTO:
@@ -2339,24 +2413,24 @@ END//
 *  @param IN p_foto - Foto da inserire
 */
 CREATE PROCEDURE sp_foto_insert(
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_foto MEDIUMBLOB
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_foto MEDIUMBLOB
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che l'utente sia il creatore del progetto
-    CALL sp_foto_check(p_nome_progetto, p_email_creatore, NULL, TRUE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che l'utente sia il creatore del progetto
+	CALL sp_foto_check(p_nome_progetto, p_email_creatore, NULL, TRUE);
 
-    -- Se il controllo passa, aggiungo la foto
-    INSERT INTO FOTO (nome_progetto, foto)
-    VALUES (p_nome_progetto, p_foto);
-    COMMIT;
+	-- Se il controllo passa, aggiungo la foto
+	INSERT INTO FOTO (nome_progetto, foto)
+	VALUES (p_nome_progetto, p_foto);
+	COMMIT;
 END//
 
 /*
@@ -2369,28 +2443,28 @@ END//
 *  @param IN p_foto_id - ID della foto da rimuovere
 */
 CREATE PROCEDURE sp_foto_delete(
-    IN p_nome_progetto VARCHAR(100),
-    IN p_email_creatore VARCHAR(100),
-    IN p_foto_id INT
+	IN p_nome_progetto VARCHAR(100),
+	IN p_email_creatore VARCHAR(100),
+	IN p_foto_id INT
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-        BEGIN
-            ROLLBACK;
-            RESIGNAL;
-        END;
-    START TRANSACTION;
-    -- Controllo che:
-    --  1. L'utente sia il creatore del progetto
-    --  2. La foto esista
-    CALL sp_foto_check(p_nome_progetto, p_email_creatore, p_foto_id, FALSE);
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. L'utente sia il creatore del progetto
+	--  2. La foto esista
+	CALL sp_foto_check(p_nome_progetto, p_email_creatore, p_foto_id, FALSE);
 
-    -- Se i controlli passano, rimuovo la foto
-    DELETE
-    FROM FOTO
-    WHERE nome_progetto = p_nome_progetto
-      AND id = p_foto_id;
-    COMMIT;
+	-- Se i controlli passano, rimuovo la foto
+	DELETE
+	FROM FOTO
+	WHERE nome_progetto = p_nome_progetto
+	  AND id = p_foto_id;
+	COMMIT;
 END//
 
 /*
@@ -2401,14 +2475,14 @@ END//
 *  @param IN p_nome_progetto - Nome del progetto di cui visualizzare le foto
 */
 CREATE PROCEDURE sp_foto_selectAll(
-    IN p_nome_progetto VARCHAR(100)
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
-    START TRANSACTION;
-    SELECT id, foto
-    FROM FOTO
-    WHERE nome_progetto = p_nome_progetto;
-    COMMIT;
+	START TRANSACTION;
+	SELECT id, foto
+	FROM FOTO
+	WHERE nome_progetto = p_nome_progetto;
+	COMMIT;
 END//
 
 DELIMITER ;
@@ -2424,7 +2498,7 @@ DELIMITER ;
 CREATE OR REPLACE VIEW view_classifica_creatori_affidabilita AS
 SELECT U.nickname
 FROM CREATORE C
-         JOIN UTENTE U ON C.email_utente = U.email
+	     JOIN UTENTE U ON C.email_utente = U.email
 ORDER BY affidabilita DESC
 LIMIT 3;
 
@@ -2432,7 +2506,7 @@ LIMIT 3;
 DELIMITER //
 CREATE PROCEDURE view_classifica_creatori_affidabilita()
 BEGIN
-    SELECT * FROM view_classifica_creatori_affidabilita;
+	SELECT * FROM view_classifica_creatori_affidabilita;
 END//
 DELIMITER ;
 
@@ -2452,7 +2526,7 @@ LIMIT 3;
 DELIMITER //
 CREATE PROCEDURE view_classifica_progetti_completamento()
 BEGIN
-    SELECT * FROM view_classifica_progetti_completamento;
+	SELECT * FROM view_classifica_progetti_completamento;
 END//
 DELIMITER ;
 
@@ -2460,7 +2534,7 @@ DELIMITER ;
 CREATE OR REPLACE VIEW view_classifica_utenti_finanziamento AS
 SELECT U.nickname
 FROM UTENTE U
-         JOIN FINANZIAMENTO F ON U.email = F.email_utente
+	     JOIN FINANZIAMENTO F ON U.email = F.email_utente
 GROUP BY U.email
 ORDER BY SUM(F.importo) DESC
 LIMIT 3;
@@ -2469,7 +2543,7 @@ LIMIT 3;
 DELIMITER //
 CREATE PROCEDURE view_classifica_utenti_finanziamento()
 BEGIN
-    SELECT * FROM view_classifica_utenti_finanziamento;
+	SELECT * FROM view_classifica_utenti_finanziamento;
 END//
 DELIMITER ;
 
@@ -2490,90 +2564,90 @@ DELIMITER //
 
 -- Trigger per aggiornare l'affidabilità di un creatore quando crea un progetto
 CREATE TRIGGER trg_update_affidabilita_progetto
-    AFTER INSERT
-    ON PROGETTO
-    FOR EACH ROW
+	AFTER INSERT
+	ON PROGETTO
+	FOR EACH ROW
 BEGIN
-    DECLARE tot_progetti INT;
-    DECLARE progetti_finanziati INT;
-    DECLARE new_aff DECIMAL(5, 2);
+	DECLARE tot_progetti INT;
+	DECLARE progetti_finanziati INT;
+	DECLARE new_aff DECIMAL(5, 2);
 
-    -- Numero totale di progetti creati dal creatore
-    SELECT COUNT(*)
-    INTO tot_progetti
-    FROM PROGETTO
-    WHERE email_creatore = NEW.email_creatore;
+	-- Numero totale di progetti creati dal creatore
+	SELECT COUNT(*)
+	INTO tot_progetti
+	FROM PROGETTO
+	WHERE email_creatore = NEW.email_creatore;
 
-    -- Numero di progetti del creatore che hanno ricevuto almeno un finanziamento
-    SELECT COUNT(DISTINCT P.nome)
-    INTO progetti_finanziati
-    FROM PROGETTO P
-             JOIN FINANZIAMENTO F ON P.nome = F.nome_progetto
-    WHERE P.email_creatore = NEW.email_creatore;
+	-- Numero di progetti del creatore che hanno ricevuto almeno un finanziamento
+	SELECT COUNT(DISTINCT P.nome)
+	INTO progetti_finanziati
+	FROM PROGETTO P
+		     JOIN FINANZIAMENTO F ON P.nome = F.nome_progetto
+	WHERE P.email_creatore = NEW.email_creatore;
 
-    -- Calcola la nuova affidabilità del creatore
-    IF tot_progetti > 0 THEN
-        SET new_aff = (progetti_finanziati / tot_progetti) * 100;
-    ELSE
-        SET new_aff = 0;
-    END IF;
+	-- Calcola la nuova affidabilità del creatore
+	IF tot_progetti > 0 THEN
+		SET new_aff = (progetti_finanziati / tot_progetti) * 100;
+	ELSE
+		SET new_aff = 0;
+	END IF;
 
-    UPDATE CREATORE
-    SET affidabilita = new_aff
-    WHERE email_utente = NEW.email_creatore;
+	UPDATE CREATORE
+	SET affidabilita = new_aff
+	WHERE email_utente = NEW.email_creatore;
 END//
 
 -- Trigger per aggiornare l'affidabilità di un creatore quando un progetto da lui creato viene finanziato
 CREATE TRIGGER trg_update_affidabilita_finanziamento
-    AFTER INSERT
-    ON FINANZIAMENTO
-    FOR EACH ROW
+	AFTER INSERT
+	ON FINANZIAMENTO
+	FOR EACH ROW
 BEGIN
-    DECLARE email VARCHAR(100);
-    DECLARE tot_progetti INT;
-    DECLARE progetti_finanziati INT;
-    DECLARE new_aff DECIMAL(5, 2);
+	DECLARE email VARCHAR(100);
+	DECLARE tot_progetti INT;
+	DECLARE progetti_finanziati INT;
+	DECLARE new_aff DECIMAL(5, 2);
 
-    -- Recupera l'email del creatore del progetto
-    SELECT email_creatore
-    INTO email
-    FROM PROGETTO
-    WHERE nome = NEW.nome_progetto;
+	-- Recupera l'email del creatore del progetto
+	SELECT email_creatore
+	INTO email
+	FROM PROGETTO
+	WHERE nome = NEW.nome_progetto;
 
-    -- Numero totale di progetti creati dal creatore
-    SELECT COUNT(*)
-    INTO tot_progetti
-    FROM PROGETTO
-    WHERE email_creatore = email;
+	-- Numero totale di progetti creati dal creatore
+	SELECT COUNT(*)
+	INTO tot_progetti
+	FROM PROGETTO
+	WHERE email_creatore = email;
 
-    -- Numero di progetti del creatore che hanno ricevuto almeno un finanziamento
-    SELECT COUNT(DISTINCT P.nome)
-    INTO progetti_finanziati
-    FROM PROGETTO P
-             JOIN FINANZIAMENTO F ON P.nome = F.nome_progetto
-    WHERE P.email_creatore = email;
+	-- Numero di progetti del creatore che hanno ricevuto almeno un finanziamento
+	SELECT COUNT(DISTINCT P.nome)
+	INTO progetti_finanziati
+	FROM PROGETTO P
+		     JOIN FINANZIAMENTO F ON P.nome = F.nome_progetto
+	WHERE P.email_creatore = email;
 
-    -- Calcola la nuova affidabilità del creatore
-    IF tot_progetti > 0 THEN
-        SET new_aff = (progetti_finanziati / tot_progetti) * 100;
-    ELSE
-        SET new_aff = 0;
-    END IF;
+	-- Calcola la nuova affidabilità del creatore
+	IF tot_progetti > 0 THEN
+		SET new_aff = (progetti_finanziati / tot_progetti) * 100;
+	ELSE
+		SET new_aff = 0;
+	END IF;
 
-    UPDATE CREATORE
-    SET affidabilita = new_aff
-    WHERE email_utente = email;
+	UPDATE CREATORE
+	SET affidabilita = new_aff
+	WHERE email_utente = email;
 END//
 
 -- Trigger per aumentare il numero di progetti creati da un creatore
 CREATE TRIGGER trg_incrementa_progetti_creati
-    AFTER INSERT
-    ON PROGETTO
-    FOR EACH ROW
+	AFTER INSERT
+	ON PROGETTO
+	FOR EACH ROW
 BEGIN
-    UPDATE CREATORE
-    SET nr_progetti = nr_progetti + 1
-    WHERE email_utente = NEW.email_creatore;
+	UPDATE CREATORE
+	SET nr_progetti = nr_progetti + 1
+	WHERE email_utente = NEW.email_creatore;
 END//
 
 -- PROGETTO:
@@ -2584,159 +2658,159 @@ END//
 
 -- Trigger per cambiare lo stato di un progetto in 'chiuso' quando il budget è stato raggiunto
 CREATE TRIGGER trg_update_stato_progetto
-    AFTER INSERT
-    ON FINANZIAMENTO
-    FOR EACH ROW
+	AFTER INSERT
+	ON FINANZIAMENTO
+	FOR EACH ROW
 BEGIN
-    DECLARE tot_finanziamento DECIMAL(10, 2);
-    DECLARE budget_progetto DECIMAL(10, 2);
+	DECLARE tot_finanziamento DECIMAL(10, 2);
+	DECLARE budget_progetto DECIMAL(10, 2);
 
-    -- Calcola il budget del progetto
-    SELECT budget
-    INTO budget_progetto
-    FROM PROGETTO
-    WHERE nome = NEW.nome_progetto;
+	-- Calcola il budget del progetto
+	SELECT budget
+	INTO budget_progetto
+	FROM PROGETTO
+	WHERE nome = NEW.nome_progetto;
 
-    -- Calcola il totale del finanziamento per il progetto
-    SELECT SUM(importo)
-    INTO tot_finanziamento
-    FROM FINANZIAMENTO
-    WHERE nome_progetto = NEW.nome_progetto;
+	-- Calcola il totale del finanziamento per il progetto
+	SELECT SUM(importo)
+	INTO tot_finanziamento
+	FROM FINANZIAMENTO
+	WHERE nome_progetto = NEW.nome_progetto;
 
-    -- Se il totale del finanziamento è >= al budget del progetto, allora lo stato del progetto diventa 'chiuso'
-    IF tot_finanziamento >= budget_progetto THEN
-        UPDATE PROGETTO
-        SET stato = 'chiuso'
-        WHERE nome = NEW.nome_progetto;
-    END IF;
+	-- Se il totale del finanziamento è >= al budget del progetto, allora lo stato del progetto diventa 'chiuso'
+	IF tot_finanziamento >= budget_progetto THEN
+		UPDATE PROGETTO
+		SET stato = 'chiuso'
+		WHERE nome = NEW.nome_progetto;
+	END IF;
 END//
 
 -- Trigger per aggiornare il budget di un progetto hardware quando un componente viene aggiunto
 CREATE TRIGGER trg_update_budget_componente_insert
-    BEFORE INSERT
-    ON COMPONENTE
-    FOR EACH ROW
+	BEFORE INSERT
+	ON COMPONENTE
+	FOR EACH ROW
 BEGIN
-    DECLARE tot_componenti DECIMAL(10, 2);
-    DECLARE budget_progetto DECIMAL(10, 2);
-    DECLARE eccesso DECIMAL(10, 2);
+	DECLARE tot_componenti DECIMAL(10, 2);
+	DECLARE budget_progetto DECIMAL(10, 2);
+	DECLARE eccesso DECIMAL(10, 2);
 
-    -- Controllo che il progetto sia ancora aperto
-    IF (SELECT stato
-        FROM PROGETTO
-        WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
-    END IF;
+	-- Controllo che il progetto sia ancora aperto
+	IF (SELECT stato
+	    FROM PROGETTO
+	    WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
+	END IF;
 
-    -- Recupera il budget del progetto
-    SELECT budget
-    INTO budget_progetto
-    FROM PROGETTO
-    WHERE nome = NEW.nome_progetto;
+	-- Recupera il budget del progetto
+	SELECT budget
+	INTO budget_progetto
+	FROM PROGETTO
+	WHERE nome = NEW.nome_progetto;
 
-    -- Calcola il costo totale dei componenti del progetto
-    SELECT IFNULL(SUM(prezzo * quantita), 0) -- Per sicurezza anche se deve esistere sempre almeno un componente a prescindere
-    INTO tot_componenti
-    FROM COMPONENTE
-    WHERE nome_progetto = NEW.nome_progetto;
+	-- Calcola il costo totale dei componenti del progetto
+	SELECT IFNULL(SUM(prezzo * quantita), 0) -- Per sicurezza anche se deve esistere sempre almeno un componente a prescindere
+	INTO tot_componenti
+	FROM COMPONENTE
+	WHERE nome_progetto = NEW.nome_progetto;
 
-    -- Determina l'eccesso di budget
-    SET eccesso = (tot_componenti + (NEW.prezzo * NEW.quantita)) - budget_progetto;
+	-- Determina l'eccesso di budget
+	SET eccesso = (tot_componenti + (NEW.prezzo * NEW.quantita)) - budget_progetto;
 
-    -- Se l'eccesso è > 0, allora aggiorna il budget del progetto
-    IF eccesso > 0 THEN
-        UPDATE PROGETTO
-        SET budget = budget + eccesso
-        WHERE nome = NEW.nome_progetto;
-    END IF;
+	-- Se l'eccesso è > 0, allora aggiorna il budget del progetto
+	IF eccesso > 0 THEN
+		UPDATE PROGETTO
+		SET budget = budget + eccesso
+		WHERE nome = NEW.nome_progetto;
+	END IF;
 END //
 
 -- Trigger per aggiornare il budget di un progetto hardware quando un componente viene rimosso
 CREATE TRIGGER trg_update_budget_componente_delete
-    BEFORE DELETE
-    ON COMPONENTE
-    FOR EACH ROW
+	BEFORE DELETE
+	ON COMPONENTE
+	FOR EACH ROW
 BEGIN
-    DECLARE budget_progetto DECIMAL(10, 2);
-    DECLARE new_budget DECIMAL(10, 2);
+	DECLARE budget_progetto DECIMAL(10, 2);
+	DECLARE new_budget DECIMAL(10, 2);
 
-    -- Controllo che il progetto sia ancora aperto
-    IF (SELECT stato
-        FROM PROGETTO
-        WHERE nome = OLD.nome_progetto) = 'chiuso' THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
-    END IF;
+	-- Controllo che il progetto sia ancora aperto
+	IF (SELECT stato
+	    FROM PROGETTO
+	    WHERE nome = OLD.nome_progetto) = 'chiuso' THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
+	END IF;
 
-    -- Controllo che ci sia almeno un componente rimanente
-    IF (SELECT COUNT(*)
-        FROM COMPONENTE
-        WHERE nome_progetto = OLD.nome_progetto) = 1 THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'IMPOSSIBILE RIMUOVERE ULTIMO COMPONENTE';
-    END IF;
+	-- Controllo che ci sia almeno un componente rimanente
+	IF (SELECT COUNT(*)
+	    FROM COMPONENTE
+	    WHERE nome_progetto = OLD.nome_progetto) = 1 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'IMPOSSIBILE RIMUOVERE ULTIMO COMPONENTE';
+	END IF;
 
-    -- Recupera il budget del progetto
-    SELECT budget
-    INTO budget_progetto
-    FROM PROGETTO
-    WHERE nome = OLD.nome_progetto;
+	-- Recupera il budget del progetto
+	SELECT budget
+	INTO budget_progetto
+	FROM PROGETTO
+	WHERE nome = OLD.nome_progetto;
 
-    -- Determina il budget del progetto senza il componente rimosso
-    SET new_budget = budget_progetto - (OLD.prezzo * OLD.quantita);
+	-- Determina il budget del progetto senza il componente rimosso
+	SET new_budget = budget_progetto - (OLD.prezzo * OLD.quantita);
 
-    -- Aggiorna il budget del progetto
-    UPDATE PROGETTO
-    SET budget = new_budget
-    WHERE nome = OLD.nome_progetto;
+	-- Aggiorna il budget del progetto
+	UPDATE PROGETTO
+	SET budget = new_budget
+	WHERE nome = OLD.nome_progetto;
 END //
 
 -- Trigger per aggiornare il budget di un progetto hardware quando un componente viene aggiornato
 CREATE TRIGGER trg_update_budget_componente_update
-    BEFORE UPDATE
-    ON COMPONENTE
-    FOR EACH ROW
+	BEFORE UPDATE
+	ON COMPONENTE
+	FOR EACH ROW
 BEGIN
-    DECLARE tot_componenti DECIMAL(10, 2);
-    DECLARE budget_progetto DECIMAL(10, 2);
-    DECLARE eccesso DECIMAL(10, 2);
+	DECLARE tot_componenti DECIMAL(10, 2);
+	DECLARE budget_progetto DECIMAL(10, 2);
+	DECLARE eccesso DECIMAL(10, 2);
 
-    -- Controllo che il progetto sia ancora aperto
-    IF (SELECT stato
-        FROM PROGETTO
-        WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
-    END IF;
+	-- Controllo che il progetto sia ancora aperto
+	IF (SELECT stato
+	    FROM PROGETTO
+	    WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
+	END IF;
 
-    -- Controllo che la quantità del componente sia > 0
-    IF NEW.quantita <= 0 THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'QUANTITY COMPONENTE DEVE ESSERE > 0';
-    END IF;
+	-- Controllo che la quantità del componente sia > 0
+	IF NEW.quantita <= 0 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'QUANTITY COMPONENTE DEVE ESSERE > 0';
+	END IF;
 
-    -- Recupera il budget del progetto
-    SELECT budget
-    INTO budget_progetto
-    FROM PROGETTO
-    WHERE nome = NEW.nome_progetto;
+	-- Recupera il budget del progetto
+	SELECT budget
+	INTO budget_progetto
+	FROM PROGETTO
+	WHERE nome = NEW.nome_progetto;
 
-    -- Calcola il costo totale dei componenti del progetto, escludendo il componente corrente
-    SELECT IFNULL(SUM(prezzo * quantita), 0)
-    INTO tot_componenti
-    FROM COMPONENTE
-    WHERE nome_progetto = NEW.nome_progetto
-      AND NOT (nome_componente = OLD.nome_componente AND nome_progetto = OLD.nome_progetto);
-    -- Nel caso in cui il nome del componente sia cambiato
+	-- Calcola il costo totale dei componenti del progetto, escludendo il componente corrente
+	SELECT IFNULL(SUM(prezzo * quantita), 0)
+	INTO tot_componenti
+	FROM COMPONENTE
+	WHERE nome_progetto = NEW.nome_progetto
+	  AND NOT (nome_componente = OLD.nome_componente AND nome_progetto = OLD.nome_progetto);
+	-- Nel caso in cui il nome del componente sia cambiato
 
-    -- Determina l'eccesso di budget con il nuovo componente
-    SET eccesso = (tot_componenti + (NEW.prezzo * NEW.quantita)) - budget_progetto;
+	-- Determina l'eccesso di budget con il nuovo componente
+	SET eccesso = (tot_componenti + (NEW.prezzo * NEW.quantita)) - budget_progetto;
 
-    -- Vale anche se l'"eccesso" è negativo, per ridurre il budget
-    UPDATE PROGETTO
-    SET budget = budget + eccesso
-    WHERE nome = NEW.nome_progetto;
+	-- Vale anche se l'"eccesso" è negativo, per ridurre il budget
+	UPDATE PROGETTO
+	SET budget = budget + eccesso
+	WHERE nome = NEW.nome_progetto;
 END //
 
 -- PARTECIPANTE:
@@ -2747,63 +2821,63 @@ END //
 
 -- Trigger per rifiutare automaticamente eventuali candidature se il livello_richiesto della competenza del relativo profilo viene aumentata
 CREATE TRIGGER trg_rifiuta_candidature_skill_profilo_update
-    AFTER UPDATE
-    ON SKILL_PROFILO
-    FOR EACH ROW
+	AFTER UPDATE
+	ON SKILL_PROFILO
+	FOR EACH ROW
 BEGIN
-    UPDATE PARTECIPANTE P
-    SET stato = 'rifiutato'
-    WHERE P.nome_profilo = NEW.nome_profilo
-      AND P.nome_progetto = NEW.nome_progetto
-      AND P.stato = 'potenziale'
-      AND NOT EXISTS (SELECT 1
-                      FROM SKILL_CURRICULUM SC
-                      WHERE SC.email_utente = P.email_utente
-                        AND SC.competenza = NEW.competenza
-                        AND SC.livello_effettivo >= NEW.livello_richiesto);
+	UPDATE PARTECIPANTE P
+	SET stato = 'rifiutato'
+	WHERE P.nome_profilo = NEW.nome_profilo
+	  AND P.nome_progetto = NEW.nome_progetto
+	  AND P.stato = 'potenziale'
+	  AND NOT EXISTS (SELECT 1
+	                  FROM SKILL_CURRICULUM SC
+	                  WHERE SC.email_utente = P.email_utente
+		                AND SC.competenza = NEW.competenza
+		                AND SC.livello_effettivo >= NEW.livello_richiesto);
 END//
 
 
 -- Trigger per rifiutare automaticamente candidature se il livello_effettivo non è sufficiente rispetto al livello_richiesto di ogni competenza del profilo
 DELIMITER //
 CREATE TRIGGER trg_rifiuta_candidatura_livello_effettivo_insufficiente
-    BEFORE INSERT
-    ON PARTECIPANTE
-    FOR EACH ROW
+	BEFORE INSERT
+	ON PARTECIPANTE
+	FOR EACH ROW
 BEGIN
-    -- Controllo che il progetto sia ancora aperto
-    IF (SELECT stato FROM PROGETTO WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
-    END IF;
+	-- Controllo che il progetto sia ancora aperto
+	IF (SELECT stato FROM PROGETTO WHERE nome = NEW.nome_progetto) = 'chiuso' THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
+	END IF;
 
-    -- Controllo che per ogni competenza richiesta dal profilo, il livello effettivo del candidato sia >= al livello richiesto
-    IF EXISTS (SELECT 1
-               FROM SKILL_PROFILO sp
-               WHERE sp.nome_profilo = NEW.nome_profilo
-                 AND sp.nome_progetto = NEW.nome_progetto
-                 AND NOT EXISTS (SELECT 1
-                                 FROM SKILL_CURRICULUM sc
-                                 WHERE sc.email_utente = NEW.email_utente
-                                   AND sc.competenza = sp.competenza
-                                   AND sc.livello_effettivo >= sp.livello_richiesto)) THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'LIVELLO EFFETTIVO NON SUFFICIENTE PER IL PROFILO';
-    END IF;
+	-- Controllo che per ogni competenza richiesta dal profilo, il livello effettivo del candidato sia >= al livello richiesto
+	IF EXISTS (SELECT 1
+	           FROM SKILL_PROFILO sp
+	           WHERE sp.nome_profilo = NEW.nome_profilo
+		         AND sp.nome_progetto = NEW.nome_progetto
+		         AND NOT EXISTS (SELECT 1
+		                         FROM SKILL_CURRICULUM sc
+		                         WHERE sc.email_utente = NEW.email_utente
+			                       AND sc.competenza = sp.competenza
+			                       AND sc.livello_effettivo >= sp.livello_richiesto)) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'LIVELLO EFFETTIVO NON SUFFICIENTE PER IL PROFILO';
+	END IF;
 END//
 
 -- Trigger per rifiutare automaticamente le candidature se il progetto viene chiuso
 CREATE TRIGGER trg_delete_candidature_progetto_chiuso
-    AFTER UPDATE
-    ON PROGETTO
-    FOR EACH ROW
+	AFTER UPDATE
+	ON PROGETTO
+	FOR EACH ROW
 BEGIN
-    IF NEW.stato = 'chiuso' THEN
-        UPDATE PARTECIPANTE
-        SET stato = 'rifiutato'
-        WHERE nome_progetto = NEW.nome
-          AND stato = 'potenziale';
-    END IF;
+	IF NEW.stato = 'chiuso' THEN
+		UPDATE PARTECIPANTE
+		SET stato = 'rifiutato'
+		WHERE nome_progetto = NEW.nome
+		  AND stato = 'potenziale';
+	END IF;
 END//
 
 -- FINANZIAMENTO:
@@ -2811,29 +2885,29 @@ END//
 
 -- Trigger per rifiutare automaticamente un finanziamento se l'utente ha già finanziato il progetto nello stesso giorno
 CREATE TRIGGER trg_rifiuta_finanziamento_utente_giorno
-    BEFORE INSERT
-    ON FINANZIAMENTO
-    FOR EACH ROW
+	BEFORE INSERT
+	ON FINANZIAMENTO
+	FOR EACH ROW
 BEGIN
-    DECLARE data_finanziamento DATE;
-    DECLARE num_finanziamenti INT;
+	DECLARE data_finanziamento DATE;
+	DECLARE num_finanziamenti INT;
 
-    -- Recupera la data attuale
-    SET data_finanziamento = CURDATE();
+	-- Recupera la data attuale
+	SET data_finanziamento = CURDATE();
 
-    -- Conta il numero di finanziamenti effettuati dall'utente per il progetto nello stesso giorno
-    SELECT COUNT(*)
-    INTO num_finanziamenti
-    FROM FINANZIAMENTO
-    WHERE email_utente = NEW.email_utente
-      AND nome_progetto = NEW.nome_progetto
-      AND data = data_finanziamento;
+	-- Conta il numero di finanziamenti effettuati dall'utente per il progetto nello stesso giorno
+	SELECT COUNT(*)
+	INTO num_finanziamenti
+	FROM FINANZIAMENTO
+	WHERE email_utente = NEW.email_utente
+	  AND nome_progetto = NEW.nome_progetto
+	  AND data = data_finanziamento;
 
-    -- Se il numero di finanziamenti è > 0, rifiuta il finanziamento
-    IF num_finanziamenti > 0 THEN
-        SIGNAL SQLSTATE '45000'
-            SET MESSAGE_TEXT = 'FINANZIAMENTO GIA\' EFFETTUATO NELLO STESSO GIORNO';
-    END IF;
+	-- Se il numero di finanziamenti è > 0, rifiuta il finanziamento
+	IF num_finanziamenti > 0 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'FINANZIAMENTO GIA\' EFFETTUATO NELLO STESSO GIORNO';
+	END IF;
 END//
 
 DELIMITER ;
@@ -2846,13 +2920,13 @@ DELIMITER //
 
 -- Evento per chiudere automaticamente i progetti scaduti, eseguito ogni giorno
 CREATE EVENT ev_chiudi_progetti_scaduti
-    ON SCHEDULE EVERY 1 DAY
-    DO
-    BEGIN
-        UPDATE PROGETTO
-        SET stato = 'chiuso'
-        WHERE stato = 'aperto'
-          AND data_limite < CURDATE();
-    END//
+	ON SCHEDULE EVERY 1 DAY
+	DO
+	BEGIN
+		UPDATE PROGETTO
+		SET stato = 'chiuso'
+		WHERE stato = 'aperto'
+		  AND data_limite < CURDATE();
+	END//
 
 DELIMITER ;
