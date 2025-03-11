@@ -22,9 +22,13 @@ if ($_SESSION['is_creatore']) {
 
         // Recupero il suo nr_progetti
         $_SESSION['nr_progetti'] = sp_invoke('sp_util_get_creatore_nr_progetti', $in)[0]['nr_progetti'];
+
+        // Recupero il numero totale di partecipanti accettati
+        $totalPartecipanti = sp_invoke('sp_util_get_creatore_total_partecipanti', $in)[0]['total_partecipanti'] ?? 0;
     } catch (PDOException $ex) {
         $progetti = [];
         $progettiError = "Errore nel recupero dei progetti: " . $ex->errorInfo[2];
+        $totalPartecipanti = 0;
     }
 }
 
@@ -176,13 +180,19 @@ try {
                                     <?php if ($_SESSION['is_creatore']): ?>
                                         <hr>
                                         <div class="row">
-                                            <div class="col-6">
+                                            <div class="col-4">
                                                 <div class="d-flex align-items-center mb-2">
                                                     <span class="badge bg-primary me-2"><?php echo htmlspecialchars($_SESSION['nr_progetti']); ?></span>
-                                                    <strong>Progetti creati</strong>
+                                                    <strong>Progetti</strong>
                                                 </div>
                                             </div>
-                                            <div class="col-6">
+                                            <div class="col-4">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <span class="badge bg-primary me-2"><?php echo htmlspecialchars($totalPartecipanti); ?></span>
+                                                    <strong>Partecipanti</strong>
+                                                </div>
+                                            </div>
+                                            <div class="col-4">
                                                 <div class="d-flex align-items-center mb-2">
                                                     <div class="progress w-50 position-relative" style="height: 20px;">
                                                         <div class="progress-bar fw-bold bg-success"

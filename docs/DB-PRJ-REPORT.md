@@ -26,88 +26,93 @@
 
 
 ## see if can reuse/replicate javascript modal logic from curriculum.php elsewhere, or reason if u wanna keep it or not
+- like see if can replace finanziamento_conferma.php page with a modal instead that shows the same thing
+- if modal js logic can be reused maybe create dedicated js file in /functions for js and maybe even the html in /components but idk
+- ## alternatively remove fully the modals and do separate confirmation/edit pages
 
 
 
 ### to make all php files slimmer consider abstracting reused visual components and requiring them in file, and same thing for data gathering if there are identical try-catch sp_invoke data initialisers like $progetto or $finanziamenti
 - if u do this evaluate if need to refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways and whatever else/files for consistency
 
-
 ## TODO SP
-#### Curriculum
-- sp_progetto_insert
-- sp_reward_insert
+- sp_progetto_insert: CREATORE
+- sp_reward_insert: CREATORE
 
-- sp_componente_insert
-- sp_componente_delete
-- sp_componente_update
+- sp_componente_insert: CREATORE
+- sp_componente_delete: CREATORE
+- sp_componente_update: CREATORE
 
-- sp_profilo_insert
-- sp_profilo_delete
-
-- sp_skill_profilo_insert
-- sp_skill_profilo_delete
-- sp_skill_profilo_update
-
-
-
-
-
-
-## profilo_dettagli.php
-- Similar structure to progetto_dettagli.php, regular users can see all info related to profile, along with their level of skills (if available) for the selected profile.
-	- If the user meets all the criteria then he is allowed to press on button to apply ($\_SESSION\['success'] back to progetto_dettagli.php)
-	- Otherwise, the apply button is greyed out, and anyways even if user forces submit of application, sp and triggers handle automatic rejection ($\_SESSION\['error'] back to progetto_dettagli.php)
-- for creatore of project only display at bottom section to edit profile in any way or delete it, and also a log from PARTECIPANTE (maybe create sp for this) of all the attempted (qualifiable) applications
-
-## progetto_profili.php
-- page available to creator of project only (add check at top php script with sp)
-- here he can manage all the profiles of his project, delete, update (relocate profilo_dettagli.php), insert any profile (relocate new_profilo.php which uses actions/profilo_insert.php)
-
-## new_profilo.php
-- creator of project page only
-- page to define and insert for one of his projects (he selects from checkbox) a new profile with custom name and competenze with required level
-
-## partecipazioni.php page in navbar displays all the sw projects a user is participating in and  associated profiles/competenza/livello
-
+- sp_profilo_insert: CREATORE
+- sp_profilo_delete: CREATORE
+- sp_skill_profilo_insert: CREATORE
+- sp_skill_profilo_delete: CREATORE
+- sp_skill_profilo_update: CREATORE
 
 ## REMEMBER FOR HW PROJECTS 
 - WHEN USER ADDS COMPONENTS PRICE/QUANTITY HE MUST BE ALERTED IF THEIR SUM EXCEEDS THE PROJECT BUDGET AND TO CONFIRM ADD THEM OR NOT → MAKE SURE THE BUDGET RECALCULATION TRIGGERS ARE CORRECT
-
 
 ## for mongodb 
 - add a error collection which just logs any sql signal state 45000 errors triggered, this type of log occurs in the fail-early initial checks at top of most php files, and in all PDOException try-catches
 - almost anywhere an sp_invoke() in php is called, thats where i must trigger a log as it indicates an action taking place
 
-
-## keep track of website structure
+## keep track of website structure, when complete paste it atop of section 6.2 report
 ```
 bostarter/
 ├── actions/
+│   ├── candidatura_insert.php
+│   ├── candidatura_update.php
 │   ├── commento_delete.php
 │   ├── commento_insert.php
+│   ├── commento_risposta_delete.php
+│   ├── commento_risposta_insert.php
+│   ├── finanziamento_insert.php
+│   ├── foto_delete.php
 │   ├── login_handler.php
 │   ├── logout.php
+│   ├── progetto_budget_update.php
+│   ├── progetto_descrizione_update.php
 │   ├── register_handler.php
+│   ├── reward_insert.php
+│   ├── skill_curriculum_delete.php
 │   ├── skill_curriculum_insert.php
-│   └── skill_insert.php
+│   ├── skill_curriculum_update.php
+│   ├── skill_insert.php
+│   ├── skill_update.php
+│   └── utente_convert_creatore.php
 ├── components/
 │   ├── error_alert.php
 │   ├── footer.php
 │   ├── header.php
 │   └── success_alert.php
 ├── config/
-│   ├── config.php
+│   └── config.php
+├── db/
+│   ├── bostarter_demo.sql
+│   └── bostarter_init.sql
+├── docs/
+│   └── DB-PRJ-REPORT.md
+├── functions/
+│   ├── checks.php
+│   ├── redirect.php
 │   └── sp_invoke.php
 ├── public/
-│   ├── lib/
+│   ├── libs/
+│   │   ├── bootstrap.bundle.min.js
+│   │   └── bootstrap.min.css
+│   ├── candidature.php
+│   ├── curriculum.php
+│   ├── finanziamenti.php
+│   ├── finanziamento_conferma.php
 │   ├── home.php
 │   ├── index.php
 │   ├── login.php
+│   ├── profilo_dettagli.php
 │   ├── progetti.php
+│   ├── progetto_aggiorna.php
+│   ├── progetto_crea.php
 │   ├── progetto_dettagli.php
 │   ├── register.php
-│   ├── skill.php
 │   └── statistiche.php
 ```
 

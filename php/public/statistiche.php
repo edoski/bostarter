@@ -97,8 +97,7 @@ try {
                                                 <?php echo $rank . ". " . htmlspecialchars($progetto['nome']); ?>
                                             </div>
                                             <div class="text-muted small">
-                                                <?php echo htmlspecialchars($progetto['tot_finanziamenti']) . " / " . htmlspecialchars($progetto['budget']) ?>
-                                                €
+                                                <?php echo htmlspecialchars($progetto['tot_finanziamenti']) . " / " . htmlspecialchars($progetto['budget']) ?>€
                                             </div>
                                         </div>
                                         <!-- Blue Badge con % Completamento -->

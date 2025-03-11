@@ -328,6 +328,12 @@ try {
                                 finanziamento di un certo importo.
                             </small>
                         </div>
+                        <?php if (checkProgettoOwner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
+                            <form action="../public/progetto_aggiorna.php?attr=reward&nome=<?php echo htmlspecialchars($progetto['nome']); ?>"
+                              method="post">
+                                <button type="submit" class="btn btn-warning mt-2">Modifica</button>
+                            </form>
+                        <?php endif; ?>
                     </div>
 
                     <!-- Body: Lista delle Reward -->
@@ -480,7 +486,9 @@ try {
                                                     $eligibilityResult = sp_invoke('sp_util_verify_partecipante_eligibility', $in);
                                                     $userIsEligible = !empty($eligibilityResult) && ($eligibilityResult[0]['eligible'] ?? false);
                                                 }
-                                            } catch (PDOException $ex) {}
+                                            } catch (PDOException $ex) {
+                                                print_r($ex->errorInfo[2]);
+                                            }
                                             ?>
 
                                             <?php if ($userHasApplied): ?>

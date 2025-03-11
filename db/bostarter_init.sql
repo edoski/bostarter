@@ -703,6 +703,26 @@ BEGIN
 END//
 
 /*
+*  PROCEDURE: sp_util_get_creatore_total_partecipanti
+*  PURPOSE: Calcola il numero totale di partecipanti accettati ai progetti di un creatore.
+*  USED BY: CREATORE
+*
+*  @param IN p_email - Email del creatore
+*/
+CREATE PROCEDURE sp_util_get_creatore_total_partecipanti(
+	IN p_email VARCHAR(100)
+)
+BEGIN
+	START TRANSACTION;
+	SELECT COUNT(*) AS total_partecipanti
+	FROM PARTECIPANTE P
+		     JOIN PROGETTO PR ON P.nome_progetto = PR.nome
+	WHERE PR.email_creatore = p_email
+	  AND P.stato = 'accettato';
+	COMMIT;
+END//
+
+/*
 *  PROCEDURE: sp_util_finanziamento_progetto_utente_oggi_exists
 *  PURPOSE: Verifica se l'utente ha finanziato il progetto oggi. Restituisce TRUE se ha finanziato, FALSE altrimenti.
 *  USED BY: ALL
@@ -2755,6 +2775,7 @@ END//
 --  sp_skill_profilo_insert
 --  sp_skill_profilo_delete
 --  sp_skill_profilo_update
+--  sp_skill_profilo_selectDiff
 
 /*
 *  PROCEDURE: sp_skill_profilo_insert
@@ -2890,6 +2911,30 @@ BEGIN
 	WHERE nome_profilo = p_nome_profilo
 	  AND competenza = p_competenza
 	  AND nome_progetto = p_nome_progetto;
+	COMMIT;
+END//
+
+/*
+*  PROCEDURE: sp_skill_profilo_selectDiff
+*  PURPOSE: Restituisce le competenze non presenti in un profilo di un progetto software.
+*
+*  @param IN p_nome_profilo - Nome del profilo del progetto software
+*  @param IN p_nome_progetto - Nome del progetto software a cui appartiene il profilo
+*/
+CREATE PROCEDURE sp_skill_profilo_selectDiff(
+	IN p_nome_profilo VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100)
+)
+BEGIN
+	START TRANSACTION;
+	SELECT S.competenza
+	FROM SKILL S
+	WHERE S.competenza NOT IN (
+		SELECT SP.competenza
+		FROM SKILL_PROFILO SP
+		WHERE SP.nome_profilo = p_nome_profilo
+		  AND SP.nome_progetto = p_nome_progetto
+	);
 	COMMIT;
 END//
 
