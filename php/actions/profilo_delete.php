@@ -7,29 +7,14 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è un creatore
-if (!$_SESSION['is_creatore']) {
-    redirect(
-        false,
-        "Solo i creatori possono eliminare profili.",
-        "../public/progetti.php"
-    );
-}
+// 2. L'utente è il creatore del progetto
+checkProgettoOwner($_POST['nome_progetto']);
 
 // 3. Parametri necessari sono stati forniti
 if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo'])) {
     redirect(
         false,
         "Dati mancanti per l'eliminazione del profilo.",
-        "../public/progetti.php"
-    );
-}
-
-// 4. L'utente è il creatore del progetto
-if (!checkProgettoOwner($_SESSION['email'], $_POST['nome_progetto'])) {
-    redirect(
-        false,
-        "Non sei autorizzato ad effettuare questa operazione.",
         "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
     );
 }
@@ -54,6 +39,6 @@ try {
 // Success, redirect alla pagina di gestione profili
 redirect(
     true,
-    "Profilo selezionato per la modifica.",
-    "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_GET['nome_progetto'])
+    "Profilo '" . $_POST['nome_profilo'] . "' eliminato correttamente.",
+    "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_POST['nome_progetto'])
 );

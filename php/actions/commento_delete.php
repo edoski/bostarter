@@ -8,7 +8,7 @@ require '../config/config.php';
 // 2. È stato selezionato un progetto valido
 // 3. È stato selezionato un commento valido
 checkAuth();
-checkProjectSelected();
+checkProgettoSelected();
 check_Commento_validIdSelected();
 
 // 4. L'utente è il creatore del commento, oppure è un admin

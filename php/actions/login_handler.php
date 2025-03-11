@@ -66,7 +66,7 @@ try {
     $_SESSION['is_admin'] = sp_invoke('sp_util_admin_exists', $in)[0]['is_admin'];
 
     $outAdmin = ['p_codice_sicurezza_out' => null];
-    sp_invoke('sp_util_get_admin_codice_sicurezza', $in, $outAdmin);
+    sp_invoke('sp_util_admin_get_codice_sicurezza', $in, $outAdmin);
 
     if ($_SESSION['is_admin']) {
         if (empty($codiceSicurezza)) {

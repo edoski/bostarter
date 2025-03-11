@@ -55,7 +55,7 @@ try {
 // Recupero l'affidabilità del creatore
 try {
     $in = ['p_email' => $progetto['email_creatore']];
-    $affidabilita = sp_invoke('sp_util_get_creatore_affidabilita', $in)[0]['affidabilita'];
+    $affidabilita = sp_invoke('sp_util_creatore_get_affidabilita', $in)[0]['affidabilita'];
 } catch (PDOException $ex) {
     redirect(
         false,
@@ -119,7 +119,7 @@ if ($progetto['tipo'] === 'SOFTWARE') {
     try {
         $in = ['p_nome_progetto' => $_GET['nome']];
         $profili = [];
-        $result = sp_invoke('sp_profilo_skill_selectAllByProgetto', $in);
+        $result = sp_invoke('sp_profilo_selectAllByProgetto', $in);
 
         foreach ($result as $row) {
             $profili[$row['nome_profilo']][] = [
@@ -172,7 +172,7 @@ try {
 $finanziatoOggi = false;
 try {
     $in = ['p_email' => $_SESSION['email'], 'p_nome_progetto' => $progetto['nome']];
-    $result = sp_invoke('sp_util_finanziamento_progetto_utente_oggi_exists', $in);
+    $result = sp_invoke('sp_util_utente_finanziato_progetto_oggi', $in);
     $finanziatoOggi = $result[0]['finanziato_oggi'];
 } catch (PDOException $ex) {
     redirect(
@@ -214,7 +214,7 @@ try {
                 <div class="card mb-3">
                     <div class="card-header d-inline-flex align-items-center justify-content-between">
                         <p class="fw-bold fs-5">Descrizione</p>
-                        <?php if (checkProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
+                        <?php if (isProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
                             <form action="../public/progetto_aggiorna.php?attr=descrizione&nome=<?php echo htmlspecialchars($progetto['nome']); ?>"
                                   method="post">
                                 <button type="submit" class="btn btn-warning">Modifica</button>
@@ -282,7 +282,7 @@ try {
                         Ogni finanziamento è ricompensato con una delle reward disponibili.
                     </small>
                 </div>
-                <?php if (checkProgettoOwner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
+                <?php if (isProgettoOwner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
                     <form action="../public/progetto_aggiorna.php?attr=budget&nome=<?php echo htmlspecialchars($progetto['nome']); ?>"
                           method="post">
                         <button type="submit" class="btn btn-warning mt-2">Modifica</button>
@@ -328,7 +328,7 @@ try {
                                 finanziamento di un certo importo.
                             </small>
                         </div>
-                        <?php if (checkProgettoOwner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
+                        <?php if (isProgettoOwner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
                             <form action="../public/progetto_aggiorna.php?attr=reward&nome=<?php echo htmlspecialchars($progetto['nome']); ?>"
                               method="post">
                                 <button type="submit" class="btn btn-warning mt-2">Modifica</button>
@@ -423,8 +423,12 @@ try {
                         </small>
                     <?php endif; ?>
                 </div>
-                <?php if (checkProgettoOwner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                    <form action="../public/progetto_aggiorna.php?attr=<?php echo ($progetto['tipo'] === 'SOFTWARE') ? 'profilo' : 'componente'; ?>&nome=<?php echo htmlspecialchars($progetto['nome']); ?>"
+                <?php if (isProgettoOwner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
+                    <?php
+                    $tipo = ($progetto['tipo'] === 'SOFTWARE') ? 'profilo': 'componente';
+                    $nome_progetto = htmlspecialchars($progetto['nome']);
+                    ?>
+                    <form action="../public/progetto_aggiorna.php?attr=<?php echo $tipo ?>&nome=<?php echo $nome_progetto; ?>"
                           method="post">
                         <button type="submit" class="btn btn-warning mt-2">Modifica</button>
                     </form>
@@ -457,7 +461,7 @@ try {
                                             <button class="btn btn-secondary w-100" disabled>
                                                 Occupato da <?php echo htmlspecialchars($acceptedParticipants[$nome_profilo]['nickname']); ?>
                                             </button>
-                                        <?php elseif (!checkProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
+                                        <?php elseif (!isProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
                                             <?php
                                             // Controllo se l'utente ha già inviato una candidatura
                                             $userHasApplied = false;
@@ -483,7 +487,7 @@ try {
 
                                                 // Controllo se l'utente è idoneo per la candidatura
                                                 if (!$userHasApplied && !$userWasRejected) {
-                                                    $eligibilityResult = sp_invoke('sp_util_verify_partecipante_eligibility', $in);
+                                                    $eligibilityResult = sp_invoke('sp_util_partecipante_is_eligible', $in);
                                                     $userIsEligible = !empty($eligibilityResult) && ($eligibilityResult[0]['eligible'] ?? false);
                                                 }
                                             } catch (PDOException $ex) {
@@ -585,10 +589,10 @@ try {
                                 <div class="card-footer">
                                     <strong>
                                         Risposta
-                                        (<?php if (checkProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>You<?php else: ?>Creatore<?php endif; ?>)
+                                        (<?php if (isProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>You<?php else: ?>Creatore<?php endif; ?>)
                                     </strong>
                                     <p><?php echo htmlspecialchars($commento['risposta']); ?></p>
-                                    <?php if (checkProgettoOwner($_SESSION['email'], $progetto['nome']) || $_SESSION['is_admin']): ?>
+                                    <?php if (isProgettoOwner($_SESSION['email'], $progetto['nome']) || $_SESSION['is_admin']): ?>
                                         <form action="../actions/commento_risposta_delete.php" method="post">
                                             <input type="hidden" name="id_commento" value="<?php echo htmlspecialchars($commento['id']); ?>">
                                             <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
@@ -596,7 +600,7 @@ try {
                                         </form>
                                     <?php endif; ?>
                                 </div>
-                            <?php elseif (checkProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
+                            <?php elseif (isProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
                                 <div class="card-footer">
                                     <form action="../actions/commento_risposta_insert.php" method="post">
                                         <input type="hidden" name="id_commento" value="<?php echo htmlspecialchars($commento['id']); ?>">

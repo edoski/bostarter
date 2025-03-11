@@ -26,7 +26,7 @@ if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo']) || !isset(
 }
 
 // 4. L'utente è il creatore del progetto
-if (!checkProgettoOwner($_SESSION['email'], $_POST['nome_progetto'])) {
+if (!isProgettoOwner($_SESSION['email'], $_POST['nome_progetto'])) {
     redirect(
         false,
         "Non sei autorizzato ad effettuare questa operazione.",

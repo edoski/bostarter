@@ -8,7 +8,7 @@ require '../config/config.php';
 // 2. È stato selezionato un progetto valido
 // 3. È stato selezionato un commento valido
 checkAuth();
-checkProjectSelected();
+checkProgettoSelected();
 check_Commento_validInsert();
 
 // === ACTION ===

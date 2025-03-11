@@ -24,12 +24,11 @@
 
 
 
+## use checkProgettoOwner() in all CHECKS in place of existing check
 
-## see if can reuse/replicate javascript modal logic from curriculum.php elsewhere, or reason if u wanna keep it or not
-- like see if can replace finanziamento_conferma.php page with a modal instead that shows the same thing
-- if modal js logic can be reused maybe create dedicated js file in /functions for js and maybe even the html in /components but idk
-- ## alternatively remove fully the modals and do separate confirmation/edit pages
 
+## progetto dettagli if profilo has no skill (ex. just created it) render text in card body saying "Nessuna skill associata."
+- consider if in db should rework profilo to have boolean is_aperto attribute which makes it so that only those w it being true get returned as available/visible profiles in platform. profilo is_aperto default false and becomes set to true only when user in progetto_aggiorna_profili clicks like Salva Profilo or something, until then it remains invisible to all except him
 
 
 ### to make all php files slimmer consider abstracting reused visual components and requiring them in file, and same thing for data gathering if there are identical try-catch sp_invoke data initialisers like $progetto or $finanziamenti

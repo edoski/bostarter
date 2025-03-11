@@ -11,7 +11,7 @@ check_CommentoRisposta_validComment();
 
 // 3. L'utente sia il creatore del progetto, oppure è un admin
 if (!$_SESSION['is_admin']) {
-    if (!checkProgettoOwner($_SESSION['email'], $_POST['nome_progetto'])) {
+    if (!isProgettoOwner($_SESSION['email'], $_POST['nome_progetto'])) {
         redirect(
             false,
             "Non sei il creatore di questo progetto.",

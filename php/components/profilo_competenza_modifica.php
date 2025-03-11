@@ -19,8 +19,8 @@
                        value="<?php echo htmlspecialchars($livelloSelezionato); ?>"
                        required min="0" max="5">
                 <div class="form-text text-danger">
-                    Attenzione: L'aumento del livello richiesto potrebbe comportare il rifiuto
-                    automatico di candidature esistenti.
+                    Attenzione: L'aumento del livello richiesto comporterà il rifiuto
+                    automatico di candidature esistenti che non soddisfano il nuovo requisito.
                 </div>
             </div>
 

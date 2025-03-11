@@ -7,7 +7,10 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. Controllo che l'attributo sia stato specificato
+// 2. L'utente è il creatore del progetto
+checkProgettoOwner($_GET['nome']);
+
+// 3. Controllo che l'attributo sia stato specificato
 if (!isset($_GET['attr']) || !isset($_GET['nome'])) {
     redirect(
         false,
@@ -16,27 +19,15 @@ if (!isset($_GET['attr']) || !isset($_GET['nome'])) {
     );
 }
 
-// 3. L'utente è il creatore del progetto
-if (!($_SESSION['is_creatore'] && checkProgettoOwner($_SESSION['email'], $_GET['nome']))) {
-    redirect(
-        false,
-        "Non sei autorizzato ad effettuare questa operazione.",
-        "../public/progetto_dettagli.php?nome=" . $_GET['nome']
-    );
-}
+// 4. Controllo che il progetto sia aperto
+checkProgettoAperto($_GET['nome']);
 
 // === DATABASE ===
-// Recupero il progetto
+// Recupero il progetto e il suo tipo
 try {
     $in = ['p_nome_progetto' => $_GET['nome']];
     $progetto = sp_invoke('sp_progetto_select', $in)[0];
-    if (!isset($progetto)) {
-        redirect(
-            false,
-            "Progetto non trovato.",
-            "../public/progetti.php"
-        );
-    }
+    $progetto['tipo'] = sp_invoke('sp_util_progetto_type', $in)[0]['tipo_progetto'];
 } catch (PDOException $ex) {
     redirect(
         false,
@@ -44,21 +35,9 @@ try {
         "../public/progetti.php"
     );
 }
-
-// Recupero il tipo del progetto
-try {
-    $in = ['p_nome_progetto' => $_GET['nome']];
-    $progetto['tipo'] = sp_invoke('sp_util_progetto_type', $in)[0]['tipo_progetto'] ?? '';
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero del tipo del progetto: " . $ex->errorInfo[2],
-        "../public/progetto_dettagli.php?nome=" . urlencode($_GET['nome'])
-    );
-}
-
-require '../components/header.php';
 ?>
+
+<?php require '../components/header.php'; ?>
 <div class="container my-4">
     <!-- Messaggio di successo/errore post-azione -->
     <?php include '../components/error_alert.php'; ?>

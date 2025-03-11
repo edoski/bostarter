@@ -8,7 +8,7 @@ require '../config/config.php';
 checkAuth();
 
 // 2. L'utente è il creatore del progetto
-if (!($_SESSION['is_creatore'] && checkProgettoOwner($_SESSION['email'], $_POST['nome_progetto']))) {
+if (!($_SESSION['is_creatore'] && isProgettoOwner($_SESSION['email'], $_POST['nome_progetto']))) {
     redirect(
         false,
         "Non sei autorizzato ad effettuare questa operazione.",

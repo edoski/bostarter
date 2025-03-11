@@ -294,14 +294,14 @@ DELIMITER //
 -- GENERICHE/UTILS: Insieme di controlli generici per tutte le stored procedure principali laddove necessario
 
 /*
-*  PROCEDURE: sp_util_is_utente_admin
+*  PROCEDURE: sp_util_utente_is_admin
 *  PURPOSE: Verifica se l'utente è un admin, lanciando un errore se non lo è.
 *
 *  @param IN p_email - Email dell'utente da controllare
 *
 *  @throws 45000 - UTENTE NON ADMIN
 */
-CREATE PROCEDURE sp_util_is_utente_admin(
+CREATE PROCEDURE sp_util_utente_is_admin(
 	IN p_email VARCHAR(100)
 )
 BEGIN
@@ -314,14 +314,14 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_is_utente_creatore
+*  PROCEDURE: sp_util_utente_is_creatore
 *  PURPOSE: Verifica se l'utente è un creatore.
 *
 *  @param IN p_email - Email dell'utente da controllare
 *
 *  @throws 45000 - UTENTE NON CREATORE
 */
-CREATE PROCEDURE sp_util_is_utente_creatore(
+CREATE PROCEDURE sp_util_utente_is_creatore(
 	IN p_email VARCHAR(100)
 )
 BEGIN
@@ -334,7 +334,7 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_is_creatore_progetto_owner
+*  PROCEDURE: sp_util_creatore_is_progetto_owner
 *  PURPOSE: Verifica se l'utente è il creatore del progetto.
 *
 *  @param IN p_email - Email dell'utente da controllare
@@ -342,7 +342,7 @@ END//
 *
 *  @throws 45000 - UTENTE NON CREATORE DEL PROGETTO
 */
-CREATE PROCEDURE sp_util_is_creatore_progetto_owner(
+CREATE PROCEDURE sp_util_creatore_is_progetto_owner(
 	IN p_email VARCHAR(100),
 	IN p_nome_progetto VARCHAR(100)
 )
@@ -357,14 +357,14 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_get_reward_by_code
+*  PROCEDURE: sp_util_reward_get_by_code
 *  PURPOSE: Recupera i dettagli di una reward dato il suo codice e il nome del progetto associato.
 *  USED BY: ALL
 *
 *  @param IN p_nome_progetto - Nome del progetto associato alla reward
 *  @param IN p_codice_reward - Codice della reward da recuperare
 */
-CREATE PROCEDURE sp_util_get_reward_by_code(
+CREATE PROCEDURE sp_util_reward_get_by_code(
 	IN p_nome_progetto VARCHAR(100),
 	IN p_codice_reward VARCHAR(50)
 )
@@ -402,14 +402,14 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_is_progetto_software
+*  PROCEDURE: sp_util_progetto_is_software
 *  PURPOSE: Verifica se il progetto è di tipo software.
 *
 *  @param IN p_nome_progetto - Nome del progetto da controllare
 *
 *  @throws 45000 - PROGETTO NON DI TIPO SOFTWARE
 */
-CREATE PROCEDURE sp_util_is_progetto_software(
+CREATE PROCEDURE sp_util_progetto_is_software(
 	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
@@ -422,14 +422,14 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_is_progetto_hardware
+*  PROCEDURE: sp_util_progetto_is_hardware
 *  PURPOSE: Verifica se il progetto è di tipo hardware.
 *
 *  @param IN p_nome_progetto - Nome del progetto da controllare
 *
 *  @throws 45000 - PROGETTO NON DI TIPO HARDWARE
 */
-CREATE PROCEDURE sp_util_is_progetto_hardware(
+CREATE PROCEDURE sp_util_progetto_is_hardware(
 	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
@@ -589,14 +589,14 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_is_progetto_aperto
+*  PROCEDURE: sp_util_progetto_is_aperto
 *  PURPOSE: Verifica se lo stato del progetto è aperto.
 *
 *  @param IN p_nome_progetto - Nome del progetto da controllare
 *
 *  @throws 45000 - PROGETTO CHIUSO
 */
-CREATE PROCEDURE sp_util_is_progetto_aperto(
+CREATE PROCEDURE sp_util_progetto_is_aperto(
 	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
@@ -607,7 +607,7 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_get_admin_codice_sicurezza
+*  PROCEDURE: sp_util_admin_get_codice_sicurezza
 *  PURPOSE: Visualizzazione del codice di sicurezza di un admin.
 *  USED BY: ADMIN
 *
@@ -615,7 +615,7 @@ END//
 *
 *  @param OUT p_codice_sicurezza_out - Codice di sicurezza dell'admin
 */
-CREATE PROCEDURE sp_util_get_admin_codice_sicurezza(
+CREATE PROCEDURE sp_util_admin_get_codice_sicurezza(
 	IN p_email VARCHAR(100),
 	OUT p_codice_sicurezza_out VARCHAR(100)
 )
@@ -667,13 +667,13 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_get_creatore_affidabilita
+*  PROCEDURE: sp_util_creatore_get_affidabilita
 *  PURPOSE: Visualizzazione dell'affidabilità di un creatore.
 *  USED BY: CREATORE
 *
 *  @param IN p_email - Email del creatore
 */
-CREATE PROCEDURE sp_util_get_creatore_affidabilita(
+CREATE PROCEDURE sp_util_creatore_get_affidabilita(
 	IN p_email VARCHAR(100)
 )
 BEGIN
@@ -685,13 +685,13 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_get_creatore_nr_progetti
+*  PROCEDURE: sp_util_creatore_get_nr_progetti
 *  PURPOSE: Visualizzazione del numero di progetti creati da un creatore.
 *  USED BY: CREATORE
 *
 *  @param IN p_email - Email del creatore
 */
-CREATE PROCEDURE sp_util_get_creatore_nr_progetti(
+CREATE PROCEDURE sp_util_creatore_get_nr_progetti(
 	IN p_email VARCHAR(100)
 )
 BEGIN
@@ -703,13 +703,13 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_get_creatore_total_partecipanti
+*  PROCEDURE: sp_util_creatore_get_tot_partecipanti
 *  PURPOSE: Calcola il numero totale di partecipanti accettati ai progetti di un creatore.
 *  USED BY: CREATORE
 *
 *  @param IN p_email - Email del creatore
 */
-CREATE PROCEDURE sp_util_get_creatore_total_partecipanti(
+CREATE PROCEDURE sp_util_creatore_get_tot_partecipanti(
 	IN p_email VARCHAR(100)
 )
 BEGIN
@@ -723,14 +723,14 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_finanziamento_progetto_utente_oggi_exists
+*  PROCEDURE: sp_util_utente_finanziato_progetto_oggi
 *  PURPOSE: Verifica se l'utente ha finanziato il progetto oggi. Restituisce TRUE se ha finanziato, FALSE altrimenti.
 *  USED BY: ALL
 *
 *  @param IN p_email - Email dell'utente
 *  @param IN p_nome_progetto - Nome del progetto
 */
-CREATE PROCEDURE sp_util_finanziamento_progetto_utente_oggi_exists(
+CREATE PROCEDURE sp_util_utente_finanziato_progetto_oggi(
 	IN p_email VARCHAR(100),
 	IN p_nome_progetto VARCHAR(100)
 )
@@ -771,7 +771,7 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_verify_partecipante_eligibility
+*  PROCEDURE: sp_util_partecipante_is_eligible
 *  PURPOSE: Verifica se un utente ha tutte le competenze necessarie per candidarsi a un profilo.
 *  USED BY: ALL
 *
@@ -779,7 +779,7 @@ END//
 *  @param IN p_nome_progetto - Nome del progetto
 *  @param IN p_nome_profilo - Nome del profilo
 */
-CREATE PROCEDURE sp_util_verify_partecipante_eligibility(
+CREATE PROCEDURE sp_util_partecipante_is_eligible(
 	IN p_email_utente VARCHAR(100),
 	IN p_nome_progetto VARCHAR(100),
 	IN p_nome_profilo VARCHAR(100)
@@ -836,10 +836,10 @@ BEGIN
 	CALL sp_util_progetto_exists(p_nome_progetto);
 
 	-- Controllo che il progetto sia creato dall'utente
-	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome_progetto);
 
 	-- Controllo che il progetto sia di tipo software
-	CALL sp_util_is_progetto_software(p_nome_progetto);
+	CALL sp_util_progetto_is_software(p_nome_progetto);
 
 	-- Controllo che il profilo del progetto esista
 	CALL sp_util_profilo_exists(p_nome_profilo, p_nome_progetto);
@@ -874,7 +874,7 @@ BEGIN
 	CALL sp_util_progetto_exists(p_nome_progetto);
 
 	-- Controllo che il progetto sia creato dall'utente
-	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome_progetto);
 
 	-- Controllo che il profilo esista (solo per delete)
 	IF NOT p_is_insert THEN
@@ -909,13 +909,13 @@ BEGIN
 	CALL sp_util_progetto_exists(p_nome_progetto);
 
 	-- Controllo che il progetto sia creato dall'utente
-	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome_progetto);
 
 	-- Controllo che il progetto sia di tipo hardware
-	CALL sp_util_is_progetto_hardware(p_nome_progetto);
+	CALL sp_util_progetto_is_hardware(p_nome_progetto);
 
 	-- Controllo che il progetto sia ancora aperto
-	CALL sp_util_is_progetto_aperto(p_nome_progetto);
+	CALL sp_util_progetto_is_aperto(p_nome_progetto);
 
 	-- Controllo che il componente esista (solo per update e delete)
 	IF NOT p_is_insert THEN
@@ -949,10 +949,10 @@ BEGIN
 	CALL sp_util_progetto_exists(p_nome_progetto);
 
 	-- Controllo che il progetto sia ancora aperto
-	CALL sp_util_is_progetto_aperto(p_nome_progetto);
+	CALL sp_util_progetto_is_aperto(p_nome_progetto);
 
 	-- Controllo che il progetto sia di tipo software
-	CALL sp_util_is_progetto_software(p_nome_progetto);
+	CALL sp_util_progetto_is_software(p_nome_progetto);
 
 	-- Controllo che il profilo esista
 	CALL sp_util_profilo_exists(p_nome_profilo, p_nome_progetto);
@@ -984,7 +984,7 @@ BEGIN
 	CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
 
 	-- Controllo che l'utente sia il creatore del progetto
-	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome_progetto);
 
 	-- Controllo che la candidatura esista
 	IF NOT EXISTS (SELECT 1
@@ -1155,7 +1155,7 @@ BEGIN
 	-- Se l'intento è di inserire una risposta...
 	IF p_is_insert THEN
 		-- Controllo che l'utente sia il creatore del progetto
-		CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+		CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome_progetto);
 		-- Controllo che il commento NON ABBIA una risposta
 		IF EXISTS (SELECT 1 FROM COMMENTO WHERE id = p_commento_id AND risposta IS NOT NULL) THEN
 			SIGNAL SQLSTATE '45000'
@@ -1193,7 +1193,7 @@ END//
 *  @param IN p_foto_id - ID della foto da controllare
 *  @param IN p_is_insert - Flag per distinguere tra insert e delete
 *
-*  @throws 45000 - FOTO NON ESISTENTE (+ altri throw specifici da sp_util_is_creatore_progetto_owner)
+*  @throws 45000 - FOTO NON ESISTENTE (+ altri throw specifici da sp_util_creatore_is_progetto_owner)
 */
 CREATE PROCEDURE sp_foto_check(
 	IN p_nome_progetto VARCHAR(100),
@@ -1203,7 +1203,7 @@ CREATE PROCEDURE sp_foto_check(
 )
 BEGIN
 	-- Controllo che l'utente sia il creatore del progetto
-	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome_progetto);
 
 	-- Controllo che la foto esista (solo per delete)
 	IF NOT p_is_insert AND NOT EXISTS (SELECT 1
@@ -1583,7 +1583,7 @@ BEGIN
 		END;
 	START TRANSACTION;
 	-- Controllo che l'utente sia un creatore
-	CALL sp_util_is_utente_creatore(p_email_creatore);
+	CALL sp_util_utente_is_creatore(p_email_creatore);
 
 	-- Controllo che la data_limite sia futura alla data attuale
 	IF p_data_limite <= CURRENT_DATE THEN
@@ -1629,7 +1629,7 @@ BEGIN
 	-- Controllo che:
 	-- 1. L'utente sia il creatore del progetto
 	-- 2. La descrizione non sia nulla
-	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome);
+	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome);
 
 	IF p_descrizione IS NULL THEN
 		SIGNAL SQLSTATE '45000'
@@ -1670,7 +1670,7 @@ BEGIN
 		END;
 	START TRANSACTION;
 	-- Controllo che l'utente sia il creatore del progetto
-	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome);
+	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome);
 
 	-- Recupero il budget corrente e lo stato del progetto
 	SELECT budget, stato
@@ -2248,7 +2248,7 @@ BEGIN
 		END;
 	START TRANSACTION;
 	-- Controllo che l'admin sia l'utente che esegue la procedura
-	CALL sp_util_is_utente_admin(p_email);
+	CALL sp_util_utente_is_admin(p_email);
 
 	-- Controllo che la competenza non esista già
 	IF EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_competenza) THEN
@@ -2291,7 +2291,7 @@ BEGIN
 	START TRANSACTION;
 
 	-- Controllo che l'utente sia un admin
-	CALL sp_util_is_utente_admin(p_email_admin);
+	CALL sp_util_utente_is_admin(p_email_admin);
 
 	-- Controllo che la vecchia skill esista
 	IF NOT EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_vecchia_competenza) THEN
@@ -2364,7 +2364,7 @@ BEGIN
 	--  1. Il progetto esista
 	--  2. L'utente sia il creatore del progetto
 	CALL sp_util_progetto_exists(p_nome_progetto);
-	CALL sp_util_is_creatore_progetto_owner(p_email_creatore, p_nome_progetto);
+	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome_progetto);
 
 	-- Se i controlli passano, inserisco la reward
 	INSERT INTO REWARD (codice, nome_progetto, descrizione, foto, min_importo)
@@ -2755,7 +2755,7 @@ END//
 *
 *  @param IN p_nome_progetto - Nome del progetto software di cui si vogliono ottenere i profili
 */
-CREATE PROCEDURE sp_profilo_skill_selectAllByProgetto(
+CREATE PROCEDURE sp_profilo_selectAllByProgetto(
 	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
@@ -2764,7 +2764,7 @@ BEGIN
 	       SP.competenza,
 	       SP.livello_richiesto
 	FROM PROFILO P
-		     JOIN SKILL_PROFILO SP ON P.nome_profilo = SP.nome_profilo
+		     LEFT JOIN SKILL_PROFILO SP ON P.nome_profilo = SP.nome_profilo
 		AND P.nome_progetto = SP.nome_progetto
 	WHERE P.nome_progetto = p_nome_progetto
 	ORDER BY P.nome_profilo, SP.competenza;

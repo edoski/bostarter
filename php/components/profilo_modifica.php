@@ -9,9 +9,6 @@
             <?php if (!empty($competenzaSelezionata)): ?>
                 <!-- Form per modificare una competenza specifica -->
                 <?php require '../components/profilo_competenza_modifica.php'; ?>
-            <?php elseif (empty($profiloSelezionato)): ?>
-                <!-- Form per creare un nuovo profilo -->
-                <?php require '../components/profilo_crea_nuovo.php'; ?>
             <?php else: ?>
                 <!-- Interfaccia per modificare un profilo esistente -->
                 <?php require '../components/profilo_modifica_esistente.php'; ?>

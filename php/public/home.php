@@ -18,13 +18,13 @@ if ($_SESSION['is_creatore']) {
         $progetti = sp_invoke('sp_progetto_selectByCreatore', $in);
 
         // Recupero la sua affidabilità
-        $_SESSION['affidabilita'] = sp_invoke('sp_util_get_creatore_affidabilita', $in)[0]['affidabilita'];
+        $_SESSION['affidabilita'] = sp_invoke('sp_util_creatore_get_affidabilita', $in)[0]['affidabilita'];
 
         // Recupero il suo nr_progetti
-        $_SESSION['nr_progetti'] = sp_invoke('sp_util_get_creatore_nr_progetti', $in)[0]['nr_progetti'];
+        $_SESSION['nr_progetti'] = sp_invoke('sp_util_creatore_get_nr_progetti', $in)[0]['nr_progetti'];
 
         // Recupero il numero totale di partecipanti accettati
-        $totalPartecipanti = sp_invoke('sp_util_get_creatore_total_partecipanti', $in)[0]['total_partecipanti'] ?? 0;
+        $totalPartecipanti = sp_invoke('sp_util_creatore_get_tot_partecipanti', $in)[0]['total_partecipanti'] ?? 0;
     } catch (PDOException $ex) {
         $progetti = [];
         $progettiError = "Errore nel recupero dei progetti: " . $ex->errorInfo[2];

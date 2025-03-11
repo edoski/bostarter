@@ -34,6 +34,24 @@ function checkAdmin(): void
 }
 
 /**
+ * Funzione per reindirizzare l'utente se non è il creatore del progetto
+ *
+ * @param string $nome_progetto Il nome del progetto da controllare.
+ *
+ * @throws PDOException Se non è il creatore del progetto.
+ */
+function checkProgettoOwner(string $nome_progetto): void
+{
+    if (!($_SESSION['is_creatore'] && isProgettoOwner($_SESSION['email'], $nome_progetto))) {
+        redirect(
+            false,
+            "Non sei autorizzato ad effettuare questa operazione.",
+            "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
+        );
+    }
+}
+
+/**
  * Funzione per controllare se l'utente è il creatore di un progetto
  *
  * @param string $email L'email dell'utente da controllare.
@@ -41,7 +59,7 @@ function checkAdmin(): void
  *
  * @return bool Restituisce true se l'utente è il creatore del progetto, false altrimenti.
  */
-function checkProgettoOwner(string $email, string $nomeProgetto): bool
+function isProgettoOwner(string $email, string $nomeProgetto): bool
 {
     try {
         $in = [
@@ -65,13 +83,34 @@ function checkProgettoOwner(string $email, string $nomeProgetto): bool
 /**
  * Funzione per controllare se l'utente ha selezionato un progetto valido
  */
-function checkProjectSelected(): void
+function checkProgettoSelected(): void
 {
     if (!isset($_POST['nome_progetto'])) {
         redirect(
             false,
             "Errore selezionamento progetto. Riprova.",
             "../public/progetti.php"
+        );
+    }
+}
+
+/**
+ * Funzione per controllare se il progerto è aperto. Se non lo è, lancia un errore e reindirizza alla pagina del progetto.
+ *
+ * @param string $nomeProgetto Il nome del progetto da controllare.
+ *
+ * @throws PDOException Se il progetto è chiuso.
+ */
+function checkProgettoAperto(string $nomeProgetto): void
+{
+    try {
+        $in = ['p_nome_progetto' => $_GET['nome']];
+        sp_invoke('sp_util_progetto_is_aperto', $in);
+    } catch (PDOException $ex) {
+        redirect(
+            false,
+            "Il progetto è chiuso.",
+            "../public/progetto_dettagli.php?nome=" . $_GET['nome']
         );
     }
 }
