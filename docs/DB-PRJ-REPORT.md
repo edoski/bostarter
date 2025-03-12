@@ -44,13 +44,7 @@
 ## TODO SP
 - sp_progetto_insert: CREATORE
 
-- sp_componente_insert: CREATORE
-- sp_componente_delete: CREATORE
-- sp_componente_update: CREATORE
 
-
-## REMEMBER FOR HW PROJECTS 
-- WHEN USER ADDS COMPONENTS PRICE/QUANTITY HE MUST BE ALERTED IF THEIR SUM EXCEEDS THE PROJECT BUDGET AND TO CONFIRM ADD THEM OR NOT → MAKE SURE THE BUDGET RECALCULATION TRIGGERS ARE CORRECT
 
 ## for mongodb 
 - add a error collection which just logs any sql signal state 45000 errors triggered, this type of log occurs in the fail-early initial checks at top of most php files, and in all PDOException try-catches
@@ -87,11 +81,6 @@ bostarter/
 │   └── success_alert.php
 ├── config/
 │   └── config.php
-├── db/
-│   ├── bostarter_demo.sql
-│   └── bostarter_init.sql
-├── docs/
-│   └── DB-PRJ-REPORT.md
 ├── functions/
 │   ├── checks.php
 │   ├── redirect.php

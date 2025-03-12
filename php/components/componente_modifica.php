@@ -44,7 +44,7 @@
 
             <?php if ($nuovo_componente): ?>
                 <!-- Form per creare un nuovo componente -->
-                <form action="../actions/componente_insert.php" method="post">
+                <form action="../public/componente_conferma.php" method="post">
                     <input type="hidden" name="nome_progetto"
                            value="<?php echo htmlspecialchars($_GET['nome']); ?>">
 
@@ -79,7 +79,7 @@
                 </form>
             <?php else: ?>
                 <!-- Form per aggiornare un componente esistente -->
-                <form action="../public/componente_update_conferma.php" method="post">
+                <form action="../public/componente_conferma.php" method="post">
                     <input type="hidden" name="nome_progetto"
                            value="<?php echo htmlspecialchars($_GET['nome']); ?>">
                     <input type="hidden" name="nome_componente_originale"

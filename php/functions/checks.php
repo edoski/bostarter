@@ -33,6 +33,20 @@ function checkAdmin(): void
 }
 
 /**
+ * Controlla se l'utente è un creatore. Se non lo è, reindirizza alla pagina home.
+ */
+function checkCreatore(): void
+{
+    if (!isset($_SESSION['is_creatore']) || !$_SESSION['is_creatore']) {
+        redirect(
+            false,
+            "Non sei autorizzato ad effettuare questa operazione.",
+            "../public/home.php"
+        );
+    }
+}
+
+/**
  * Controlla se l'utente è il creatore del progetto. Se non lo è, reindirizza alla pagina del progetto.
  *
  * @param string $nomeProgetto Il nome del progetto da controllare.
