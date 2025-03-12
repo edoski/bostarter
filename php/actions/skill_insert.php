@@ -5,12 +5,19 @@ require '../config/config.php';
 
 // === CHECKS ===
 // 1. L'utente ha effettuato il login
-// 2. L'utente è un amministratore
 checkAuth();
+
+// 2. L'utente è un amministratore
 checkAdmin();
 
+// 3. Le variabili POST sono state impostate correttamente
+checkSetVars(
+    ['competenza'],
+    '../public/curriculum.php'
+);
+
 // === ACTION ===
-// Inserisco la skill associata all'utente
+// Inserimento della skill nella lista globale della piattaforma
 try {
     $in = [
         'p_competenza' => $_POST['competenza'],
@@ -29,6 +36,6 @@ try {
 // Success, redirect alla pagina delle skill
 redirect(
     true,
-    'Skill (globale) aggiunta correttamente.',
+    'Skill (globale) aggiunta con successo.',
     '../public/curriculum.php'
 );

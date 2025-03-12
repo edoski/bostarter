@@ -7,21 +7,18 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è il creatore del progetto
-checkProgettoOwner($_POST['nome_progetto']);
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['nome_progetto', 'nome_profilo', 'competenza', 'livello']);
 
-// 3. Parametri necessari sono stati forniti
-if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo']) ||
-    !isset($_POST['competenza']) || !isset($_POST['livello'])) {
-    redirect(
-        false,
-        "Dati mancanti per l'aggiunta della competenza.",
-        "../public/progetti.php"
-    );
-}
+$nome_progetto = $_POST['nome_progetto'];
+$nome_profilo = $_POST['nome_profilo'];
+$competenza = $_POST['competenza'];
+$livello = intval($_POST['livello']);
+
+// 3. L'utente è il creatore del progetto
+checkProgettoOwner($nome_progetto);
 
 // 4. Il livello è valido
-$livello = intval($_POST['livello']);
 if ($livello < 0 || $livello > 5) {
     redirect(
         false,
@@ -31,12 +28,13 @@ if ($livello < 0 || $livello > 5) {
 }
 
 // === ACTION ===
+// Inserimento della competenza nel profilo del progetto
 try {
     $in = [
-        'p_nome_profilo' => $_POST['nome_profilo'],
-        'p_nome_progetto' => $_POST['nome_progetto'],
+        'p_nome_profilo' => $nome_profilo,
+        'p_nome_progetto' => $nome_progetto,
         'p_email_creatore' => $_SESSION['email'],
-        'p_competenza' => $_POST['competenza'],
+        'p_competenza' => $competenza,
         'p_livello_richiesto' => $livello
     ];
 
@@ -45,7 +43,7 @@ try {
     redirect(
         false,
         "Errore durante l'aggiunta della competenza: " . $ex->errorInfo[2],
-        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
+        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($nome_progetto) . "&profilo=" . urlencode($nome_profilo)
     );
 }
 
@@ -53,5 +51,5 @@ try {
 redirect(
     true,
     "Competenza aggiunta con successo al profilo.",
-    "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
+    "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($nome_progetto) . "&profilo=" . urlencode($nome_profilo)
 );

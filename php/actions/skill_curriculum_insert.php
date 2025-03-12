@@ -4,11 +4,17 @@ session_start();
 require '../config/config.php';
 
 // === CHECKS ===
-// Controllo se l'utente ha effettuato il login
+// 1. L'utente ha effettuato il login
 checkAuth();
 
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(
+    ['competenza', 'livello'],
+    '../public/curriculum.php'
+);
+
 // === ACTION ===
-// Inserisco la skill associata all'utente
+// Inserimento della skill nel curriculum dell'utente
 try {
     $in = [
         'p_email' => $_SESSION['email'],
@@ -28,6 +34,6 @@ try {
 // Success, redirect alla pagina delle skill
 redirect(
     true,
-    'Skill aggiunta correttamente.',
+    'Skill aggiunta con successo.',
     '../public/curriculum.php'
 );

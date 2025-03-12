@@ -17,7 +17,7 @@ if ($_SESSION['is_creatore']) {
 }
 
 // === ACTION ===
-// Aggiorno il ruolo dell'utente a creatore
+// Aggiornamento del ruolo dell'utente a creatore
 try {
     $in = ['p_email' => $_SESSION['email']];
     sp_invoke('sp_util_utente_convert_creatore', $in);
@@ -29,7 +29,7 @@ try {
     );
 }
 
-// Reindirizzo alla pagina dei progetti
+// Success, redirect alla pagina dei progetti
 $_SESSION['is_creatore'] = true;
 redirect(
     true,

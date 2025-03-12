@@ -7,29 +7,14 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è il creatore del progetto
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['nome', 'id']);
+
+// 3. L'utente è il creatore del progetto
 checkProgettoOwner($_POST['nome']);
 
-// 3. Il progetto è stato specificato
-if (!isset($_POST['nome'])) {
-    redirect(
-        false,
-        "Progetto non specificato. Riprova.",
-        "../public/progetti.php"
-    );
-}
-
-// 4. La foto è stata specificata
-if (!isset($_POST['id'])) {
-    redirect(
-        false,
-        "Foto non specificata. Riprova.",
-        "../public/progetto_dettagli.php?nome=" . $_POST['nome']
-    );
-}
-
 // === ACTION ===
-// Elimino la foto
+// Eliminazione della foto
 try {
     $in = [
         'p_nome_progetto' => $_POST['nome'],
@@ -38,10 +23,10 @@ try {
     ];
 
     sp_invoke('sp_foto_delete', $in);
-} catch (PDOException $e) {
+} catch (PDOException $ex) {
     redirect(
         false,
-        "Errore durante l'eliminazione della foto: " . $e->errorInfo[2],
+        "Errore durante l'eliminazione della foto: " . $ex->errorInfo[2],
         "../public/progetto_dettagli.php?nome=" . $_POST['nome']
     );
 }
@@ -49,6 +34,6 @@ try {
 // Success, redirect alla pagina di modifica del progetto
 redirect(
     true,
-    "Foto eliminata correttamente.",
+    "Foto eliminata con successo.",
     "../public/progetto_aggiorna.php?nome=" . $_POST['nome'] . "&attr=descrizione"
 );

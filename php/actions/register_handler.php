@@ -4,7 +4,7 @@ session_start();
 require '../config/config.php';
 
 // === CHECKS ===
-// Recupero e pulisco i dati inviati dal form
+// 1. Recupero e pulisco i dati inviati dal form
 $email = trim($_POST['email'] ?? '');
 $nickname = trim($_POST['nickname'] ?? '');
 $nome = trim($_POST['nome'] ?? '');
@@ -17,7 +17,7 @@ $is_creatore = isset($_POST['is_creatore']) ? 1 : 0;
 $is_admin = isset($_POST['is_admin']) ? 1 : 0;
 $codice_sicurezza = trim($_POST['codice_sicurezza'] ?? '');
 
-// Controllo che l'utente sia maggiorenne
+// 2. Controllo che l'utente sia maggiorenne
 if ($anno_nascita > date('Y') - 18) {
     redirect(
         false,
@@ -26,7 +26,7 @@ if ($anno_nascita > date('Y') - 18) {
     );
 }
 
-// Controllo che le password siano uguali
+// 3. Controllo che le password siano uguali
 if ($password !== $conferma_password) {
     redirect(
         false,
@@ -35,7 +35,7 @@ if ($password !== $conferma_password) {
     );
 }
 
-// Controllo che il codice di sicurezza sia definito se l'utente si registra come amministratore
+// 4. Controllo che il codice di sicurezza sia definito se l'utente si registra come amministratore
 if ($is_admin && (empty($codice_sicurezza) || strlen($codice_sicurezza) < 8)) {
     redirect(
         false,
@@ -61,10 +61,10 @@ try {
     ];
 
     sp_invoke('sp_utente_register', $in);
-} catch (PDOException $e) {
+} catch (PDOException $ex) {
     redirect(
         false,
-        "Errore durante la registrazione. Riprova." . "\n" . $e->getMessage(),
+        "Errore durante la registrazione. Riprova." . "\n" . $ex->getMessage(),
         '../public/register.php'
     );
 }
@@ -81,6 +81,6 @@ $_SESSION['is_admin'] = $is_admin;
 
 redirect(
     true,
-    "Registrazione effettuata correttamente.",
+    "Registrazione effettuata con successo.",
     '../public/home.php'
 );

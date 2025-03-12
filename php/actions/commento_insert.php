@@ -7,20 +7,14 @@ require '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. È stato selezionato un progetto valido
-if (!isset($_post['nome_progetto'])) {
-    redirect(
-        false,
-        "errore selezionamento progetto. riprova.",
-        "../public/progetti.php"
-    );
-}
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['nome_progetto', 'commento']);
 
-// 3. È stato selezionato un commento valido
-if (!isset($_POST['commento'])) {
+// 3. Controllo che il commento sia sufficientemente lungo
+if (strlen(trim($_POST['commento'])) < 1) {
     redirect(
         false,
-        "Il commento è invalido. Riprova.",
+        "Il commento deve essere lungo almeno 1 carattere.",
         "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
     );
 }
@@ -46,6 +40,6 @@ try {
 // Success, redirect alla pagina del progetto
 redirect(
     true,
-    "Commento inserito correttamente.",
+    "Commento inserito con successo.",
     "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
 );

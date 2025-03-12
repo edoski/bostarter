@@ -7,16 +7,14 @@ require '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. È stata specificata una competenza
-if (!isset($_POST['competenza'])) {
-    redirect(
-        false,
-        "Competenza non specificata. Riprova.",
-        "../public/curriculum.php"
-    );
-}
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(
+    ['competenza'],
+    '../public/curriculum.php'
+);
 
 // === ACTION ===
+// Rimozione della skill dal curriculum dell'utente
 try {
     $in = [
         'p_email' => $_SESSION['email'],
@@ -35,6 +33,6 @@ try {
 // Success, redirect alla pagina delle skill
 redirect(
     true,
-    'Skill rimossa correttamente dal curriculum.',
+    'Skill rimossa dal curriculum con successo.',
     '../public/curriculum.php'
 );

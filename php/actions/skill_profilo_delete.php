@@ -7,24 +7,23 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è il creatore del progetto
-checkProgettoOwner($_POST['nome_progetto']);
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['nome_progetto', 'nome_profilo', 'competenza']);
 
-// 3. Parametri necessari sono stati forniti
-if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo']) || !isset($_POST['competenza'])) {
-    redirect(
-        false,
-        "Dati mancanti per la rimozione della competenza.",
-        "../public/progetti.php"
-    );
-}
+$nome_progetto = $_POST['nome_progetto'];
+$nome_profilo = $_POST['nome_profilo'];
+$competenza = $_POST['competenza'];
+
+// 3. L'utente è il creatore del progetto
+checkProgettoOwner($nome_progetto);
 
 // === ACTION ===
+// Rimozione della skill dal profilo del progetto
 try {
     $in = [
-        'p_nome_profilo' => $_POST['nome_profilo'],
-        'p_nome_progetto' => $_POST['nome_progetto'],
-        'p_competenza' => $_POST['competenza'],
+        'p_nome_profilo' => $nome_profilo,
+        'p_nome_progetto' => $nome_progetto,
+        'p_competenza' => $competenza,
         'p_email_creatore' => $_SESSION['email']
     ];
 
@@ -33,13 +32,13 @@ try {
     redirect(
         false,
         "Errore durante la rimozione della competenza: " . $ex->errorInfo[2],
-        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto'])
+        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($nome_progetto) . "&profilo=" . urlencode($nome_profilo)
     );
 }
 
 // Success, redirect alla pagina di gestione profili
 redirect(
     true,
-    "Competenza rimossa correttamente dal profilo.",
-    "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
+    "Competenza rimossa dal profilo con successo.",
+    "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($nome_progetto) . "&profilo=" . urlencode($nome_profilo)
 );

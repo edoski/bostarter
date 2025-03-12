@@ -7,19 +7,14 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è il creatore del progetto
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['nome_progetto', 'profilo', 'nuovo_nome']);
+
+// 3. L'utente è il creatore del progetto
 checkProgettoOwner($_POST['nome_progetto']);
 
-// 3. Parametri necessari sono stati forniti
-if (!isset($_POST['profilo']) || !isset($_POST['nuovo_nome'])) {
-    redirect(
-        false,
-        "Dati mancanti per l'aggiornamento del nome del profilo.",
-        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto'])
-    );
-}
-
 // === ACTION ===
+// Aggiornamento del nome del profilo
 try {
     $in = [
         'p_nome_profilo' => $_POST['profilo'],

@@ -7,14 +7,8 @@ require '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. Parametri richiesti sono stati forniti
-if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo'])) {
-    redirect(
-        false,
-        "Parametri mancanti. Riprova.",
-        "../public/progetti.php"
-    );
-}
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['nome_progetto', 'nome_profilo']);
 
 // === ACTION ===
 try {

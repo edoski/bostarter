@@ -7,18 +7,12 @@ require '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente sia il creatore del progetto, oppure è un admin
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['id_commento', 'nome_progetto']);
+
+// 3. L'utente sia il creatore del progetto, oppure è un admin
 if (!$_SESSION['is_admin']) {
     checkProgettoOwner($_POST['nome_progetto']);
-}
-
-// 3. Sono stati inviati tutti i dati necessari
-if (!isset($_POST['id_commento']) || !isset($_POST['nome_progetto'])) {
-    redirect(
-        false,
-        "Errore durante il controllo del commento. Riprova.",
-        "../public/progetti.php"
-    );
 }
 
 // === ACTION ===
@@ -43,6 +37,6 @@ try {
 // Success, redirect alla pagina del progetto
 redirect(
     true,
-    "Risposta cancellata correttamente.",
+    "Risposta cancellata con successo.",
     "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
 );

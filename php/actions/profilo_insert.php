@@ -7,20 +7,14 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è il creatore del progetto
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['nome_progetto', 'nome_profilo']);
+
+// 3. L'utente è il creatore del progetto
 checkProgettoOwner($_POST['nome_progetto']);
 
-// 3. Parametri necessari sono stati forniti
-if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo'])) {
-    redirect(
-        false,
-        "Dati mancanti per l'inserimento del profilo.",
-        "../public/progetti.php"
-    );
-}
-
 // === ACTION ===
-// Inserisco il profilo
+// Inserimento del profilo
 try {
     $in = [
         'p_nome_profilo' => $_POST['nome_profilo'],
@@ -40,6 +34,6 @@ try {
 // Success, redirect alla pagina di modifica del profilo appena creato
 redirect(
     true,
-    "Profilo creato correttamente. Aggiungi ora le competenze necessarie.",
+    "Profilo creato con successo. Aggiungi ora le competenze necessarie.",
     "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
 );

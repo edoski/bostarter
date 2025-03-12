@@ -7,17 +7,11 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è il creatore del progetto
-checkProgettoOwner($_POST['nome']);
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['nome', 'codice', 'descrizione', 'min_importo']);
 
-// 3. I dati sono stati inviati correttamente
-if (!isset($_POST['nome']) || !isset($_POST['codice']) || !isset($_POST['descrizione']) || !isset($_POST['min_importo']) || !isset($_FILES['foto'])) {
-    redirect(
-        false,
-        "Dati reward mancanti. Riprova.",
-        "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome'])
-    );
-}
+// 3. L'utente è il creatore del progetto
+checkProgettoOwner($_POST['nome']);
 
 $nome_progetto = $_POST['nome'];
 $codice = $_POST['codice'];
@@ -35,11 +29,11 @@ if ($min_importo <= 0) {
 
 // 5. La foto è un'immagine valida
 // Controllo che la foto sia stata caricata correttamente
-if (!$_FILES['foto']['error'] != UPLOAD_ERR_OK) {
+if (!isset($_FILES['foto']) || $_FILES['foto']['error'] != UPLOAD_ERR_OK) {
     redirect(
         false,
         "Foto non specificata o errore nel caricamento. Riprova.",
-        "../public/progetto_dettagli.php?nome=" . $_POST['nome']
+        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
     );
 }
 
@@ -49,7 +43,7 @@ if ($imageData === false) {
     redirect(
         false,
         "Errore durante la lettura del file immagine. Riprova.",
-        "../public/progetto_dettagli.php?nome=" . $_POST['nome']
+        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
     );
 }
 
@@ -77,6 +71,6 @@ try {
 // Success, redirect alla pagina del progetto
 redirect(
     true,
-    "Reward inserita correttamente.",
+    "Reward inserita con successo.",
     "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
 );

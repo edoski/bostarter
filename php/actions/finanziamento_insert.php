@@ -7,14 +7,8 @@ require '../config/config.php';
 // 1. Controllo che l'utente sia autenticato
 checkAuth();
 
-// 2. I dati sono stati inviati correttamente
-if (!isset($_POST['nome']) || !isset($_POST['importo']) || !isset($_POST['reward'])) {
-    redirect(
-        false,
-        "Dati finanziamento mancanti. Riprova.",
-        "../public/progetti.php"
-    );
-}
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['nome', 'importo', 'reward']);
 
 $nome_progetto = $_POST['nome'];
 $importo = floatval($_POST['importo']);
@@ -50,6 +44,7 @@ try {
 }
 
 // === ACTION ===
+// Inserimento del finanziamento per il progetto
 try {
     $in = [
         'p_email' => $email,
@@ -70,6 +65,6 @@ try {
 // Success, redirect alla pagina del progetto
 redirect(
     true,
-    "Finanziamento completato correttamente.",
+    "Finanziamento completato con successo.",
     "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
 );

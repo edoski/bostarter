@@ -7,20 +7,14 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è il creatore del progetto
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['nome_progetto', 'nome_profilo']);
+
+// 3. L'utente è il creatore del progetto
 checkProgettoOwner($_POST['nome_progetto']);
 
-// 3. Parametri necessari sono stati forniti
-if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo'])) {
-    redirect(
-        false,
-        "Dati mancanti per l'eliminazione del profilo.",
-        "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
-    );
-}
-
 // === ACTION ===
-// Elimino il profilo (la stored procedure si occuperà di eliminare anche le skill associate e le candidature)
+// Elimino il profilo (e tutte le skill associate ad esso + le candidature)
 try {
     $in = [
         'p_nome_profilo' => $_POST['nome_profilo'],
@@ -39,6 +33,6 @@ try {
 // Success, redirect alla pagina di gestione profili
 redirect(
     true,
-    "Profilo '" . $_POST['nome_profilo'] . "' eliminato correttamente.",
+    "Profilo '" . $_POST['nome_profilo'] . "' eliminato con successo.",
     "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto'])
 );

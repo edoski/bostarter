@@ -10,15 +10,11 @@ checkAuth();
 // 2. L'utente è il creatore del progetto
 checkProgettoOwner($_POST['nome_progetto']);
 
-// 3. Sono stati forniti tutti i parametri necessari
-if (!isset($_POST['email_candidato']) || !isset($_POST['nome_progetto']) ||
-    !isset($_POST['nome_profilo']) || !isset($_POST['nuovo_stato'])) {
-    redirect(
-        false,
-        "Parametri mancanti. Riprova.",
-        "../public/candidature.php"
-    );
-}
+// 3. Le variabili POST sono state impostate correttamente
+checkSetVars(
+    ['email_candidato', 'nome_progetto', 'nome_profilo', 'nuovo_stato'],
+    "../public/candidature.php"
+);
 
 // 4. Il nuovo stato è valido
 if ($_POST['nuovo_stato'] != 'accettato' && $_POST['nuovo_stato'] != 'rifiutato') {

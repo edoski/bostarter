@@ -7,7 +7,10 @@ require '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è il creatore del commento, oppure è un admin
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['id_commento', 'nome_progetto', 'email_utente']);
+
+// 3. L'utente è il creatore del commento, oppure è un admin
 if (!$_SESSION['is_admin']) {
     if (!($_POST['email_utente'] === $_SESSION['email'])) {
         redirect(
@@ -16,25 +19,6 @@ if (!$_SESSION['is_admin']) {
             "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
         );
     }
-}
-
-// 3. È stato selezionato un progetto valido
-if (!isset($_post['nome_progetto'])) {
-    redirect(
-        false,
-        "errore selezionamento progetto. riprova.",
-        "../public/progetti.php"
-    );
-}
-
-
-// 4. È stato selezionato un commento valido
-if (!isset($_POST['id_commento'])) {
-    redirect(
-        false,
-        "Errore eliminazione commento. Riprova.",
-        "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
-    );
 }
 
 // === ACTION ===
@@ -58,6 +42,6 @@ try {
 // Success, redirect alla pagina del progetto
 redirect(
     true,
-    "Commento eliminato correttamente.",
+    "Commento eliminato con successo.",
     "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
 );

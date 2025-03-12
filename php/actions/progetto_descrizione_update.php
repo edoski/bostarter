@@ -7,52 +7,37 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è il creatore del progetto
-checkProgettoOwner($_POST['nome']);
+// 2. Le variabili POST sono state impostate correttamente
+checkSetVars(['nome', 'attr']);
 
-// 3. Il progetto è stato specificato
-if (!isset($_POST['nome'])) {
-    redirect(
-        false,
-        "Progetto non specificato. Riprova.",
-        "../public/progetti.php"
-    );
-}
-
-// 4. Controllo che l'attributo sia stato specificato
-if (!isset($_POST['attr'])) {
-    redirect(
-        false,
-        "Attributo non specificato. Riprova.",
-        "../public/progetto_dettagli.php?nome=" . $_POST['nome']
-    );
-}
-
-// 5. Controllo che l'attributo sia valido
 $attr = $_POST['attr'];
+$nome_progetto = $_POST['nome'];
+$email_creatore = $_SESSION['email'];
+
+// 3. L'utente è il creatore del progetto
+checkProgettoOwner($nome_progetto);
+
+// 4. Controllo che l'attributo sia valido
 if ($attr !== 'descrizione' && $attr !== 'foto') {
     redirect(
         false,
         "Attributo non valido. Riprova.",
-        "../public/progetto_dettagli.php?nome=" . $_POST['nome']
+        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
     );
 }
 
 // === ACTION ===
 if ($attr === 'descrizione') {
-    // Controllo che la descrizione sia stata specificata e non vuota
-    if (!isset($_POST['descrizione']) || empty(trim($_POST['descrizione']))) {
-        redirect(
-            false,
-            "Descrizione non specificata. Riprova.",
-            "../public/progetto_dettagli.php?nome=" . $_POST['nome']
-        );
-    }
+    // Controllo che la descrizione sia stata specificata
+    checkSetVars(
+        ['descrizione'],
+        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
+    );
 
     try {
         $in = [
-            'p_nome'           => $_POST['nome'],
-            'p_email_creatore' => $_SESSION['email'],
+            'p_nome'           => $nome_progetto,
+            'p_email_creatore' => $email_creatore,
             'p_descrizione'    => $_POST['descrizione']
         ];
         sp_invoke('sp_progetto_descrizione_update', $in);
@@ -60,25 +45,25 @@ if ($attr === 'descrizione') {
         redirect(
             false,
             "Errore durante l'aggiornamento della descrizione: " . $e->errorInfo[2],
-            "../public/progetto_dettagli.php?nome=" . $_POST['nome']
+            "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
         );
     }
 
     // Success, redirect alla pagina del progetto
     redirect(
         true,
-        "Descrizione aggiornata correttamente.",
-        "../public/progetto_dettagli.php?nome=" . $_POST['nome']
+        "Descrizione aggiornata con successo.",
+        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
     );
 }
 
 if ($attr === 'foto') {
     // Controllo che la foto sia stata specificata e sia stata caricata correttamente
-    if (!isset($_FILES['foto']) || $_FILES['foto']['error'] !== UPLOAD_ERR_OK) {
+    if (!isset($_FILES['foto']) || $_FILES['foto']['error'] != UPLOAD_ERR_OK) {
         redirect(
             false,
             "Foto non specificata o errore nel caricamento. Riprova.",
-            "../public/progetto_dettagli.php?nome=" . $_POST['nome']
+            "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
         );
     }
 
@@ -88,13 +73,13 @@ if ($attr === 'foto') {
         redirect(
             false,
             "Errore durante la lettura del file immagine. Riprova.",
-            "../public/progetto_dettagli.php?nome=" . $_POST['nome']
+            "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
         );
     }
     try {
         $in = [
-            'p_nome_progetto'  => $_POST['nome'],
-            'p_email_creatore' => $_SESSION['email'],
+            'p_nome_progetto'  => $nome_progetto,
+            'p_email_creatore' => $email_creatore,
             'p_foto'           => $imageData
         ];
         sp_invoke('sp_foto_insert', $in);
@@ -102,14 +87,14 @@ if ($attr === 'foto') {
         redirect(
             false,
             "Errore durante l'aggiornamento dell'immagine: " . $e->errorInfo[2],
-            "../public/progetto_dettagli.php?nome=" . $_POST['nome']
+            "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
         );
     }
 
     // Success, redirect alla pagina del progetto
     redirect(
         true,
-        "Foto inserita correttamente.",
-        "../public/progetto_dettagli.php?nome=" . $_POST['nome']
+        "Foto inserita con successo.",
+        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
     );
 }

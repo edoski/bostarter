@@ -10,25 +10,14 @@ checkAuth();
 // 2. L'utente è un amministratore
 checkAdmin();
 
-// 3. Sono stati forniti tutti i parametri necessari
-if (!isset($_POST['vecchia_competenza']) || !isset($_POST['nuova_competenza'])) {
-    redirect(
-        false,
-        "Parametri mancanti. Riprova.",
-        "../public/curriculum.php"
-    );
-}
-
-// 4. La nuova competenza non è vuota
-if (empty(trim($_POST['nuova_competenza']))) {
-    redirect(
-        false,
-        "Il nome della nuova competenza non può essere vuoto.",
-        "../public/curriculum.php"
-    );
-}
+// 3. Le variabili POST sono state impostate correttamente
+checkSetVars(
+    ['vecchia_competenza', 'nuova_competenza'],
+    "../public/curriculum.php"
+);
 
 // === ACTION ===
+// Aggiornamento del nome della skill globale della piattaforma
 try {
     $in = [
         'p_email_admin' => $_SESSION['email'],
@@ -48,6 +37,6 @@ try {
 // Success, redirect alla pagina delle skill
 redirect(
     true,
-    'Skill globale aggiornata correttamente.',
+    'Skill globale aggiornata con successo.',
     '../public/curriculum.php'
 );

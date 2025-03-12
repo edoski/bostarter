@@ -77,7 +77,8 @@ foreach ($progetti as &$progetto) {
             <?php else: ?>
                 <form action="../actions/utente_convert_creatore.php">
                     <input type="hidden" name="email" value="<?php echo $_SESSION['email']; ?>">
-                    <button class="btn btn-outline-primary" type="submit">Diventa Creatore</button>
+                    <button class="btn btn-outline-primary" onclick="return confirm('Sei sicuro di voler diventare un creatore?')"
+                            type="submit">Diventa Creatore</button>
                 </form>
             <?php endif; ?>
         </div>

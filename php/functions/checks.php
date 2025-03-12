@@ -5,7 +5,7 @@ require_once __DIR__ . '/../functions/checks.php';
 // La sezione seguente contenente funzioni che effettuano controlli di sicurezza generici e comuni a più pagine
 
 /**
- * Funzione per controllare se l'utente è loggato. Se non lo è, reindirizza alla pagina di login.
+ * Controlla se l'utente si è autenticato. Se non lo è, reindirizza alla pagina di login.
  */
 function checkAuth(): void
 {
@@ -19,7 +19,7 @@ function checkAuth(): void
 }
 
 /**
- * Funzione per controllare se l'utente è un amministratore. Se non lo è, reindirizza alla pagina home.
+ * Controlla se l'utente è un amministratore. Se non lo è, reindirizza alla pagina home.
  */
 function checkAdmin(): void
 {
@@ -33,7 +33,7 @@ function checkAdmin(): void
 }
 
 /**
- * Funzione per reindirizzare l'utente se non è il creatore del progetto
+ * Controlla se l'utente è il creatore del progetto. Se non lo è, reindirizza alla pagina del progetto.
  *
  * @param string $nomeProgetto Il nome del progetto da controllare.
  *
@@ -51,7 +51,7 @@ function checkProgettoOwner(string $nomeProgetto): void
 }
 
 /**
- * Funzione per controllare se l'utente è il creatore di un progetto
+ * Funzione helper per checkProgettoOwner. Controlla se l'utente è il creatore di un progetto.
  *
  * @param string $email L'email dell'utente da controllare.
  * @param string $nomeProgetto Il nome del progetto da controllare.
@@ -80,7 +80,7 @@ function isProgettoOwner(string $email, string $nomeProgetto): bool
 }
 
 /**
- * Funzione per controllare se il progerto è aperto. Se non lo è, lancia un errore e reindirizza alla pagina del progetto.
+ * Controlla se il progetto è aperto. Se non lo è, lancia un errore e reindirizza alla pagina del progetto.
  *
  * @param string $nomeProgetto Il nome del progetto da controllare.
  *
@@ -97,5 +97,25 @@ function checkProgettoAperto(string $nomeProgetto): void
             "Il progetto è chiuso.",
             "../public/progetto_dettagli.php?nome=" . urlencode($nomeProgetto)
         );
+    }
+}
+
+/**
+ * Verifica che tutte le variabili specificate siano impostate in $_POST.
+ * Se una variabile non è impostata, reindirizza (default a progetti.php) con un messaggio di errore.
+ *
+ * @param array $vars Array di nomi delle variabili da controllare
+ * @param string $location Percorso di reindirizzamento in caso di errore
+ */
+function checkSetVars(array $vars, string $location = "../public/progetti.php"): void
+{
+    foreach ($vars as $var) {
+        if (!isset($_POST[$var])) {
+            redirect(
+                false,
+                "Errore nel passaggio di variabili POST (Parametro mancante: '$var')",
+                $location
+            );
+        }
     }
 }

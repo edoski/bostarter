@@ -26,12 +26,14 @@
 # see recent claude chat on abstracting reusable php components
 
 
-## make checkSetVars/checkPostVars(param array of post/get vars) that iterates through each var and checks if it isset, if it isnt redirects w error (see if redirect is generic or need to specify in param)
-- ### first step is to standardise POST var names like 'nome_progetto' instead of 'nome' when passing project name via post, etc
-	- #### need to update progetto_aggiorna attr to be passed via POST no GET
-	- #### maybe delete all specific checks like check_Commento_validIdSelected
+## standardise POST var names like 'nome_progetto' instead of 'nome' when passing project name via post, etc
+- #### need to update progetto_aggiorna attr to be passed via POST no GET
+- ensure they are also specific like id_foto instead of id
+- `if (!isset($_FILES['foto']) || $_FILES['foto']['error'] != UPLOAD_ERR_OK) {` is how foto upload handling is checked
 
-- ### maybe also introduce new section above CHECKS like say VARIABLES and there init all vars of each file, standardised format obvi
+### maybe also introduce new section underneath CHECKS like say VARIABLES and there init all vars of each file, standardised format obvi
+- important to be underneath CHECKS because that section is responsible for ensuring valid POST vars
+- if u do this update sec 6.2 in report
 
 ### to make all php files slimmer consider abstracting reused visual components and requiring them in file, and same thing for data gathering if there are identical try-catch sp_invoke data initialisers like $progetto or $finanziamenti
 - if u do this evaluate if need to refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways and whatever else/files for consistency

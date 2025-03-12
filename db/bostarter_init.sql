@@ -1641,12 +1641,12 @@ BEGIN
 	START TRANSACTION;
 	-- Controllo che:
 	-- 1. L'utente sia il creatore del progetto
-	-- 2. La descrizione non sia nulla
+	-- 2. La descrizione sia almeno 1 carattere
 	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome);
 
-	IF p_descrizione IS NULL THEN
+	IF p_descrizione IS NULL OR LENGTH(p_descrizione) < 1 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'DESCRIZIONE NON VALIDA';
+			SET MESSAGE_TEXT = 'LA DESCRIZIONE DEVE AVERE ALMENO 1 CARATTERE';
 	END IF;
 
 	-- Se i controlli passano, aggiorno la descrizione
@@ -1914,9 +1914,9 @@ BEGIN
 	CALL sp_commento_check(NULL, p_nome_progetto, p_email_autore, TRUE);
 
 	-- Controllo che il commento sia almeno lungo 1 carattere
-	IF LENGTH(p_testo) < 1 THEN
+	IF p_testo IS NULL OR LENGTH(p_testo) < 1 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'IL COMMENTO DEVE ESSERE LUNGO ALMENO 1 CARATTERE';
+			SET MESSAGE_TEXT = 'IL COMMENTO DEVE AVERE ALMENO 1 CARATTERE';
 	END IF;
 
 	-- Se i controlli passano, inserisco il commento
@@ -2322,6 +2322,12 @@ BEGIN
 	IF EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_nuova_competenza) THEN
 		SIGNAL SQLSTATE '45000'
 			SET MESSAGE_TEXT = 'NUOVA SKILL ESISTE GIA\'';
+	END IF;
+
+	-- Controllo che la nuova skill non sia nulla o vuota
+	IF p_nuova_competenza IS NULL OR TRIM(p_nuova_competenza) = '' THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'NUOVA SKILL DEVE AVERE ALMENO 1 CARATTERE';
 	END IF;
 
 	-- Se i controlli passano, aggiorno il nome della skill

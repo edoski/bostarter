@@ -20,6 +20,6 @@ if (ini_get("session.use_cookies")) {
 // Success, redirect alla pagina di login
 redirect(
     true,
-    "Logout effettuato correttamente.",
+    "Logout effettuato con successo.",
     "../public/login.php"
 );

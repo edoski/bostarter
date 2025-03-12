@@ -4,12 +4,18 @@ session_start();
 require '../config/config.php';
 
 // === CHECKS ===
-// Recupero i dati inviati dal form
+// 1. Le variabili POST sono state impostate correttamente
+checkSetVars(
+    ['email', 'password'],
+    "../public/login.php"
+);
+
+// 2. Recupero i dati inviati dal form
 $email = trim($_POST['email'] ?? '');
 $password = trim($_POST['password'] ?? '');
 $codiceSicurezza = trim($_POST['codice_sicurezza'] ?? '') ?: null; // Se non è stato inviato, imposto a null
 
-// Controllo che non siano vuoti
+// 3. Controllo che non siano vuoti
 if (empty($email) || empty($password)) {
     redirect(
         false,
@@ -19,7 +25,7 @@ if (empty($email) || empty($password)) {
 }
 
 // === ACTION ===
-// Login
+// Login dell'utente
 try {
     $in = [
         'p_email' => $email
@@ -138,6 +144,6 @@ try {
 // Success, redirect alla pagina home
 redirect(
     true,
-    "Login effettuato correttamente.",
+    "Login effettuato con successo.",
     "../public/home.php"
 );
