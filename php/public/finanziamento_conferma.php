@@ -78,18 +78,18 @@ try {
                     <div class="row card-body">
                         <?php foreach ($rewards as $reward): ?>
                             <div class="flex-shrink-0 w-25 p-2">
-                                <div class="card shadow-sm">
+                                <div class="card shadow-sm h-100">
                                     <div class="card-header">
                                         <p class="fw-bold"><?php echo htmlspecialchars($reward['codice']); ?></p>
                                     </div>
-                                    <div class="card-body">
+                                    <div class="card-body d-flex flex-column">
                                         <p class="fw-bold">
                                             Importo minimo:
                                             <?php echo htmlspecialchars(number_format($reward['min_importo'], 2)); ?>€
                                         </p>
-                                        <p><?php echo htmlspecialchars($reward['descrizione']); ?></p>
+                                        <p class="flex-grow-1"><?php echo htmlspecialchars($reward['descrizione']); ?></p>
                                         <!-- Foto della reward -->
-                                        <div class="d-flex justify-content-center">
+                                        <div class="d-flex justify-content-center mt-auto">
                                             <?php $base64 = base64_encode($reward['foto']); ?>
                                             <img src="data:image/jpeg;base64,<?php echo $base64; ?>"
                                                  class="img-fluid rounded"

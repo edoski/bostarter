@@ -24,6 +24,7 @@
 
 
 # see recent claude chat on abstracting reusable php components
+- ## create reusable components for cards like reward cards, see if more shared visual components, or if can turn standardise platform with new reusable components
 
 
 ## standardise POST var names like 'nome_progetto' instead of 'nome' when passing project name via post, etc
@@ -35,12 +36,13 @@
 - important to be underneath CHECKS because that section is responsible for ensuring valid POST vars
 - if u do this update sec 6.2 in report
 
-### to make all php files slimmer consider abstracting reused visual components and requiring them in file, and same thing for data gathering if there are identical try-catch sp_invoke data initialisers like $progetto or $finanziamenti
-- if u do this evaluate if need to refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways and whatever else/files for consistency
+
+## calls.php and more
+- ### to make all php files slimmer consider abstracting reused visual components and requiring them in file, and same thing for data gathering if there are identical try-catch sp_invoke data initialisers like $progetto or $finanziamenti
+	- if u do this evaluate if need to refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways and whatever else/files for consistency
 
 ## TODO SP
 - sp_progetto_insert: CREATORE
-- sp_reward_insert: CREATORE
 
 - sp_componente_insert: CREATORE
 - sp_componente_delete: CREATORE

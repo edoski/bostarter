@@ -18,16 +18,7 @@ $codice = $_POST['codice'];
 $descrizione = $_POST['descrizione'];
 $min_importo = floatval($_POST['min_importo']);
 
-// 4. Il min_importo è un numero positivo
-if ($min_importo <= 0) {
-    redirect(
-        false,
-        "L'importo minimo deve essere un numero positivo",
-        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
-    );
-}
-
-// 5. La foto è un'immagine valida
+// 4. La foto è un'immagine valida
 // Controllo che la foto sia stata caricata correttamente
 if (!isset($_FILES['foto']) || $_FILES['foto']['error'] != UPLOAD_ERR_OK) {
     redirect(

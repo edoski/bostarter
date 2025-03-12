@@ -164,7 +164,7 @@ CREATE TABLE FINANZIAMENTO (
 	email_utente  VARCHAR(100)   NOT NULL,
 	nome_progetto VARCHAR(100)   NOT NULL,
 	codice_reward VARCHAR(50)    NOT NULL,
-	importo       DECIMAL(10, 2) NOT NULL CHECK ( importo > 0 ),
+	importo       DECIMAL(10, 2) NOT NULL CHECK ( importo >= 0.01 ),
 	PRIMARY KEY (data, email_utente, nome_progetto),
 	CONSTRAINT fk_fin_utente
 		FOREIGN KEY (email_utente)
@@ -1795,6 +1795,21 @@ BEGIN
 		             AND stato = 'aperto') THEN
 		SIGNAL SQLSTATE '45000'
 			SET MESSAGE_TEXT = 'PROGETTO CHIUSO O NON ESISTENTE';
+	END IF;
+
+	-- Controllo che la reward esista
+	IF NOT EXISTS (SELECT 1
+	               FROM REWARD
+	               WHERE codice = p_codice_reward
+		             AND nome_progetto = p_nome_progetto) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'REWARD SELEZIONATA INESISTENTE';
+	END IF;
+
+	-- Controllo che l'importo sia maggiore >= 1 centesimo
+	IF p_importo < 0.01 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'IMPORTO DEVE ESSERE >= 0.01';
 	END IF;
 
 	-- Se i controlli passano, inserisco il finanziamento
