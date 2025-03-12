@@ -11,22 +11,10 @@ $budget = floatval($_POST['budget']);
 checkAuth();
 
 // 2. L'utente è il creatore del progetto
-if (!($_SESSION['is_creatore'] && isProgettoOwner($_SESSION['email'], $_POST['nome']))) {
-    redirect(
-        false,
-        "Non sei autorizzato ad effettuare questa operazione",
-        "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome'])
-    );
-}
+checkProgettoOwner($_POST['nome']);
 
 // 3. Se il progetto è chiuso, non è possibile modificare il budget
-if ($_POST['status'] == 'chiuso') {
-    redirect(
-        false,
-        "Non è possibile modificare il budget di un progetto chiuso.",
-        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
-    );
-}
+checkProgettoAperto($_POST['nome']);
 
 // 4. I dati sono stati inviati correttamente
 if (!isset($_POST['nome']) || !isset($_POST['budget'])) {

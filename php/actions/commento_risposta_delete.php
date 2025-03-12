@@ -5,19 +5,20 @@ require '../config/config.php';
 
 // === CHECKS ===
 // 1. L'utente ha effettuato il login
-// 2. Sono stati inviati tutti i dati necessari
 checkAuth();
-check_CommentoRisposta_validComment();
 
-// 3. L'utente sia il creatore del progetto, oppure è un admin
+// 2. L'utente sia il creatore del progetto, oppure è un admin
 if (!$_SESSION['is_admin']) {
-    if (!isProgettoOwner($_SESSION['email'], $_POST['nome_progetto'])) {
-        redirect(
-            false,
-            "Non sei il creatore di questo progetto.",
-            "../public/progetti.php"
-        );
-    }
+    checkProgettoOwner($_POST['nome_progetto']);
+}
+
+// 3. Sono stati inviati tutti i dati necessari
+if (!isset($_POST['id_commento']) || !isset($_POST['nome_progetto'])) {
+    redirect(
+        false,
+        "Errore durante il controllo del commento. Riprova.",
+        "../public/progetti.php"
+    );
 }
 
 // === ACTION ===

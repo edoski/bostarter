@@ -1124,9 +1124,10 @@ BEGIN
 	-- Controllo che il progetto esista
 	CALL sp_util_progetto_exists(p_nome_progetto);
 
-	-- Controllo che il commento esista (solo per delete)
 	IF NOT p_is_insert THEN
+		-- Controllo che il commento esista
 		CALL sp_util_commento_exists(p_id);
+
 		-- Controllo che l'utente sia l'autore del commento, OPPURE un admin
 		IF NOT (
 			EXISTS (SELECT 1 FROM COMMENTO WHERE id = p_id AND email_utente = p_email_autore)
@@ -1912,7 +1913,13 @@ BEGIN
 	-- Controllo che esista il progetto
 	CALL sp_commento_check(NULL, p_nome_progetto, p_email_autore, TRUE);
 
-	-- Se il controllo passa, inserisco il commento
+	-- Controllo che il commento sia almeno lungo 1 carattere
+	IF LENGTH(p_testo) < 1 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'IL COMMENTO DEVE ESSERE LUNGO ALMENO 1 CARATTERE';
+	END IF;
+
+	-- Se i controlli passano, inserisco il commento
 	INSERT INTO COMMENTO (email_utente, nome_progetto, testo)
 	VALUES (p_email_autore, p_nome_progetto, p_testo);
 	COMMIT;

@@ -56,7 +56,6 @@ try {
         <!-- Form per aggiornare il budget -->
         <form action="../actions/progetto_budget_update.php" method="post">
             <input type="hidden" name="nome" value="<?php echo htmlspecialchars($_GET['nome']); ?>">
-            <input type="hidden" name="stato" value="<?php echo htmlspecialchars($progetto['stato']); ?>">
             <input type="hidden" name="tipo" value="<?php echo htmlspecialchars($progetto['tipo']); ?>">
             <input type="hidden" name="attr" value="budget">
             <div class="form-group">

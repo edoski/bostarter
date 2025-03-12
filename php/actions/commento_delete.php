@@ -5,13 +5,9 @@ require '../config/config.php';
 
 // === CHECKS ===
 // 1. L'utente ha effettuato il login
-// 2. È stato selezionato un progetto valido
-// 3. È stato selezionato un commento valido
 checkAuth();
-checkProgettoSelected();
-check_Commento_validIdSelected();
 
-// 4. L'utente è il creatore del commento, oppure è un admin
+// 2. L'utente è il creatore del commento, oppure è un admin
 if (!$_SESSION['is_admin']) {
     if (!($_POST['email_utente'] === $_SESSION['email'])) {
         redirect(
@@ -20,6 +16,25 @@ if (!$_SESSION['is_admin']) {
             "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
         );
     }
+}
+
+// 3. È stato selezionato un progetto valido
+if (!isset($_post['nome_progetto'])) {
+    redirect(
+        false,
+        "errore selezionamento progetto. riprova.",
+        "../public/progetti.php"
+    );
+}
+
+
+// 4. È stato selezionato un commento valido
+if (!isset($_POST['id_commento'])) {
+    redirect(
+        false,
+        "Errore eliminazione commento. Riprova.",
+        "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
+    );
 }
 
 // === ACTION ===

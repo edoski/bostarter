@@ -7,14 +7,8 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è un creatore
-if (!$_SESSION['is_creatore']) {
-    redirect(
-        false,
-        "Solo i creatori possono aggiungere competenze ad un profilo.",
-        "../public/progetti.php"
-    );
-}
+// 2. L'utente è il creatore del progetto
+checkProgettoOwner($_POST['nome_progetto']);
 
 // 3. Parametri necessari sono stati forniti
 if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo']) ||
@@ -26,16 +20,7 @@ if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo']) ||
     );
 }
 
-// 4. L'utente è il creatore del progetto
-if (!isProgettoOwner($_SESSION['email'], $_POST['nome_progetto'])) {
-    redirect(
-        false,
-        "Non sei autorizzato ad effettuare questa operazione.",
-        "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
-    );
-}
-
-// 5. Il livello è valido
+// 4. Il livello è valido
 $livello = intval($_POST['livello']);
 if ($livello < 0 || $livello > 5) {
     redirect(

@@ -7,21 +7,15 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. Controllo che il progetto sia stato specificato
+// 2. L'utente è il creatore del progetto
+checkProgettoOwner($_POST['nome']);
+
+// 3. Il progetto è stato specificato
 if (!isset($_POST['nome'])) {
     redirect(
         false,
         "Progetto non specificato. Riprova.",
         "../public/progetti.php"
-    );
-}
-
-// 3. L'utente è il creatore del progetto
-if (!($_SESSION['is_creatore'] && isProgettoOwner($_SESSION['email'], $_POST['nome']))) {
-    redirect(
-        false,
-        "Non sei autorizzato ad effettuare questa operazione.",
-        "../public/progetto_dettagli.php?nome=" . $_POST['nome']
     );
 }
 

@@ -5,11 +5,25 @@ require '../config/config.php';
 
 // === CHECKS ===
 // 1. L'utente ha effettuato il login
-// 2. È stato selezionato un progetto valido
-// 3. È stato selezionato un commento valido
 checkAuth();
-checkProgettoSelected();
-check_Commento_validInsert();
+
+// 2. È stato selezionato un progetto valido
+if (!isset($_post['nome_progetto'])) {
+    redirect(
+        false,
+        "errore selezionamento progetto. riprova.",
+        "../public/progetti.php"
+    );
+}
+
+// 3. È stato selezionato un commento valido
+if (!isset($_POST['commento'])) {
+    redirect(
+        false,
+        "Il commento è invalido. Riprova.",
+        "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
+    );
+}
 
 // === ACTION ===
 // Inserisco il commento

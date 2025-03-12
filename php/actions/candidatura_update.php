@@ -8,13 +8,7 @@ require '../config/config.php';
 checkAuth();
 
 // 2. L'utente è il creatore del progetto
-if (!($_SESSION['is_creatore'] && isProgettoOwner($_SESSION['email'], $_POST['nome_progetto']))) {
-    redirect(
-        false,
-        "Non sei autorizzato ad effettuare questa operazione.",
-        "../public/candidature.php"
-    );
-}
+checkProgettoOwner($_POST['nome_progetto']);
 
 // 3. Sono stati forniti tutti i parametri necessari
 if (!isset($_POST['email_candidato']) || !isset($_POST['nome_progetto']) ||

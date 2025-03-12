@@ -23,13 +23,15 @@
 - **Per quanto riguardano i profili/componenti per progetti software/hardware:** È ammissibile l'esistenza di un progetto software/hardware che non dispone di profili/componenti (ma che comunque possono essere inseriti in secondo luogo dal creatore)?
 
 
+# see recent claude chat on abstracting reusable php components
 
-## use checkProgettoOwner() in all CHECKS in place of existing check
 
+## make checkSetVars/checkPostVars(param array of post/get vars) that iterates through each var and checks if it isset, if it isnt redirects w error (see if redirect is generic or need to specify in param)
+- ### first step is to standardise POST var names like 'nome_progetto' instead of 'nome' when passing project name via post, etc
+	- #### need to update progetto_aggiorna attr to be passed via POST no GET
+	- #### maybe delete all specific checks like check_Commento_validIdSelected
 
-## progetto dettagli if profilo has no skill (ex. just created it) render text in card body saying "Nessuna skill associata."
-- consider if in db should rework profilo to have boolean is_aperto attribute which makes it so that only those w it being true get returned as available/visible profiles in platform. profilo is_aperto default false and becomes set to true only when user in progetto_aggiorna_profili clicks like Salva Profilo or something, until then it remains invisible to all except him
-
+- ### maybe also introduce new section above CHECKS like say VARIABLES and there init all vars of each file, standardised format obvi
 
 ### to make all php files slimmer consider abstracting reused visual components and requiring them in file, and same thing for data gathering if there are identical try-catch sp_invoke data initialisers like $progetto or $finanziamenti
 - if u do this evaluate if need to refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways and whatever else/files for consistency
@@ -42,11 +44,6 @@
 - sp_componente_delete: CREATORE
 - sp_componente_update: CREATORE
 
-- sp_profilo_insert: CREATORE
-- sp_profilo_delete: CREATORE
-- sp_skill_profilo_insert: CREATORE
-- sp_skill_profilo_delete: CREATORE
-- sp_skill_profilo_update: CREATORE
 
 ## REMEMBER FOR HW PROJECTS 
 - WHEN USER ADDS COMPONENTS PRICE/QUANTITY HE MUST BE ALERTED IF THEIR SUM EXCEEDS THE PROJECT BUDGET AND TO CONFIRM ADD THEM OR NOT → MAKE SURE THE BUDGET RECALCULATION TRIGGERS ARE CORRECT
