@@ -60,7 +60,7 @@ try {
     redirect(
         false,
         "Errore durante l'aggiunta della competenza: " . $ex->errorInfo[2],
-        "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
+        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
     );
 }
 
@@ -68,5 +68,5 @@ try {
 redirect(
     true,
     "Competenza aggiunta con successo al profilo.",
-    "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
+    "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
 );

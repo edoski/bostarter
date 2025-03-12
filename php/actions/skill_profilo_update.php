@@ -7,14 +7,8 @@ require_once '../config/config.php';
 // 1. L'utente ha effettuato il login
 checkAuth();
 
-// 2. L'utente è un creatore
-if (!$_SESSION['is_creatore']) {
-    redirect(
-        false,
-        "Solo i creatori possono aggiornare le competenze di un profilo.",
-        "../public/progetti.php"
-    );
-}
+// 2. L'utente è il creatore del progetto
+checkProgettoOwner($_POST['nome_progetto']);
 
 // 3. Parametri necessari sono stati forniti
 if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo']) ||
@@ -26,16 +20,7 @@ if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo']) ||
     );
 }
 
-// 4. L'utente è il creatore del progetto
-if (!isProgettoOwner($_SESSION['email'], $_POST['nome_progetto'])) {
-    redirect(
-        false,
-        "Non sei autorizzato ad effettuare questa operazione.",
-        "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
-    );
-}
-
-// 5. Il nuovo livello è valido
+// 4. Il nuovo livello è valido
 $nuovoLivello = intval($_POST['nuovo_livello']);
 if ($nuovoLivello < 0 || $nuovoLivello > 5) {
     redirect(
@@ -60,13 +45,13 @@ try {
     redirect(
         false,
         "Errore durante l'aggiornamento della competenza: " . $ex->errorInfo[2],
-        "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
+        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
     );
 }
 
 // Success, redirect alla pagina del profilo
 redirect(
     true,
-    "Livello della competenza aggiornato con successo.",
-    "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
+    "Livello della competenza aggiornato correttamente.",
+    "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
 );

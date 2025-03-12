@@ -55,6 +55,6 @@ try {
 // Success, redirect alla pagina di modifica del progetto
 redirect(
     true,
-    "Foto eliminata con successo.",
+    "Foto eliminata correttamente.",
     "../public/progetto_aggiorna.php?nome=" . $_POST['nome'] . "&attr=descrizione"
 );

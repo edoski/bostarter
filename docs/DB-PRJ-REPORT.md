@@ -853,7 +853,7 @@ try {
 // Success, redirect alla pagina X
 redirect(
     true,
-    'X effettuato con successo!',
+    'X effettuato con successo/correttamente.',
     '../public/X.php'
 );
 ```

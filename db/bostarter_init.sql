@@ -853,6 +853,7 @@ END//
 -- PROFILO: sp_profilo_check, USATO IN:
 --  sp_profilo_insert
 --  sp_profilo_delete
+--  sp_profilo_nome_update
 
 /*
 *  PROCEDURE: sp_profilo_check
@@ -876,7 +877,7 @@ BEGIN
 	-- Controllo che il progetto sia creato dall'utente
 	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome_progetto);
 
-	-- Controllo che il profilo esista (solo per delete)
+	-- Controllo che il profilo esista (solo per delete profilo, e update del nome)
 	IF NOT p_is_insert THEN
 		CALL sp_util_profilo_exists(p_nome_profilo, p_nome_progetto);
 	END IF;
@@ -1025,6 +1026,17 @@ BEGIN
 	-- 3. Il progetto sia di tipo software
 	-- 4. Il profilo esista
 	CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
+
+	-- Controllo che il profilo disponga di competenze richieste (che non sia un profilo vuoto/in formazione dal creatore)
+	IF NOT EXISTS (SELECT 1
+	               FROM SKILL_PROFILO
+	               WHERE nome_profilo = p_nome_profilo
+		             AND nome_progetto = p_nome_progetto
+		             AND competenza IS NOT NULL
+		             AND competenza != '') THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'PROFILO SENZA COMPETENZE DEFINITE. ATTENDI CHE IL CREATORE AGGIUNGA LE COMPETENZE RICHIESTE';
+	END IF;
 
 	-- Controllo che il profilo non sia già stato occupato da un altro utente
 	IF EXISTS (SELECT 1
@@ -2679,6 +2691,7 @@ END//
 --  sp_profilo_insert
 --  sp_profilo_delete
 --  sp_profilo_selectAllByProgetto
+--  sp_profilo_nome_update
 
 /*
 *  PROCEDURE: sp_profilo_insert
@@ -2771,6 +2784,43 @@ BEGIN
 	COMMIT;
 END//
 
+/*
+*  PROCEDURE: sp_profilo_nome_update
+*  PURPOSE: Aggiornamento del nome di un profilo per un progetto software.
+*  USED BY: CREATORE
+*
+*  @param IN p_nome_profilo - Nome del profilo da aggiornare
+*  @param IN p_nome_progetto - Nome del progetto software a cui appartiene il profilo
+*  @param IN p_nuovo_nome - Nuovo nome del profilo
+*  @param IN p_email_creatore - Email del creatore del progetto che richiede l'aggiornamento
+*/
+CREATE PROCEDURE sp_profilo_nome_update(
+	IN p_nome_profilo VARCHAR(100),
+	IN p_nome_progetto VARCHAR(100),
+	IN p_nuovo_nome VARCHAR(100),
+	IN p_email_creatore VARCHAR(100)
+)
+BEGIN
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
+		BEGIN
+			ROLLBACK;
+			RESIGNAL;
+		END;
+	START TRANSACTION;
+	-- Controllo che:
+	--  1. L'utente sia il creatore del progetto
+	--  2. Il progetto sia di tipo software
+	--  3. Il profilo esista
+	CALL sp_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, FALSE);
+
+	-- Se i controlli passano, aggiorno il nome del profilo
+	UPDATE PROFILO
+	SET nome_profilo = p_nuovo_nome
+	WHERE nome_profilo = p_nome_profilo
+	  AND nome_progetto = p_nome_progetto;
+	COMMIT;
+END//
+
 -- SKILL_PROFILO:
 --  sp_skill_profilo_insert
 --  sp_skill_profilo_delete
@@ -2809,6 +2859,18 @@ BEGIN
 	--  3. Il progetto sia di tipo software
 	--  4. Il profilo esista
 	CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, TRUE);
+
+	-- SIDE EFFECT: Rifiuto automaticamente le candidature che non soddisfano il livello o la competenza richiesta
+	UPDATE PARTECIPANTE P
+	SET stato = 'rifiutato'
+	WHERE P.nome_profilo = p_nome_profilo
+	  AND P.nome_progetto = p_nome_progetto
+	  AND P.stato IN ('potenziale', 'accettato')
+	  AND NOT EXISTS (SELECT 1
+	                  FROM SKILL_CURRICULUM SC
+	                  WHERE SC.email_utente = P.email_utente
+		                AND SC.competenza = p_competenza
+		                AND SC.livello_effettivo >= p_livello_richiesto);
 
 	-- Se i controlli passano, inserisco la skill nel profilo del progetto
 	INSERT INTO SKILL_PROFILO (nome_profilo, competenza, nome_progetto, livello_richiesto)
@@ -2898,7 +2960,7 @@ BEGIN
 	SET stato = 'rifiutato'
 	WHERE P.nome_profilo = p_nome_profilo
 	  AND P.nome_progetto = p_nome_progetto
-	  AND P.stato = 'potenziale'
+	  AND P.stato IN ('potenziale', 'accettato')
 	  AND NOT EXISTS (SELECT 1
 	                  FROM SKILL_CURRICULUM SC
 	                  WHERE SC.email_utente = P.email_utente
@@ -2929,12 +2991,10 @@ BEGIN
 	START TRANSACTION;
 	SELECT S.competenza
 	FROM SKILL S
-	WHERE S.competenza NOT IN (
-		SELECT SP.competenza
-		FROM SKILL_PROFILO SP
-		WHERE SP.nome_profilo = p_nome_profilo
-		  AND SP.nome_progetto = p_nome_progetto
-	);
+	WHERE S.competenza NOT IN (SELECT SP.competenza
+	                           FROM SKILL_PROFILO SP
+	                           WHERE SP.nome_profilo = p_nome_profilo
+		                         AND SP.nome_progetto = p_nome_progetto);
 	COMMIT;
 END//
 

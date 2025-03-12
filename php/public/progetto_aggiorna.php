@@ -44,7 +44,7 @@ try {
     <?php include '../components/success_alert.php'; ?>
 
     <!-- Tasto per tornare indietro -->
-    <div class="d-flex justify-content-end">
+    <div class="d-flex justify-content-start">
         <button class="btn btn-warning mb-3">
             <a href="../public/progetto_dettagli.php?nome=<?php echo $_GET['nome']; ?>"
                class="text-black text-decoration-none">Torna al Progetto</a>
@@ -65,7 +65,7 @@ try {
             // Update/insert di reward del progetto
             require '../components/progetto_aggiorna_reward.php';
             break;
-        case "profilo":
+        case "profili":
             // Update/insert/delete di profili del progetto (software)
             require '../components/progetto_aggiorna_profili.php';
             break;

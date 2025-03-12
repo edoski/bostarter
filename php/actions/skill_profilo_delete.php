@@ -52,7 +52,7 @@ try {
     redirect(
         false,
         "Errore durante la rimozione della competenza: " . $ex->errorInfo[2],
-        "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_POST['nome_progetto'])
+        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto'])
     );
 }
 
@@ -63,6 +63,6 @@ $_SESSION['temp_profilo_update'] = true;
 // Success, redirect alla pagina di gestione profili
 redirect(
     true,
-    "Competenza rimossa con successo dal profilo.",
-    "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_POST['nome_progetto'])
+    "Competenza rimossa correttamente dal profilo.",
+    "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
 );

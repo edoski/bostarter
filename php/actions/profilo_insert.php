@@ -8,13 +8,7 @@ require_once '../config/config.php';
 checkAuth();
 
 // 2. L'utente è il creatore del progetto
-if (!($_SESSION['is_creatore'] && isProgettoOwner($_SESSION['email'], $_POST['nome_progetto']))) {
-    redirect(
-        false,
-        "Non sei autorizzato ad effettuare questa operazione.",
-        "../public/progetti.php"
-    );
-}
+checkProgettoOwner($_POST['nome_progetto']);
 
 // 3. Parametri necessari sono stati forniti
 if (!isset($_POST['nome_progetto']) || !isset($_POST['nome_profilo'])) {
@@ -39,13 +33,13 @@ try {
     redirect(
         false,
         "Errore durante l'inserimento del profilo: " . $ex->errorInfo[2],
-        "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_POST['nome_progetto'])
+        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto'])
     );
 }
 
 // Success, redirect alla pagina di modifica del profilo appena creato
 redirect(
     true,
-    "Profilo creato con successo. Aggiungi ora le competenze necessarie.",
-    "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
+    "Profilo creato correttamente. Aggiungi ora le competenze necessarie.",
+    "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nome_profilo'])
 );

@@ -33,12 +33,12 @@ try {
     redirect(
         false,
         "Errore durante l'eliminazione del profilo: " . $ex->errorInfo[2],
-        "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_POST['nome_progetto'])
+        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto'])
     );
 }
 // Success, redirect alla pagina di gestione profili
 redirect(
     true,
     "Profilo '" . $_POST['nome_profilo'] . "' eliminato correttamente.",
-    "../public/progetto_aggiorna.php?attr=profilo&nome=" . urlencode($_POST['nome_progetto'])
+    "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto'])
 );
