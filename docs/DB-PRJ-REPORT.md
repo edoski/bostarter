@@ -23,6 +23,8 @@
 - **Per quanto riguardano i profili/componenti per progetti software/hardware:** È ammissibile l'esistenza di un progetto software/hardware che non dispone di profili/componenti (ma che comunque possono essere inseriti in secondo luogo dal creatore)?
 
 
+
+
 # see recent claude chat on abstracting reusable php components
 - ## create reusable components for cards like reward cards, see if more shared visual components, or if can turn standardise platform with new reusable components
 
@@ -40,10 +42,6 @@
 ## calls.php and more
 - ### to make all php files slimmer consider abstracting reused visual components and requiring them in file, and same thing for data gathering if there are identical try-catch sp_invoke data initialisers like $progetto or $finanziamenti
 	- if u do this evaluate if need to refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways and whatever else/files for consistency
-
-## TODO SP
-- sp_progetto_insert: CREATORE
-
 
 
 ## for mongodb 
