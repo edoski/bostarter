@@ -23,7 +23,7 @@
 - **Per quanto riguardano i profili/componenti per progetti software/hardware:** È ammissibile l'esistenza di un progetto software/hardware che non dispone di profili/componenti (ma che comunque possono essere inseriti in secondo luogo dal creatore)?
 
 
-
+## for admins implement /public/Logs.php which just fetches all logs from mongodb and renders them out on screen
 
 # see recent claude chat on abstracting reusable php components
 - ## create reusable components for cards like reward cards, see if more shared visual components, or if can turn standardise platform with new reusable components
