@@ -14,6 +14,11 @@
 	- [ ] ensure clickable links for ToC
 
 
+
+# at the end when site done see if u can remap server to serve from /php/public instead of /php for privacy of other files
+- ## specify it in httpd.conf and specify in phpstorm settings and correct a and form tag paths in php code
+
+
 ## for admins implement /public/Logs.php which just fetches all logs from mongodb and renders them out on screen
 
 # see recent claude chat on abstracting reusable php components

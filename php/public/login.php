@@ -7,9 +7,9 @@ require '../config/config.php';
 // 1. L'utente ha GIÀ effettuato il login
 if (isset($_SESSION['email'])) {
     redirect(
-            true,
-            "Sei già loggato.",
-            "../public/home.php"
+        true,
+        "Sei già loggato.",
+        "../public/home.php"
     );
 }
 ?>
