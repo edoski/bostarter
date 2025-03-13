@@ -1,1 +1,0 @@
-# bostarter - DB University Project

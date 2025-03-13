@@ -5,4 +5,4 @@ db/init_demo.sh
 vendor
 CLAUDE.md
 .idea
-bostarter/node_modules
+node_modules
