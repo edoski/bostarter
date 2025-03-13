@@ -469,6 +469,7 @@ try {
                                                 // Controllo se l'utente ha già inviato una candidatura
                                                 $userHasApplied = false;
                                                 $userWasRejected = false;
+                                                $userIsEligible = false;
 
                                                 // Recupero lo stato della candidatura
                                                 try {
@@ -493,31 +494,31 @@ try {
                                                         $eligibilityResult = sp_invoke('sp_util_partecipante_is_eligible', $in);
                                                         $userIsEligible = $eligibilityResult[0]['eligible'] ?? false;
                                                     }
-                                                } catch (PDOException $ex) {
-                                                    print($ex->errorInfo[2]);
-                                                }
+                                                } catch (PDOException $ex) { print($ex->errorInfo[2]); }
                                                 ?>
-                                            <?php elseif (isset($acceptedParticipants[$nome_profilo])): ?>
-                                                <!-- Profilo occupato -->
-                                                <button class="btn btn-secondary w-100" disabled>
-                                                    Occupato da <?php echo htmlspecialchars($acceptedParticipants[$nome_profilo]['nickname']); ?>
-                                                </button>
-                                            <?php elseif ($userHasApplied): ?>
-                                                <!-- Utenza ha già inviato una candidatura -->
-                                                <button class="btn btn-warning w-100" disabled>Candidatura in attesa</button>
-                                            <?php elseif ($userWasRejected): ?>
-                                                <!-- Utente è stato rifiutato -->
-                                                <button class="btn btn-danger w-100" disabled>Candidatura rifiutata</button>
-                                            <?php elseif (!$userIsEligible): ?>
-                                                <!-- Utente non è idoneo per la candidatura -->
-                                                <button class="btn btn-secondary w-100" disabled>Non idoneo</button>
-                                            <?php else: ?>
-                                                <!-- Utente può inviare una candidatura -->
-                                                <form action="../actions/candidatura_insert.php" method="post">
-                                                    <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
-                                                    <input type="hidden" name="nome_profilo" value="<?php echo htmlspecialchars($nome_profilo); ?>">
-                                                    <button type="submit" class="btn btn-primary w-100">Candidati</button>
-                                                </form>
+
+                                                <?php if (isset($acceptedParticipants[$nome_profilo])): ?>
+                                                    <!-- Profilo occupato -->
+                                                    <button class="btn btn-secondary w-100" disabled>
+                                                        Occupato da <?php echo htmlspecialchars($acceptedParticipants[$nome_profilo]['nickname']); ?>
+                                                    </button>
+                                                <?php elseif ($userHasApplied): ?>
+                                                    <!-- Utenza ha già inviato una candidatura -->
+                                                    <button class="btn btn-warning w-100" disabled>Candidatura in attesa</button>
+                                                <?php elseif ($userWasRejected): ?>
+                                                    <!-- Utente è stato rifiutato -->
+                                                    <button class="btn btn-danger w-100" disabled>Candidatura rifiutata</button>
+                                                <?php elseif (!$userIsEligible): ?>
+                                                    <!-- Utente non è idoneo per la candidatura -->
+                                                    <button class="btn btn-secondary w-100" disabled>Non idoneo</button>
+                                                <?php else: ?>
+                                                    <!-- Utente può inviare una candidatura -->
+                                                    <form action="../actions/candidatura_insert.php" method="post">
+                                                        <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
+                                                        <input type="hidden" name="nome_profilo" value="<?php echo htmlspecialchars($nome_profilo); ?>">
+                                                        <button type="submit" class="btn btn-primary w-100">Candidati</button>
+                                                    </form>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                         </div>
                                     <?php endif; ?>
