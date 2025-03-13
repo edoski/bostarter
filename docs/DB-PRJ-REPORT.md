@@ -13,14 +13,6 @@
 	- [ ] potentially need to fix mismatching links text for correct rendering
 	- [ ] ensure clickable links for ToC
 
-# DOMANDE PER PROF (READ TRACCIA BEFORE)
-- **Per quanto riguarda la registrazione di utenti sulla piattaforma:** È ammesso che **un utente possa registrarsi come admin/amministratore**, anche se è un ruolo privilegiato?
-- **Per quanto riguardano i finanziamenti:** 
-	1. Si presuppone che il progetto accetti finanziamenti fatti da un utente **solo una volta al giorno?** Questo mio dubbio nasce dalla definizione di data per un finanziamento: Per "data" intende **in MySQL l'equivalente di "DATE" oppure "DATETIME"?** Perché con **DATE** un utente può effettuare finanziamenti per un progetto **una volta al giorno**, mentre con **DATETIME una volta per minuto**.
-	2. È ammesso che **un utente possa finanziare il progetto con un importo che ecceda il budget totale / rimanente**? Nella mia implementazione attuale, tale scenario è ammesso e quello che accade è: Lo stato del progetto viene posto a "chiuso" (in tal modo da non accettare ulteriori finanziamenti), e la somma dei finanziamenti **+ l'eccesso da quest'ultimo finanziamento** è chiaramente visibile quando si visualizza il progetto.
-	3. Nella traccia del progetto viene specificato che la scelta della reward va fatta "a valle del finanziamento di un progetto". Per "a valle", intende da un punto di vista del database che prima venga inserito nella tabella dei finanziamenti l'importo e dati dell'utente e finanziatore, **ed altrove viene associata la reward al finanziamento**, oppure è accettabile **mantenere il riferimento della reward** (il suo codice) direttamente **all'interno della tabella dei finanziamenti**?
-- **Per quanto riguardano le candidature ai profili di un progetto software:** Si presuppone che per un dato profilo di un progetto, se il creatore accetta un utente candidato come partecipante al progetto, **il profilo in questione viene chiuso (non ammette candidature), oppure può accettare ulteriori candidature da altri utenti?** Ovvero, Il "Profilo" è un'entità astratta che non ha limiti di istanza, oppure è concreta e con limite di singola istanza?
-- **Per quanto riguardano i profili/componenti per progetti software/hardware:** È ammissibile l'esistenza di un progetto software/hardware che non dispone di profili/componenti (ma che comunque possono essere inseriti in secondo luogo dal creatore)?
 
 
 ## for admins implement /public/Logs.php which just fetches all logs from mongodb and renders them out on screen

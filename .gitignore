@@ -1,8 +1,8 @@
 docs/DB-PRJ-REGOLE.pdf
 docs/DB-PRJ-TRACCIA.pdf
-php/.htaccess
+#php/.htaccess
 db/init_demo.sh
 vendor
 CLAUDE.md
 .idea
-php/node_modules
+bostarter/node_modules
