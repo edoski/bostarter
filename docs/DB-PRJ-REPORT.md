@@ -3,7 +3,6 @@
 - [ ] check for any leftover TODO's in project
 - [ ] check for any blatant gpt english comments
 - [ ] connect mongodb to php
-- [ ] env vars for mysql and php?
 - [ ] PASTE FULL SQL INIT FILE TO [[#**7.1. Inizializzazione DB**]]
 - [ ] review entire report and ensure consistent tables, attributes etc
 	- [ ] update LISTA DELLE OPERAZIONI MAYBE!!!!!
@@ -18,7 +17,7 @@
 
 
 
-# try to see with docker if can serve on php files from php/public, while having everything work like public pages can still load php/config, php/actions, php/components, php/public/libs etc
+## (HELLA OPTIONAL) try to see with docker if can serve on php files from php/public, while having everything work like public pages can still load php/config, php/actions, php/components, php/public/libs etc
 - ## correct <\a> and <\form> tag paths in php code
 
 
@@ -64,9 +63,6 @@
 	- if u do this evaluate if need to refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways and whatever else/files for consistency
 
 
-## for mongodb 
-- add a error collection which just logs any sql signal state 45000 errors triggered, this type of log occurs in the fail-early initial checks at top of most php files, and in all PDOException try-catches
-- almost anywhere an sp_invoke() in php is called, thats where i must trigger a log as it indicates an action taking place
 
 ## keep track of website structure, when complete paste it atop of section 6.2 report
 # actually do it from project pov
