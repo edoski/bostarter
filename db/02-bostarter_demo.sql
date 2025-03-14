@@ -324,7 +324,7 @@ CALL sp_progetto_insert(
         'ivan@example.com',
         'Magna laborum mollit incididunt officia non elit mollit minim. Cupidatat adipisicing esse sit occaecat. Culpa mollit non aliquip reprehenderit aute eiusmod aliqua nisi aute pariatur mollit.',
         7500.00,
-        '2025-03-31',
+        '2025-07-31',
         'hardware'
      );
 
@@ -604,7 +604,7 @@ CALL sp_commento_insert(
 CALL sp_commento_insert(
         'oscar@example.com',
         'ProgettoAlpha',
-        'Alpha è un progetto molto interessante.'
+        'Alpha mi pare sia un progetto molto interessante.'
      );
 
 CALL sp_commento_risposta_insert(
@@ -624,7 +624,7 @@ CALL sp_commento_risposta_insert(
 CALL sp_commento_insert(
         'judy@example.com',
         'ProgettoBeta',
-        'Beta è rivoluzionario!'
+        'Beta... rivoluzionario!'
      );
 
 CALL sp_commento_risposta_insert(
@@ -643,5 +643,5 @@ CALL sp_commento_insert(
 CALL sp_commento_insert(
         'charlie@example.com',
         'ProgettoBeta',
-        'Beta è un progetto molto interessante.'
+        'Beta mi pare sia un progetto molto interessante.'
      );

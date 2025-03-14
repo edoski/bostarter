@@ -21,6 +21,9 @@
                     <li class="nav-item px-2"><a class="nav-link" href="../public/statistiche.php">Statistiche</a></li>
                     <li class="nav-item px-2"><a class="nav-link" href="../public/curriculum.php">Curriculum</a></li>
                     <li class="nav-item px-2"><a class="nav-link" href="../public/candidature.php">Candidature</a></li>
+                    <?php if (isset($_SESSION['is_admin']) && $_SESSION['is_admin']): ?>
+                        <li class="nav-item px-2"><a class="nav-link" href="../public/logs.php">Logs</a></li>
+                    <?php endif; ?>
                 </ul>
             <?php endif; ?>
 

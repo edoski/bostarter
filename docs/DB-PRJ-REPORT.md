@@ -1,13 +1,13 @@
 # TODO
 ---
 - [ ] check for any leftover TODO's in project
+- [ ] check for any blatant gpt english comments
 - [ ] connect mongodb to php
 - [ ] env vars for mysql and php?
 - [ ] PASTE FULL SQL INIT FILE TO [[#**7.1. Inizializzazione DB**]]
 - [ ] review entire report and ensure consistent tables, attributes etc
 	- [ ] update LISTA DELLE OPERAZIONI MAYBE!!!!!
 - [ ] create README.md for repo to explain how to setup and run project
-- [ ] hmmm maybe docker cool but idk
 - [ ] redo screenshots of funzionalità section once website complete
 - [ ] export to pdf using pandoc
 	- [ ] potentially need to fix mismatching links text for correct rendering
@@ -15,11 +15,35 @@
 
 
 
-# at the end when site done see if u can remap server to serve from /php/public instead of /php for privacy of other files
-- ## specify it in httpd.conf and specify in phpstorm settings and correct a and form tag paths in php code
+
+
+
+# try to see with docker if can serve on php files from php/public, while having everything work like public pages can still load php/config, php/actions, php/components, php/public/libs etc
+- ## correct <\a> and <\form> tag paths in php code
+
+
+
+
+
+
+
+## move success redirect underneath each sp_invoke
+
+
+
+
 
 
 ## for admins implement /public/Logs.php which just fetches all logs from mongodb and renders them out on screen
+
+
+
+
+
+
+
+
+
 
 # see recent claude chat on abstracting reusable php components
 - ## create reusable components for cards like reward cards, see if more shared visual components, or if can turn standardise platform with new reusable components
@@ -45,6 +69,7 @@
 - almost anywhere an sp_invoke() in php is called, thats where i must trigger a log as it indicates an action taking place
 
 ## keep track of website structure, when complete paste it atop of section 6.2 report
+# actually do it from project pov
 ```
 bostarter/
 ├── actions/
@@ -663,12 +688,16 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 ### [[DB-PRJ-REPORT#TODO]]
 
-- budget proj hardware >= somma componenti
-	- new triggers to automatically adjust budget based on insert/delete/update of components
-		- php notification of change in budget before operation finalised
-	- can still manually adjust budget, as long as it stays >= sum component cost
+- having to reason over aspects of the project which beforehand seemed obvious but in hindsight paved way for significant reflection on how project works/should handle things
+	- budget proj hardware >= somma componenti
+		- new triggers to automatically adjust budget based on insert/delete/update of components
+			- php notification of change in budget before operation finalised
+		- can still manually adjust budget, as long as it stays >= sum component cost
+	- can an admin register?
+	- profili as a generic entity with infinite instances vs concrete entity with only 1 available instance / profile
+	- finanziamenti once a day (mysql DATE) vs once per second (mysql DATETIME)
 
-- additional triggers for handling partecipazioni in the event of any skill profilo update, and automatic rejection of any user whose skill is inferior to requested level BY NEVER EVEN INSERTING THEM IN THE PARTECIPANTE TABLE AT ALL (see trg_rifiuta_candidatura_livello_effettivo_insufficiente)
+- additional logic in sp's for handling partecipazioni in the event of any skill profilo update, and automatic rejection of any user whose skill is inferior to requested level BY NEVER EVEN INSERTING THEM IN THE PARTECIPANTE TABLE AT ALL
 	- fundamental point at the end because PARTECIPANTE.stato = 'rifiutato' IS ONLY APPLICABLE TO THOSE WHOSE SKILL >= REQUESTED, BUT THE PROJECT CREATOR EXPLICITLY REFUSED THEM
 
 - multi-layer security check → redundant security > single line of defense php-level
@@ -692,8 +721,6 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 - I have opted not to implement this as it was not required in the traccia and doing so would require restructuring the db schema and i am already a bit far into sql
 
 - I initially had a ridiculous amount of operations that far exceeded what was requested in the list of operations of the traccia, but cut down significantly as it wouldve made the system, though more realistic, far too complex beyond the scope of the project. The most complex of which were always sp_X_update procedures
-	- **scope creep in check... do not implement what was not asked of you to implement**
-		- another example was originally wanting to containerise the project with docker, or use laravel framework for php... all great things but not required and would add significant overhead in complexity
 
 - lots of SPs have common logic checks, I decided to modularise this by abstracting out the common logic checks into secondary helper SP's to improve readability and maintainability of the code
 	- I followed the same philosophy and even file structure (checks first, action last) in php
@@ -701,10 +728,13 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 - With my main init file having grown to >2700 lines I decided to document it with very clear segmentations to make it clearer and more maintainable
 	- highlight importance of clear structure, documentation, and necessity of transmitting clearly the purpose/intent of the SP etc
+	- removing custom triggers and maintaining only the ones strictly required by project traccia. I opted to keep all the logic handling in sp's as it centralises all the logic checks and actions performed to the most relevant areas (eg. when a creatore updates a skill profilo level i want to see only the sp that he invokes and inside of it i should expect to infer every possible side-effect/change in db that emerges as a result of that operation)
 
 - while the existence check for the project might seem redundant from a pure data-integrity standpoint, it is valuable for providing a better, more controlled error response and enforcing additional business logic. EXAMPLE: The check for the project’s closed state is absolutely necessary for comments and financing operations because it’s not covered by the foreign key constraints.
 
-- decomposing php site into components, actions, functions, and public (pages) to split page display from action logic, and components great for code reusability
+- decomposing php site into components, actions, functions, and public (pages) to split page display from action logic, and components great for code reusability and security
+
+- navigating unforeseen complexity: apache web server permissions, configuring php environment, getting mongodb extension working → All lead to me learning a bit about docker and containerising the whole project, ensuring also universal portability of the project
 
 # **6. FUNZIONALITÀ**
 ---

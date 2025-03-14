@@ -1,4 +1,20 @@
-db/init_demo.sh
-vendor
+# IDE files
 .idea
+
+# Environment files
+.env
+!.env.example
+
+# OS generated files
+.DS_Store
+
+# PHP dependencies
+php/vendor/
 node_modules
+
+# Docker volumes
+db_data/
+mongodb_data/
+
+# Logs
+*.log

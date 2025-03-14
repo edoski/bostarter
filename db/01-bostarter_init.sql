@@ -57,7 +57,7 @@ CREATE TABLE PROGETTO (
 	descrizione      TEXT           NOT NULL CHECK ( LENGTH(descrizione) > 0 ), -- Minimo 1 carattere
 	budget           DECIMAL(10, 2) NOT NULL CHECK ( budget > 0 ),
 	stato            ENUM ('aperto','chiuso') DEFAULT 'aperto',
-	data_inserimento DATE           NOT NULL  DEFAULT CURRENT_DATE,
+	data_inserimento DATE           NOT NULL  DEFAULT (CURRENT_DATE),
 	data_limite      DATE           NOT NULL,
 	PRIMARY KEY (nome),
 	CONSTRAINT fk_progetto_creatore
@@ -160,7 +160,7 @@ CREATE TABLE SKILL (
 
 -- 12. FINANZIAMENTO
 CREATE TABLE FINANZIAMENTO (
-	data          DATE           NOT NULL DEFAULT CURRENT_DATE,
+	data          DATE           NOT NULL DEFAULT (CURRENT_DATE),
 	email_utente  VARCHAR(100)   NOT NULL,
 	nome_progetto VARCHAR(100)   NOT NULL,
 	codice_reward VARCHAR(50)    NOT NULL,
@@ -1035,7 +1035,8 @@ BEGIN
 		             AND competenza IS NOT NULL
 		             AND competenza != '') THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROFILO SENZA COMPETENZE DEFINITE. ATTENDI CHE IL CREATORE AGGIUNGA LE COMPETENZE RICHIESTE';
+			SET MESSAGE_TEXT =
+					'PROFILO SENZA COMPETENZE DEFINITE. ATTENDI CHE IL CREATORE AGGIUNGA LE COMPETENZE RICHIESTE';
 	END IF;
 
 	-- Controllo che il profilo non sia già stato occupato da un altro utente

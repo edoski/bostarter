@@ -1,0 +1,44 @@
+services:
+    web:
+        build: .
+        ports:
+            - "8080:80"
+        volumes:
+            - ./php:/var/www/html
+            - ./php/img:/var/www/html/img
+        env_file:
+            - ./.env
+        environment:
+            - APP_ENV=${APP_ENV}
+        depends_on:
+            - db
+            - mongodb
+        restart: unless-stopped
+
+    db:
+        image: mysql:8.0
+        env_file:
+            - ./.env
+        environment:
+            MYSQL_ROOT_PASSWORD: ${DB_PASS}
+            MYSQL_DATABASE: ${DB_NAME}
+        ports:
+            - "3307:3306"
+        volumes:
+            - ./db:/docker-entrypoint-initdb.d
+            - db_data:/var/lib/mysql
+        restart: unless-stopped
+
+    mongodb:
+        image: mongo:latest
+        env_file:
+            - ./.env
+        ports:
+            - "27017:27017"
+        volumes:
+            - mongodb_data:/data/db
+        restart: unless-stopped
+
+volumes:
+    db_data:
+    mongodb_data:

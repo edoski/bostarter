@@ -10,14 +10,14 @@ require_once __DIR__ . '/config.php';
 function seedProgettoFoto(string $nomeProgetto, string $emailCreatore, string $imagePath): void
 {
     if (!file_exists($imagePath)) {
-        echo "File not found: $imagePath\n";
+        echo "ERROR: File not found: $imagePath\n";
         return;
     }
 
     // Leggo il contenuto binario dell'immagine
     $imageData = file_get_contents($imagePath);
     if ($imageData === false) {
-        echo "Failed to read: $imagePath\n";
+        echo "ERROR: Failed to read: $imagePath\n";
         return;
     }
 
@@ -30,7 +30,8 @@ function seedProgettoFoto(string $nomeProgetto, string $emailCreatore, string $i
     try {
         sp_invoke('sp_foto_insert', $in);
     } catch (PDOException $ex) {
-        print $ex->getMessage();
+        echo "ERROR: " . $ex->getMessage() . "\n";
+        print_r($ex->errorInfo);
         die();
     }
 }
