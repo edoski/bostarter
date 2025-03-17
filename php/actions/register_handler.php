@@ -92,6 +92,7 @@ $pipeline->check(
 // REGISTRAZIONE DELL'UTENTE
 $pipeline->invoke();
 
+// === SUCCESS ===
 // IMPOSTO LE VARIABILI DI SESSIONE
 $_SESSION['email'] = $email;
 $_SESSION['nickname'] = $nickname;
@@ -102,6 +103,5 @@ $_SESSION['luogo_nascita'] = $luogo_nascita;
 $_SESSION['is_creatore'] = $is_creatore;
 $_SESSION['is_admin'] = $is_admin;
 
-// === SUCCESS ===
 // REDIRECT ALLA PAGINA HOME
 $pipeline->continue("Registrazione effettuata con successo.");

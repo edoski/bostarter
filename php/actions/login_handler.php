@@ -72,6 +72,7 @@ $is_creatore = $pipeline->fetch('sp_util_creatore_exists')['is_creatore'];
 // RECUPERO I DATI DELL'UTENTE
 $user_data = $pipeline->fetch('sp_utente_select');
 
+// === SUCCESS ===
 // IMPOSTO LE VARIABILI DI SESSIONE
 $_SESSION['email'] = htmlspecialchars($login_data['email']);
 $_SESSION['nickname'] = htmlspecialchars($login_data['nickname']);
@@ -90,6 +91,5 @@ $logs = [
     'p_is_creatore' => $_SESSION['is_creatore']
 ];
 
-// === SUCCESS ===
 // REDIRECT ALLA PAGINA HOME
 $pipeline->continue("Login effettuato con successo.", $logs);
