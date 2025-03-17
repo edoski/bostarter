@@ -17,13 +17,18 @@ RUN pecl install mongodb && docker-php-ext-enable mongodb
 # Abilito il modulo rewrite di Apache (non necessario ma utile)
 RUN a2enmod rewrite
 
-# Set the ServerName directive globally to suppress warnings
+# Per risolvere i messaggi di avviso di Apache
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Script di entrypoint per la configurazione del container
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-ENTRYPOINT ["docker-entrypoint.sh"]
+# Creo ed eseguo startup.sh per eseguire il seed dei dati e avviare Apache
+RUN echo '#!/bin/bash\n\
+set -e\n\
+cd /var/www/html\n\
+php config/seed_data.php\n\
+exec apache2-foreground' > /usr/local/bin/startup.sh && \
+    chmod +x /usr/local/bin/startup.sh
+
+CMD ["/usr/local/bin/startup.sh"]
 
 # Expose port 80 per l'accesso al server web
 EXPOSE 80

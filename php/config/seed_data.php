@@ -1,127 +1,44 @@
 <?php
-// === CONFIG ===
-// Esegui questo script UNA VOLTA per popolare il DB con valori di default non inseribili mediante bostarter_demo.sql
+// === SETUP ===
+// Questo script viene eseguito automaticamente UNA VOLTA per popolare il DB con valori di default non inseribili mediante bostarter_demo.sql
 require_once __DIR__ . '/config.php';
-
-// === ACTION ===
-/**
- * Inserisce una singola foto nel DB per un dato progetto.
- */
-function seedProgettoFoto(string $nomeProgetto, string $emailCreatore, string $imagePath): void
-{
-    if (!file_exists($imagePath)) {
-        echo "ERROR: File not found: $imagePath\n";
-        return;
-    }
-
-    // Leggo il contenuto binario dell'immagine
-    $imageData = file_get_contents($imagePath);
-    if ($imageData === false) {
-        echo "ERROR: Failed to read: $imagePath\n";
-        return;
-    }
-
-    $in = [
-        'p_nome_progetto' => $nomeProgetto,
-        'p_email_creatore' => $emailCreatore,
-        'p_foto' => $imageData
-    ];
-
-    try {
-        sp_invoke('sp_foto_insert', $in);
-    } catch (PDOException $ex) {
-        echo "ERROR: " . $ex->getMessage() . "\n";
-        print_r($ex->errorInfo);
-        die();
-    }
-}
-
-/**
- * Inserisce una singola foto nel DB per una reward di un progetto.
- */
-function seedProgettoReward(string $codiceReward, string $nomeProgetto, string $emailCreatore, string $descrizioneReward, string $imagePath, float $minImporto): void
-{
-    if (!file_exists($imagePath)) {
-        echo "File not found: $imagePath\n";
-        return;
-    }
-
-    // Leggo il contenuto binario dell'immagine
-    $imageData = file_get_contents($imagePath);
-    if ($imageData === false) {
-        echo "Failed to read: $imagePath\n";
-        return;
-    }
-
-    $in = [
-        'p_codice' => $codiceReward,
-        'p_nome_progetto' => $nomeProgetto,
-        'p_email_creatore' => $emailCreatore,
-        'p_descrizione' => $descrizioneReward,
-        'p_foto' => $imageData,
-        'p_min_importo' => $minImporto
-    ];
-
-    try {
-        sp_invoke('sp_reward_insert', $in);
-    } catch (PDOException $ex) {
-        print $ex->getMessage();
-        die();
-    }
-}
-
-/**
- * Inserisce un singolo finanziamento nel DB per un dato progetto.
- */
-function seedProgettoFinanziamento(string $emailUtente, string $nomeProgetto, string $codiceReward, float $importo): void
-{
-    $in = [
-        'p_email' => $emailUtente,
-        'p_nome_progetto' => $nomeProgetto,
-        'p_codice_reward' => $codiceReward,
-        'p_importo' => $importo
-    ];
-
-    try {
-        sp_invoke('sp_finanziamento_insert', $in);
-    } catch (PDOException $ex) {
-        print $ex->getMessage();
-        die();
-    }
-}
-
-// ========== SEED DATA ==========
-
 $path = __DIR__ . '/../img/';
 
+echo "=== SEEDING seed_data.php START! ===\n";
+
 // === ProgettoAlpha (SOFTWARE) ===
-// Inserisco le foto del progetto
-seedProgettoFoto(
+
+echo "Seeding ProgettoAlpha... ";
+
+// Inserisco le foto per ProgettoAlpha
+seed_progetto_foto(
     'ProgettoAlpha',
     'bob@example.com',
     $path . '/ProgettoAlpha_Cover.jpg'
 );
 
-seedProgettoFoto(
+seed_progetto_foto(
     'ProgettoAlpha',
     'bob@example.com',
     $path . '/SW1.jpg'
 );
 
-seedProgettoFoto(
+seed_progetto_foto(
     'ProgettoAlpha',
     'bob@example.com',
     $path . '/SW2.jpg'
 );
 
-seedProgettoFoto(
+seed_progetto_foto(
     'ProgettoAlpha',
     'bob@example.com',
     $path . '/SW3.jpg'
 );
 
-// Inserisco le rewards del progetto
-seedProgettoReward(
+// Inserisco le rewards per ProgettoAlpha
+seed_progetto_default_reward('ProgettoAlpha', 'bob@example.com');
+
+seed_progetto_reward(
     'RWD1_Alpha',
     'ProgettoAlpha',
     'bob@example.com',
@@ -130,7 +47,7 @@ seedProgettoReward(
     150.00
 );
 
-seedProgettoReward(
+seed_progetto_reward(
     'RWD2_Alpha',
     'ProgettoAlpha',
     'bob@example.com',
@@ -139,7 +56,7 @@ seedProgettoReward(
     300.00
 );
 
-seedProgettoReward(
+seed_progetto_reward(
     'RWD3_Alpha',
     'ProgettoAlpha',
     'bob@example.com',
@@ -148,65 +65,63 @@ seedProgettoReward(
     500.00
 );
 
-seedProgettoReward(
-    'RWD_Default',
-    'ProgettoAlpha',
-    'bob@example.com',
-    'Commodo ipsum dolor dolore ullamco aliqua dolor aliqua.',
-    $path . '/RWD_Default.jpg',
-    0.01
-);
-
-// Inserisco i finanziamenti per il progetto
-seedProgettoFinanziamento(
+// Inserisco i finanziamenti per ProgettoAlpha
+seed_progetto_finanziamento(
     'charlie@example.com',
     'ProgettoAlpha',
     'RWD1_Alpha',
     1150.00
 );
 
-seedProgettoFinanziamento(
+seed_progetto_finanziamento(
     'diana@example.com',
     'ProgettoAlpha',
     'RWD2_Alpha',
     1211.00
 );
 
-seedProgettoFinanziamento(
+seed_progetto_finanziamento(
     'oscar@example.com',
     'ProgettoAlpha',
     'RWD3_Alpha',
     1523.00
 );
 
+echo "OK.\n";
+
 // === ProgettoBeta (HARDWARE) ===
-// Inserisco le foto del progetto
-seedProgettoFoto(
+
+echo "Seeding ProgettoBeta... ";
+
+// Inserisco le foto per ProgettoBeta
+seed_progetto_foto(
     'ProgettoBeta',
     'diana@example.com',
     $path . '/ProgettoBeta_Cover.jpg'
 );
 
-seedProgettoFoto(
+seed_progetto_foto(
     'ProgettoBeta',
     'diana@example.com',
     $path . '/HW1.jpg'
 );
 
-seedProgettoFoto(
+seed_progetto_foto(
     'ProgettoBeta',
     'diana@example.com',
     $path . '/HW2.jpg'
 );
 
-seedProgettoFoto(
+seed_progetto_foto(
     'ProgettoBeta',
     'diana@example.com',
     $path . '/HW3.jpg'
 );
 
-// Inserisco le rewards del progetto
-seedProgettoReward(
+// Inserisco le rewards per ProgettoBeta
+seed_progetto_default_reward('ProgettoBeta', 'diana@example.com');
+
+seed_progetto_reward(
     'RWD1_Beta',
     'ProgettoBeta',
     'diana@example.com',
@@ -215,7 +130,7 @@ seedProgettoReward(
     150.00
 );
 
-seedProgettoReward(
+seed_progetto_reward(
     'RWD2_Beta',
     'ProgettoBeta',
     'diana@example.com',
@@ -224,7 +139,7 @@ seedProgettoReward(
     300.00
 );
 
-seedProgettoReward(
+seed_progetto_reward(
     'RWD3_Beta',
     'ProgettoBeta',
     'diana@example.com',
@@ -233,49 +148,37 @@ seedProgettoReward(
     500.00
 );
 
-seedProgettoReward(
-    'RWD_Default',
-    'ProgettoBeta',
-    'diana@example.com',
-    'Commodo ipsum dolor dolore ullamco aliqua dolor aliqua sint laborum in.',
-    $path . '/RWD_Default.jpg',
-    0.01
-);
-
-// Inserisco i finanziamenti per il progetto
-seedProgettoFinanziamento(
+// Inserisco i finanziamenti per ProgettoBeta
+seed_progetto_finanziamento(
     'edoardo.galli3@studio.unibo.it',
     'ProgettoBeta',
     'RWD1_Beta',
     2050.00
 );
 
-seedProgettoFinanziamento(
+seed_progetto_finanziamento(
     'karen@example.com',
     'ProgettoBeta',
     'RWD2_Beta',
     1900.00
 );
 
-seedProgettoFinanziamento(
+seed_progetto_finanziamento(
     'bob@example.com',
     'ProgettoBeta',
     'RWD3_Beta',
     1600.00
 );
 
-// === FINANZIAMENTI/REWARD PER ALTRI PROGETTI ===
+echo "OK.\n";
+
+// === FINANZIAMENTI PER ALTRI PROGETTI ===
+
+echo "Seeding remaining projects... ";
 
 // ProgettoGamma
-seedProgettoReward(
-    'RWD_Default',
-    'ProgettoGamma',
-    'grace@example.com',
-    'Aliqua laboris laborum laborum laborum.',
-    $path . '/RWD_Default.jpg',
-    0.01
-);
-seedProgettoFinanziamento(
+seed_progetto_default_reward('ProgettoGamma', 'grace@example.com');
+seed_progetto_finanziamento(
     'frank@example.com',
     'ProgettoGamma',
     'RWD_Default',
@@ -283,43 +186,23 @@ seedProgettoFinanziamento(
 );
 
 // ProgettoDelta
-seedProgettoReward(
-    'RWD_Default',
-    'ProgettoDelta',
-    'ivan@example.com',
-    'Aliqua laboris laborum laborum laborum.',
-    $path . '/RWD_Default.jpg',
-    0.01
-);
-seedProgettoFinanziamento(
+seed_progetto_default_reward('ProgettoDelta', 'ivan@example.com');
+seed_progetto_finanziamento(
     'heidi@example.com',
     'ProgettoDelta',
     'RWD_Default',
     3075.00
 );
 
-// ProgettoKappa
-seedProgettoReward(
-    'RWD_Default',
-    'ProgettoKappa',
-    'ivan@example.com',
-    'Aliqua laboris laborum laborum laborum.',
-    $path . '/RWD_Default.jpg',
-    0.01
-);
-
 // ProgettoEpsilon
-seedProgettoReward(
-    'RWD_Default',
-    'ProgettoEpsilon',
-    'karen@example.com',
-    'Aliqua laboris laborum laborum laborum.',
-    $path . '/RWD_Default.jpg',
-    0.01
-);
-seedProgettoFinanziamento(
+seed_progetto_default_reward('ProgettoEpsilon', 'karen@example.com');
+seed_progetto_finanziamento(
     'oscar@example.com',
     'ProgettoEpsilon',
     'RWD_Default',
     12000.00
 );
+
+echo "OK.\n";
+
+echo "=== SEEDING seed_data.php COMPLETE! ===\n";

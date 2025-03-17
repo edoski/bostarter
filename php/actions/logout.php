@@ -1,14 +1,41 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: logout
+ * PERFORMED BY: ALL
+ * UI: components/header.php
+ *
+ * PURPOSE:
+ * - Gestisce il logout di un utente.
+ * - Distrugge la sessione e cancella il cookie di sessione.
+ */
+
+// === SETUP ===
+session_start();
 require '../config/config.php';
+check_auth();
+
+// === CONTEXT ===
+$context = [
+    'collection' => 'UTENTE',
+    'action' => 'LOGOUT',
+    'redirect' => generate_url('login')
+];
+$pipeline = new ValidationPipeline($context);
 
 // === ACTION ===
-// Server-side logout: destroy session
-session_start();
+// DATI DI LOGGING
+$logs = [
+    'email' => $_SESSION['email'],
+    'nickname' => $_SESSION['nickname'],
+    'is_admin' => $_SESSION['is_admin'],
+    'is_creatore' => $_SESSION['is_creatore']
+];
+
+// SERVER-SIDE: DISTRUGGO LA SESSIONE
 session_unset();
 session_destroy();
 
-// Client-side logout: delete session cookie
+// CLIENT-SIDE: CANCELLO IL COOKIE DI SESSIONE
 if (ini_get("session.use_cookies")) {
     $params = session_get_cookie_params();
     setcookie(session_name(), '', time() - 42000,
@@ -17,9 +44,6 @@ if (ini_get("session.use_cookies")) {
     );
 }
 
-// Success, redirect alla pagina di login
-redirect(
-    true,
-    "Logout effettuato con successo.",
-    "../public/login.php"
-);
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DI LOGIN
+$pipeline->continue("Logout effettuato con successo.", $logs);

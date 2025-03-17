@@ -1,40 +1,60 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: commento_risposta_insert
+ * PERFORMED BY: CREATORE
+ * UI: public/progetto_dettagli.php
+ *
+ * PURPOSE:
+ * - Inserisce una risposta a un commento per un progetto.
+ * - Solo il creatore del progetto può rispondere ai commenti.
+ * - Se l'operazione va a buon fine, la risposta viene inserita nel campo "risposta" della tabella "COMMENTO".
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_commento_risposta_insert".
+ *
+ * VARIABLES:
+ * - id_commento: ID del commento a cui si vuole rispondere
+ * - email: Email del creatore del progetto
+ * - nome_progetto: Nome del progetto a cui si riferisce il commento
+ * - risposta: Testo della risposta al commento
+ */
+
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+check_POST(['id_commento', 'nome_progetto', 'risposta']);
+$id_commento = $_POST['id_commento'];
+$nome_progetto = $_POST['nome_progetto'];
+$risposta = $_POST['risposta'];
+$email = $_SESSION['email'];
 
-// 2. Le variabili POST sono state impostate correttamente
-checkSetVars(['id_commento', 'nome_progetto', 'risposta']);
+// === CONTEXT ===
+$context = [
+    'collection' => 'COMMENTO',
+    'action' => 'REPLY',
+    'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
+    'procedure' => 'sp_commento_risposta_insert',
+    'in' => [
+        'p_commento_id' => $id_commento,
+        'p_email_creatore' => $email,
+        'p_nome_progetto' => $nome_progetto,
+        'p_risposta' => $risposta
+    ]
+];
+$pipeline = new ValidationPipeline($context);
 
-// 3. L'utente è il creatore del progetto
-checkProgettoOwner($_POST['nome_progetto']);
+// === VALIDATION ===
+// L'UTENTE È IL CREATORE DEL PROGETTO
+$pipeline->check(
+    !is_progetto_owner($email, $nome_progetto),
+    "Non sei autorizzato ad effettuare questa operazione."
+);
 
 // === ACTION ===
-// Se tutti i controlli passano, invio la risposta
-try {
-    $in = [
-        'p_commento_id' => $_POST['id_commento'],
-        'p_email_creatore' => $_SESSION['email'],
-        'p_nome_progetto' => $_POST['nome_progetto'],
-        'p_risposta' => $_POST['risposta']
-    ];
+// INSERIMENTO DELLA RISPOSTA AL COMMENTO
+$pipeline->invoke();
 
-    sp_invoke('sp_commento_risposta_insert', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante l'inserimento della risposta: " . $ex->errorInfo[2],
-        "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
-    );
-}
-
-// Success, redirect alla pagina del progetto
-redirect(
-    true,
-    "Risposta inviata con successo.",
-    "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
-);
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DEL PROGETTO
+$pipeline->continue("Risposta inserita con successo.");

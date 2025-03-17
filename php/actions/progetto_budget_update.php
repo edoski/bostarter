@@ -1,77 +1,63 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: progetto_budget_update
+ * PERFORMED BY: CREATORE
+ * UI: components/progetto_aggiorna_budget.php
+ *
+ * PURPOSE:
+ * - Aggiorna il budget di un progetto.
+ * - Solo il creatore del progetto può aggiornare il budget.
+ * - Se l'operazione va a buon fine, il budget viene aggiornato nella tabella "PROGETTO".
+ * - Per progetti hardware, il budget deve essere maggiore o uguale al costo totale delle componenti.
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_progetto_budget_update".
+ *
+ * VARIABLES:
+ * - nome: Nome del progetto
+ * - budget: Nuovo budget del progetto
+ * - tipo: Tipo del progetto (SOFTWARE, HARDWARE)
+ * - email: Email dell'utente creatore del progetto
+ */
+
+// === SETUP ===
 session_start();
 require_once '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
-
-// 2. Le variabili POST sono state impostate correttamente
-checkSetVars(['nome', 'budget', 'tipo']);
-
+// === VARIABLES ===
+check_POST(['nome', 'budget', 'tipo']);
 $nome_progetto = $_POST['nome'];
 $budget = floatval($_POST['budget']);
+$tipo = $_POST['tipo'];
+$email = $_SESSION['email'];
 
-// 3. L'utente è il creatore del progetto
-checkProgettoOwner($nome_progetto);
+// === CONTEXT ===
+$context = [
+    'collection' => 'PROGETTO',
+    'action' => 'UPDATE',
+    'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
+    'procedure' => 'sp_progetto_budget_update',
+    'in' => [
+        'p_nome_progetto' => $nome_progetto,
+        'p_budget' => $budget,
+        'p_email' => $email
+    ]
+];
+$pipeline = new ValidationPipeline($context);
 
-// 4. Se il progetto è chiuso, non è possibile modificare il budget
-checkProgettoAperto($nome_progetto);
+// === VALIDATION ===
+// L'UTENTE È IL CREATORE DEL PROGETTO
+$pipeline->check(
+    !is_progetto_owner($email, $nome_progetto),
+    "Non sei autorizzato ad effettuare questa operazione."
+);
 
-// 5. Il budget è un numero positivo
-if ($budget <= 0) {
-    redirect(
-        false,
-        "Il budget deve essere un numero positivo.",
-        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
-    );
-}
-
-// 6. Se il progetto è di tipo HARDWARE, controllo che il nuovo budget >= costo delle componenti
-if ($_POST['tipo'] === 'HARDWARE') {
-    try {
-        $in = ['p_nome_progetto' => $nome_progetto];
-        $out = ['p_costo_totale_out' => 0];
-        sp_invoke('sp_util_progetto_componenti_costo', $in, $out)[0]['p_costo_totale_out'] ?? 0;
-
-        if ($out['p_costo_totale_out'] > $budget) {
-            redirect(
-                false,
-                "Il budget deve essere maggiore o uguale al costo delle sue componenti.",
-                "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
-            );
-        }
-    } catch (PDOException $ex) {
-        redirect(
-            false,
-            "Errore durante il recupero del costo delle componenti: " . $ex->errorInfo[2],
-            '../public/progetti.php'
-        );
-    }
-}
+// IL PROGETTO È APERTO
+$pipeline->invoke('sp_util_progetto_is_aperto', ['p_nome_progetto' => $nome_progetto]);
 
 // === ACTION ===
-// Aggiornamento del budget
-try {
-    $in = [
-        'p_nome' => $nome_progetto,
-        'p_email_creatore' => $_SESSION['email'],
-        'p_budget' => $budget
-    ];
+// AGGIORNAMENTO DEL BUDGET
+$pipeline->invoke();
 
-    sp_invoke('sp_progetto_budget_update', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante l'aggiornamento del budget: " . $ex->errorInfo[2],
-        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
-    );
-}
-
-// Success, redirect alla pagina del progetto
-redirect(
-    true,
-    "Budget aggiornato con successo.",
-    "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
-);
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DEL PROGETTO
+$pipeline->continue("Budget aggiornato con successo.");

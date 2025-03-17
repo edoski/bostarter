@@ -1,49 +1,58 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: skill_curriculum_update
+ * PERFORMED BY: ALL
+ * UI: public/curriculum.php
+ *
+ * PURPOSE:
+ * - Aggiorna il livello di una competenza nel curriculum di un utente.
+ * - Qualsiasi utente può aggiornare le proprie competenze.
+ * - Se l'operazione va a buon fine, il livello della competenza viene aggiornato nella tabella "SKILL_CURRICULUM".
+ * - Se il nuovo livello è inferiore a quello richiesto da progetti a cui l'utente si è candidato, le candidature vengono automaticamente rifiutate.
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_skill_curriculum_update".
+ *
+ * VARIABLES:
+ * - email: Email dell'utente
+ * - competenza: Competenza da aggiornare
+ * - livello: Nuovo livello di competenza (da 0 a 5)
+ */
+
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
-
-// 2. Le variabili POST sono state impostate correttamente
-checkSetVars(
-    ['competenza', 'livello'],
-    '../public/curriculum.php'
-);
-
-// 3. Il livello è valido (0-5)
+// === VARIABLES ===
+check_POST(['competenza', 'livello']);
+$competenza = $_POST['competenza'];
 $livello = intval($_POST['livello']);
-if ($livello < 0 || $livello > 5) {
-    redirect(
-        false,
-        'Livello non valido. Il livello deve essere compreso tra 0 e 5.',
-        '../public/curriculum.php'
-    );
-}
+$email = $_SESSION['email'];
+
+// === CONTEXT ===
+$context = [
+    'collection' => 'SKILL_CURRICULUM',
+    'action' => 'UPDATE',
+    'redirect' => generate_url('curriculum'),
+    'procedure' => 'sp_skill_curriculum_update',
+    'in' => [
+        'p_email' => $email,
+        'p_competenza' => $competenza,
+        'p_livello' => $livello
+    ]
+];
+$pipeline = new ValidationPipeline($context);
+
+// === VALIDATION ===
+// IL LIVELLO È UN INTERO COMPRESO TRA 0 E 5
+$pipeline->check(
+    !is_numeric($livello) || $livello < 0 || $livello > 5,
+    "Il livello di competenza deve essere un numero intero compreso tra 0 e 5."
+);
 
 // === ACTION ===
-// Aggiornamento del livello della skill nel curriculum dell'utente
-try {
-    $in = [
-        'p_email' => $_SESSION['email'],
-        'p_competenza' => $_POST['competenza'],
-        'p_livello' => $livello
-    ];
+// AGGIORNAMENTO DEL LIVELLO DELLA SKILL NEL CURRICULUM
+$pipeline->invoke();
 
-    sp_invoke('sp_skill_curriculum_update', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore nell'aggiornamento della skill: " . $ex->errorInfo[2],
-        '../public/curriculum.php'
-    );
-}
-
-// Success, redirect alla pagina delle skill
-redirect(
-    true,
-    'Skill aggiornata con successo.',
-    '../public/curriculum.php'
-);
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DEL CURRICULUM
+$pipeline->continue("Livello di competenza aggiornato con successo.");

@@ -1,42 +1,57 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: componente_delete
+ * PERFORMED BY: CREATORE
+ * UI: components/progetto_aggiorna_componenti.php
+ *
+ * PURPOSE:
+ * - Rimuove un componente da un progetto hardware.
+ * - Solo il creatore del progetto può rimuovere componenti.
+ * - Se l'operazione va a buon fine, il componente viene rimosso dalla tabella "COMPONENTE".
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_componente_delete".
+ *
+ * VARIABLES:
+ * - nome_componente: Nome del componente da rimuovere
+ * - nome_progetto: Nome del progetto hardware a cui appartiene il componente
+ * - email: Email dell'utente creatore del progetto che richiede la rimozione
+ */
+
+// === SETUP ===
 session_start();
 require_once '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
-
-// 2. Le variabili POST sono state impostate correttamente
-checkSetVars(['nome_progetto', 'nome_componente']);
-
-// 3. L'utente è il creatore del progetto
-checkProgettoOwner($_POST['nome_progetto']);
-
+// === VARIABLES ===
+check_POST(['nome_progetto', 'nome_componente']);
 $nome_progetto = $_POST['nome_progetto'];
 $nome_componente = $_POST['nome_componente'];
+$email = $_SESSION['email'];
 
-// === ACTION ===
-// Eliminazione del componente dal progetto
-try {
-    $in = [
+// === CONTEXT ===
+$context = [
+    'collection' => 'COMPONENTE',
+    'action' => 'DELETE',
+    'redirect' => generate_url('progetto_aggiorna', ['attr' => 'componenti', 'nome' => $nome_progetto]),
+    'procedure' => 'sp_componente_delete',
+    'in' => [
         'p_nome_componente' => $nome_componente,
         'p_nome_progetto' => $nome_progetto,
-        'p_email_creatore' => $_SESSION['email']
-    ];
+        'p_email_creatore' => $email
+    ]
+];
+$pipeline = new ValidationPipeline($context);
 
-    sp_invoke('sp_componente_delete', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante l'eliminazione del componente: " . $ex->errorInfo[2],
-        "../public/progetto_aggiorna.php?attr=componenti&nome=" . urlencode($nome_progetto)
-    );
-}
-
-// Success, redirect alla pagina di gestione componenti
-redirect(
-    true,
-    "Componente eliminato con successo.",
-    "../public/progetto_aggiorna.php?attr=componenti&nome=" . urlencode($nome_progetto)
+// === VALIDATION ===
+// L'UTENTE È IL CREATORE DEL PROGETTO
+$pipeline->check(
+    !is_progetto_owner($email, $nome_progetto),
+    "Non sei autorizzato ad effettuare questa operazione."
 );
+
+// === ACTION ===
+// RIMOZIONE DEL COMPONENTE DAL PROGETTO
+$pipeline->invoke();
+
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DI AGGIORNAMENTO COMPONENTI
+$pipeline->continue("Componente rimosso con successo.");

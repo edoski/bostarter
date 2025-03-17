@@ -2,8 +2,8 @@
 ---
 - [ ] check for any leftover TODO's in project
 - [ ] check for any blatant gpt english comments
-- [ ] connect mongodb to php
 - [ ] PASTE FULL SQL INIT FILE TO [[#**7.1. Inizializzazione DB**]]
+	- [ ] read regole if should paste also init and demo
 - [ ] review entire report and ensure consistent tables, attributes etc
 	- [ ] update LISTA DELLE OPERAZIONI MAYBE!!!!!
 - [ ] create README.md for repo to explain how to setup and run project
@@ -17,50 +17,56 @@
 
 
 
-## (HELLA OPTIONAL) try to see with docker if can serve on php files from php/public, while having everything work like public pages can still load php/config, php/actions, php/components, php/public/libs etc
-- ## correct <\a> and <\form> tag paths in php code
+
+
+## if no scenario uses fetch_all then remove it
+
+
+# is it reasonable to have SUCCESS redirect section at end of /actions or should it be baked into pipeline->invoke() (redirect immediately happens after sp_invoke with success/fail handled by context) or should it be externalised (have redirect success and redirect fail section in /actions file)
+
+
+
+
+## CONSIDER REMOVING VALIDATION CHECKS IN ACTIONS WHERE THE CHECK IS ALREADY PERFORMED AT DB LEVEL
+
+
+## do i need to add validations to skill curriculum actions?
+
+
+## can I use a ValidationPipeline in checks.php?
+
+
+
+
+- [ ] register_handler.php
+- [ ] reward_insert.php
+- [ ] skill_curriculum_delete.php
+- [ ] skill_curriculum_insert.php
+- [ ] skill_curriculum_update.php
+- [ ] skill_insert.php
+- [ ] skill_profilo_delete
+- [ ] skill_profilo_insert
+- [ ] skill_profilo_update
+- [ ] skill_update.php
+- [ ] utente_convert_creatore.php
+- [ ] checks.php ??
 
 
 
 
 
+### (HELLA OPTIONAL) try to see with docker if can serve on php files from php/public, while having everything work like public pages can still load php/config, php/actions, php/components, php/public/libs etc
+- ### correct <\a> and <\form> tag paths in php code
 
 
-## move success redirect underneath each sp_invoke
-
-
-
-
-
-
-## for admins implement /public/Logs.php which just fetches all logs from mongodb and renders them out on screen
-
-
-
-
-
-
-
-
-
-
-# see recent claude chat on abstracting reusable php components
-- ## create reusable components for cards like reward cards, see if more shared visual components, or if can turn standardise platform with new reusable components
+## see claude chat on abstracting reusable php components
+- ### create reusable components for cards like reward cards, see if more shared visual components, or if can turn standardise platform with new reusable components
 
 
 ## standardise POST var names like 'nome_progetto' instead of 'nome' when passing project name via post, etc
 - #### need to update progetto_aggiorna attr to be passed via POST no GET
 - ensure they are also specific like id_foto instead of id
 - `if (!isset($_FILES['foto']) || $_FILES['foto']['error'] != UPLOAD_ERR_OK) {` is how foto upload handling is checked
-
-### maybe also introduce new section underneath CHECKS like say VARIABLES and there init all vars of each file, standardised format obvi
-- important to be underneath CHECKS because that section is responsible for ensuring valid POST vars
-- if u do this update sec 6.2 in report
-
-
-## calls.php and more
-- ### to make all php files slimmer consider abstracting reused visual components and requiring them in file, and same thing for data gathering if there are identical try-catch sp_invoke data initialisers like $progetto or $finanziamenti
-	- if u do this evaluate if need to refactor progetto_aggiorna to use $\_POST\['nome] instead of $\_GET\['nome] and standardise all data gathering ways and whatever else/files for consistency
 
 
 
@@ -75,18 +81,28 @@ bostarter/
 │   ├── commento_insert.php
 │   ├── commento_risposta_delete.php
 │   ├── commento_risposta_insert.php
+│   ├── componente_delete.php
+│   ├── componente_insert.php
+│   ├── componente_update.php
 │   ├── finanziamento_insert.php
 │   ├── foto_delete.php
 │   ├── login_handler.php
 │   ├── logout.php
+│   ├── profilo_delete.php
+│   ├── profilo_insert.php
+│   ├── profilo_nome_update.php
 │   ├── progetto_budget_update.php
 │   ├── progetto_descrizione_update.php
+│   ├── progetto_insert.php
 │   ├── register_handler.php
 │   ├── reward_insert.php
 │   ├── skill_curriculum_delete.php
 │   ├── skill_curriculum_insert.php
 │   ├── skill_curriculum_update.php
 │   ├── skill_insert.php
+│   ├── skill_profilo_delete.php
+│   ├── skill_profilo_insert.php
+│   ├── skill_profilo_update.php
 │   ├── skill_update.php
 │   └── utente_convert_creatore.php
 ├── components/
@@ -735,10 +751,7 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 # **6. FUNZIONALITÀ**
 ---
 ## **6.1. BACKEND (MySQL)**
-
-In questa sezione si presenta una breve overview della struttura dei file che inizializzano la base di dati `BOSTARTER`.
-
-### **Inizializzazione DB**
+### **INIZIALIZZAZIONE**
 
 Il file di inizializzazione del database, `bostarter_init.sql`, si suddivide nelle seguenti parti principali:
 
@@ -751,13 +764,13 @@ Il file di inizializzazione del database, `bostarter_init.sql`, si suddivide nel
 #### `VISTE`
 - Si definiscono le tre viste richieste dal progetto.
 #### `TRIGGERS`
-- Si definiscono tutti i trigger richiesti dal progetto, con qualche aggiunta mia.
+- Si definiscono tutti i trigger richiesti dal progetto.
 #### `EVENTI`
 - Si definisce il solo evento richiesto dal progetto.
 
-Le tabelle, attraverso vincoli inter-relazionali e check definiti a livello di attributo fungono già come un buon punto di partenza in termini di sicurezza e consistenza dei dati. Ho optato, però, di implementare un ulteriore livello di sicurezza centrale e robusto all'interno delle stored procedures definite nel file. Come menzionato di sopra, ho suddiviso le stored procedures in due categorie principali: Main e helper. Le stored procedure "main" performano operazioni richieste dalla piattaforma (es. aggiunta di una skill globale), e si appoggiano a stored procedures di tipo "helper" per verificare che ogni controllo di sicurezza per l'operazione passi (es. l'utente che aggiunge una skill globale deve essere admin).
+Le tabelle, attraverso vincoli inter-relazionali e check definiti a livello di attributo fungono già come un buon punto di partenza in termini di sicurezza e consistenza dei dati. Ho optato, però, di implementare un ulteriore livello di sicurezza centrale e robusto all'interno delle stored procedures definite nel file. Come menzionato di sopra, ho suddiviso le stored procedures in due categorie principali: Main e helper. Le stored procedure "main" performano operazioni richieste dalla piattaforma (es. aggiunta di una skill globale), e si appoggiano a stored procedures di tipo "helper" per verificare che ogni controllo di sicurezza richiesto per l'operazione sia garantito (es. l'utente che aggiunge una skill globale deve essere admin).
 
-### **Popolamento DB**
+### **POPOLAMENTO**
 
 Il file di popolamento con dati fittizi per il database, `bostarter_demo.sql`, si suddivide nelle seguenti parti principali:
 
@@ -782,92 +795,91 @@ Il file di popolamento con dati fittizi per il database, `bostarter_demo.sql`, s
 
 In questo file vengono fatte chiamate delle stored procedures definite nel file di sopra per inserire i dati fittizi nella piattaforma. Ovviamente per il suo corretto funzionamento vengono fatte solo chiamate valide, e non vengono utilizzate qui stored procedures che rimuovono/aggiornano dati (ha più senso fare una dimostrazione di esso in sede d'esame).
 
-### **Script**
-
-Viene riportato in [[#**7.3. Script**|fondo alla relazione]] un bash script che inizializza e popola automaticamente la base di dati utilizzando i file di sopra. Per poter utilizzarlo correttamente basta:
-1. Modificare nello script `MYSQL_PASS= <LA TUA PASSWORD>` con la propria password
-2. Assicurarsi di avere entrambi i file sql (`bostarter_init.sql` & `bostarter_demo.sql`) presenti nella stessa directory dello script
-3. (macOS) Eseguire su linea di comando, accertandosi che lo script abbia il permesso di eseguire: `./init_demo.sh`
-	- Se tutto è andato a buon fine, l'ultimo messaggio sul terminale dovrebbe indicare: `-- BOSTARTER INIZIALIZZATO --`
-
 ## **6.2. FRONTEND (PHP)**
-
-In questa sezione si presenta una breve overview della struttura della piattaforma BOSTARTER e delle sue funzionalità.
-
-#### Struttura Generale
+### **STRUTTURA GENERALE**
 
 Di seguito la struttura generale del sito:
 # COPY PASTE HERE THE DIR STRUCTURE OF THE WEBSITE FROM ABOVE!!!!!!!!!!!!!!!!!!
 
-`/actions`: Le operazioni più complesse che permettono il funzionamento della piattaforma. Vengono invocate all'interno delle pagine.
+In particolare...
+- `/actions`: Le operazioni più complesse (generalmente associate ad una o più "main" stored procedures) che permettono il funzionamento della piattaforma. Vengono invocate all'interno delle pagine mediante i form.
+- `/components`: Componenti grafiche riutilizzabili in una o più pagine.
+- `/config`: Contiene le configurazioni necessarie per la piattaforma, come connessione al database.
+- `/functions`: Funzioni primitive / semi-primitive che eseguono controlli od operazioni semplici e comuni, usate per il funzionamento delle pagine.
+- `/public`: Le pagine php visibili al client.
 
-`/components`: Componenti grafiche riutilizzabili/fisse in ogni pagina.
-
-`/config`: Contiene le configurazioni necessarie per la piattaforma, come connessione al database.
-
-`/functions`: Funzioni primitive / semi-primitive che eseguono controlli od operazioni semplici comuni usate per il funzionamento delle pagine.
-
-`/public`: Le pagine php visibili al client.
-
-#### Struttura File
+### **STRUTTURA FILE**
 
 La struttura generale di ogni file php nelle directory `public/` e `actions/` è la seguente:
 
 - `/public`:
+
 ```php
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
+// === VALIDATION ===
 // ...
 
-// === DATABASE ===
+// === DATA ===
 // ...
 ?>
 
 // <HTML>
 ```
-A capo di ogni file viene posta la sezione di configurazione (`=== CONFIG ===`), che chiama `session_start()` per recuperare le variabili di sessioni ed importa il file `config.php` contenente la connessione al database. Di seguito si hanno i controlli di sicurezza preliminari (`=== CHECKS ===`) relativi alla pagina specifica, e per ultimo si recuperano dal database (`=== DATABASE ===`) dati necessari mediante stored procedures. In fondo si ha la pagina html, con php minimale (tanto quanto necessario per del conditional rendering).
+A capo di ogni file viene posta la sezione di configurazione (`=== SETUP ===`), che chiama `session_start()` per recuperare le variabili di sessioni, importa il file `config.php` contenente la connessione al database, e controlla se l'utente si è autenticato. Di seguito i controlli di sicurezza preliminari (`=== VALIDATION ===`) relativi alla pagina specifica, e per ultimo si recuperano dal db (`=== DATA ===`) i dati necessari mediante stored procedures. In fondo si ha la pagina html, con php minimale (tanto quanto necessario per del conditional rendering).
 
 - `/actions`:
+
 ```php
 <?php
-// === CONFIG ===
+/**
+ * ACTION: ...
+ * PERFORMED BY: ...
+ * UI: ...
+ * 
+ * PURPOSE:
+ * - ...
+ * - Se l'operazione va a buon fine, ...
+ * - Per maggiori dettagli, vedere la documentazione ...
+ *
+ * VARIABLES:
+ * - ...
+ */
+
+// === SETUP ===
 session_start();
 require '../config/config.php';
 
-// === CHECKS ===
-// ...
+check_auth();
+check_POST(...)
+
+// === VARIABLES ===
+...
+
+$in = [...];
+
+$collection = ...
+$action = ...
+$redirect_url = generate_url(...)
+
+// === VALIDATION ===
+...
 
 // === ACTION ===
 try {
-    $in = [
-        'p_X' => $X,
-        // ...
-    ];
-
-    sp_invoke('X', $in);
+    sp_invoke(...);
 } catch (PDOException $ex) {
-	// Error, redirect alla pagina X
-    redirect(
-        false,
-        "Errore X: " . $ex->errorInfo[2],
-        '../public/X.php'
-    );
+    fail(...)
 }
 
-// ...
-
-// Success, redirect alla pagina X
-redirect(
-    true,
-    'X effettuato con successo/correttamente.',
-    '../public/X.php'
-);
+// === REDIRECT ===
+success(...)
 ```
-Risulta immediato che la struttura del file sia simile a quella vista di sopra. L'unica differenza è la seguente: Invece di avere una sezione per il recupero di dati dal database (`=== DATABASE ===`) e in fondo pagina html (`<HTML>`), essendo un file che deve fare un'operazione su una pagina, si ha semplicemente una sezione che prepara ed invoca una stored procedure (`=== ACTION ===`), con successful od error redirect in base alla situazione specifica.
+Risulta immediato che la struttura dei file in `/action` sia simile a quella vista di sopra. L'unica differenza è la seguente: Mancano la sezione per il recupero di dati dal database (`=== DATA ===`) e la pagina html (`<HTML>`), e si ha invece una sezione che prepara ed invoca una stored procedure (`=== ACTION ===`), essendo un file che deve fare un'operazione su una pagina. Si ha in fine una sezione per il logging dell'evento (MongoDB) e un successful/error redirect in base all'esito dell'operazione (`=== REDIRECT ===`).
 
 ### **AUTENTICAZIONE UTENTE**
 - `login.php`
@@ -889,8 +901,12 @@ La struttura della pagina di registrazione è molto simile a quella di login per
 
 In fase di registrazione, l'utente ha la possibilità di segnarsi come un creatore e/o admin della piattaforma, cliccando sulle checkbox sopra al submit button della registrazione. In tal caso, verrà inserito nel DB anche come `CREATORE` / `ADMIN`.
 
-### **HOMEPAGE**
+### **HOME**
 - `home.php`
+
+La pagina di home funge come luogo centrale della piattaforma, dove l'utente ha modo di visualizzare alcune informazioni del proprio account, e di recarsi in altre sezioni specifiche del sito. Il metodo principale di navigazione fra sezioni principali della piattaforma è mediante la navbar, ed all'interno di ciascuna sezione si hanno bottoni specifici che reindirizzano in sottopagine del sito.
+
+![[home.png]]
 
 ### **STATISTICHE**
 - `statistiche.php`
@@ -902,38 +918,158 @@ La pagina delle statistiche è relativamente semplice, chiamando i dati presenti
 Non sono previste alcune operazioni da nessun utente su questa pagina; i dati prodotti dalle viste vengono aggiornati in tempo reale, ricaricando la pagina.
 
 ### **CURRICULUM**
+- `curriculum.php`
+
+La pagina curriculum consente agli utenti di gestire le proprie competenze professionali. Ogni utente può aggiungere skill selezionandole dalla lista globale e specificando il proprio livello di competenza (da 0 a 5). L'utente può anche modificare (il livello) o rimuovere proprie skill esistenti.
+
+![[curriculum.png]]
+
+Per gli amministratori, è disponibile una sezione aggiuntiva per gestire la lista globale delle competenze disponibili sulla piattaforma. Questa funzionalità permette di aggiungere nuove competenze o modificare (il nome) quelle esistenti.
+
+![[curriculum_admin.png]]
 
 ### **FINANZIAMENTI**
+- `finanziamenti.php`
+- `finanziamento_conferma.php`
+
+La pagina dei finanziamenti mostra la cronologia di tutti i finanziamenti effettuati dall'utente. Per gli utenti creatori, è presente anche una sezione che visualizza i finanziamenti ricevuti dai propri progetti.
+
+![[finanziamenti.png]]
+
+Quando un utente decide di finanziare un progetto dalla pagina di dettaglio, viene reindirizzato a `finanziamento_conferma.php` dove può selezionare una reward tra quelle disponibili in base all'importo che intende donare.
 
 ### **PROGETTI**
+- `progetti.php`
+- `progetto_crea.php`
+
+La pagina progetti visualizza tutti i progetti disponibili sulla piattaforma, con informazioni riassuntive su ciascuno: nome, tipo (software/hardware), stato (aperto/chiuso), percentuale di completamento, e giorni rimanenti alla chiusura.
+
+![[progetti.png]]
+
+Gli utenti creatori visualizzano anche un bottone "Crea Progetto" che consente loro di creare un nuovo progetto, mentre gli utenti regolari vedono un bottone "Diventa Creatore" che permette loro di acquisire il ruolo di creatore sulla piattaforma.
+
+La pagina `progetto_crea.php` guida il creatore attraverso il processo di inserimento dei dati del progetto: nome, descrizione, budget, data limite e tipo (software/hardware). Il creatore ha modo di inserire ulteriori informazioni riguardanti il progetto nell'apposita pagina di dettaglio (vedi sezione successiva).
+
+![[progetto_crea.png]]
 
 ### **DETTAGLI PROGETTO**
+- `progetto_dettagli.php`
+
+La pagina di dettaglio progetto è il centro operativo dove convergono la maggior parte delle funzionalità della piattaforma. Visualizza tutte le informazioni relative al progetto selezionato: descrizione, foto, budget, somma finanziamenti ricevuti, reward disponibili, componenti o profili richiesti in base al tipo, ed in fondo i commenti del progetto.
+
+![[progetto_dettagli.png]]
+
+**Funzionalità principali:**
+- Finanziamento del progetto (se aperto)
+- Visualizzazione delle reward disponibili
+- Gestione delle componenti (per progetti hardware)
+- Gestione dei profili e candidature (per progetti software)
+- Sezione commenti con possibilità di risposta per il creatore
+
+I creatori del progetto visualizzano anche bottoni di modifica per ogni sezione, che reindirizzano alle pagine di aggiornamento specifiche.
 
 ### **CANDIDATURE**
+- `candidature.php`
+
+La pagina candidature mostra tutte le candidature inviate dall'utente per partecipare ai progetti software. Per gli utenti creatori, è presente anche una sezione che visualizza le candidature ricevute dai propri progetti.
+
+![[candidature.png]]
+
+Le candidature possono avere tre stati: "in attesa", "accettato" o "rifiutato". I creatori possono gestire le candidature ricevute, accettandole o rifiutandole. Un utente può candidarsi a un profilo solo se possiede tutte le competenze richieste con livello uguale o superiore a quello richiesto.
+
+### **GESTIONE PROFILI/COMPONENTI**
+- `progetto_aggiorna.php`
+
+La pagina di gestione profili/componenti consente ai creatori di gestire i dettagli specifici del proprio progetto.
+
+**Per progetti software:**
+- Creazione, modifica ed eliminazione di profili richiesti
+- Definizione delle competenze necessarie per ciascun profilo e relativo livello richiesto
+
+![[gestione_profili.png]]
+
+Eventuali modifiche ai requisiti di un profilo possono comportare il rifiuto automatico di candidature esistenti se i candidati non soddisfano più i nuovi requisiti.
+
+**Per progetti hardware:**
+- Aggiunta, modifica ed eliminazione di componenti necessari
+- Definizione di quantità e prezzo di ciascun componente
+
+![[gestione_componenti.png]]
+
+Eventuali modifiche alla quantità o prezzo di componenti esistenti, o inserimento di nuovi, possono comportare l'aumento automatico del budget del progetto, se la somma del costo dei componenti eccede il budget attuale.
+
+### **LOGS**
+- `logs.php`
+
+Gli utenti con privilegi di amministratore hanno accesso ad una pagina aggiuntive per la visualizzazione dei log di sistema, reperiti da MongoDB.
+La pagina logs permette agli amministratori di monitorare tutte le attività sulla piattaforma, visualizzando le operazioni effettuate dagli utenti, suddivise per collezioni MongoDB corrispondenti alle tabelle del database.
+
+![[logs.png]]
 
 ## **6.3. LOGGING (MongoDB)**
+### **Overview**
 
-### for each table of MySQL create a dedicated MongoDB collection of the same name and log there whenever modification to the MySQL table is made. In essence just need to add a mongodb call at the end of each function in php logging whatever data and variables where passed as argument
+La piattaforma adotta un sistema di logging centralizzato basato su MongoDB, che consente di tracciare e registrare in tempo reale tutti gli eventi generati dagli utenti. Ogni interazione, che si tratti di un login, una registrazione o altre azioni, viene memorizzata nel database MongoDB, facilitando così il monitoraggio, l’analisi e la risoluzione di eventuali problemi.
+
+Nei file PHP che gestiscono le azioni degli utenti (`/actions`), il logging (e redirect) avviene sempre con uno dei due scenari:
+- Fallimento: Il logging e redirect passano per la funzione `fail()` laddove è stata bloccata l'operazione (es. non sono stati superati i controlli di sicurezza)
+- Successo: Il logging a redirect avvengono in fondo al file, e passano per la funzione `success()`.
+
+### **Accesso**
+
+I log sono disponibili a tutti gli utenti amministratori della piattaforma, e possono essere visualizzati nell'apposita pagina dei logs (`public/logs.php`).
+
+Se si desidera accedere esternamente ai database (MySQL e MongoDB) presenti all’interno del container, è sufficiente eseguire uno dei seguenti comandi sul terminale (per MySQL, sostituire `<DB_HOST>` e `<DB_PASS>` con le variabili definite nel file `.env`):
+```
+# MySQL
+docker exec -it bostarter-db-1 mysql -u<DB_HOST> -p<DB_PASS> BOSTARTER;
+
+# MongoDB
+docker exec -it bostarter-mongodb-1 mongosh BOSTARTER_LOG;
+```
 
 # **7. APPENDICE**
 ---
-## **7.1. Inizializzazione DB**
-In seguito viene riportato il codice SQL completo utilizzato per la generazione della base di dati **BOSTARTER** e delle relative funzionalità (procedure, viste, trigger, eventi):
+## **7.1. INIZIALIZZAZIONE**
+
+Di seguito viene riportato il codice SQL completo utilizzato per la generazione della base di dati **BOSTARTER** e delle relative funzionalità (procedure, viste, trigger, eventi):
 
 ```sql
 bostarter_init.sql
 ```
 
-## **7.2. Popolamento DB**
-Il codice SQL per la demo con popolamento di dati fittizi, usando le stored procedures per testare il loro funzionamento: 
+## **7.2. POPOLAMENTO**
+
+Di seguito viene riportato il codice SQL completo per la demo con popolamento di dati fittizi, usando le stored procedures definite nel punto di sopra: 
 
 ```sql
 bostarter_demo.sql
 ```
 
-## **7.3. Script**
-Di seguito anche un breve script che invoca i due file di sopra, per inizializzare il DB e popolare la piattaforma con i dati fittizi. Lo script, inoltre, invoca un file php che popola la piattaforma con foto fittizie per i progetti, componenti, ecc.. Mi raccomando per il corretto funzionamento di sovrascrivere la variabile `MYSQL_PASS` con la propria password:
+## **7.3. SCRIPT**
+
+Di seguito viene illustrato il funzionamento dello script di inizializzazione della piattaforma:
 
 ```sh
-init_demo.sh
+init.sh
 ```
+#### 1. **Verifica del file `.env`:**
+- Lo script inizia controllando se esiste il file `.env` nella root del progetto. Se non viene trovato, il processo si interrompe con un messaggio d’errore che invita a creare e configurare correttamente tale file.
+
+#### 2. **Installazione delle dipendenze:**
+- Lo script entra nella directory `/php` per gestire le dipendenze relative a PHP e Node.js.
+
+#### 3. **Avvio dei container Docker:**
+- Viene eseguito `docker-compose down -v` per arrestare e rimuovere eventuali container e volumi esistenti.
+- Viene eseguito `docker-compose up --build -d` per ricostruire e avviare i container.
+
+Se si vede comparire sul terminale i seguenti log, allora l'inizializzazione della piattaforma è andata a buon fine:
+```sh
+web-1      | === SEEDING seed_data.php START! ===
+web-1      | Seeding ProgettoAlpha... OK.
+web-1      | Seeding ProgettoBeta... OK.
+web-1      | Seeding remaining projects... OK.
+web-1      | === SEEDING seed_data.php COMPLETE! ===
+```
+
+Questo script automatizza l’intero processo di configurazione, garantendo che tutte le dipendenze siano installate e che l’ambiente Docker sia correttamente ricostruito, rendendo l’avvio della piattaforma semplice e veloce.

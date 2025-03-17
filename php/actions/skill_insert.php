@@ -1,41 +1,54 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: skill_insert
+ * PERFORMED BY: ADMIN
+ * UI: public/curriculum.php
+ *
+ * PURPOSE:
+ * - Inserisce una nuova competenza nella lista globale delle competenze disponibili.
+ * - Solo gli amministratori possono inserire nuove competenze.
+ * - Se l'operazione va a buon fine, la competenza viene inserita nella tabella "SKILL".
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_skill_insert".
+ *
+ * VARIABLES:
+ * - competenza: Competenza da inserire nella lista globale
+ * - email: Email dell'amministratore
+ */
+
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+check_POST(['competenza']);
+$competenza = $_POST['competenza'];
+$email = $_SESSION['email'];
 
-// 2. L'utente è un amministratore
-checkAdmin();
+// === CONTEXT ===
+$context = [
+    'collection' => 'SKILL',
+    'action' => 'INSERT',
+    'redirect' => generate_url('curriculum'),
+    'procedure' => 'sp_skill_insert',
+    'in' => [
+        'p_competenza' => $competenza,
+        'p_email' => $email
+    ]
+];
+$pipeline = new ValidationPipeline($context);
 
-// 3. Le variabili POST sono state impostate correttamente
-checkSetVars(
-    ['competenza'],
-    '../public/curriculum.php'
+// === VALIDATION ===
+// L'UTENTE È UN AMMINISTRATORE
+$pipeline->check(
+    !isset($_SESSION['is_admin']) || !$_SESSION['is_admin'],
+    "Non sei autorizzato ad effettuare questa operazione."
 );
 
 // === ACTION ===
-// Inserimento della skill nella lista globale della piattaforma
-try {
-    $in = [
-        'p_competenza' => $_POST['competenza'],
-        'p_email' => $_SESSION['email']
-    ];
+// INSERIMENTO DELLA SKILL NELLA LISTA GLOBALE
+$pipeline->invoke();
 
-    sp_invoke('sp_skill_insert', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore nell'inserimento della skill: " . $ex->errorInfo[2],
-        '../public/curriculum.php'
-    );
-}
-
-// Success, redirect alla pagina delle skill
-redirect(
-    true,
-    'Skill (globale) aggiunta con successo.',
-    '../public/curriculum.php'
-);
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DEL CURRICULUM
+$pipeline->continue("Competenza inserita nella lista globale con successo.");

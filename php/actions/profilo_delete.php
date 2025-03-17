@@ -1,38 +1,58 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: profilo_delete
+ * PERFORMED BY: CREATORE
+ * UI: components/progetto_aggiorna_profili.php
+ *
+ * PURPOSE:
+ * - Rimuove un profilo da un progetto software.
+ * - Solo il creatore del progetto può rimuovere profili.
+ * - Se l'operazione va a buon fine, il profilo viene rimosso dalla tabella "PROFILO".
+ * - Tutte le candidature associate a questo profilo vengono rimosse automaticamente.
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_profilo_delete".
+ *
+ * VARIABLES:
+ * - nome_profilo: Nome del profilo da rimuovere
+ * - nome_progetto: Nome del progetto software a cui appartiene il profilo
+ * - email: Email dell'utente creatore del progetto
+ */
+
+// === SETUP ===
 session_start();
 require_once '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+check_POST(['nome_profilo', 'nome_progetto']);
+$nome_profilo = $_POST['nome_profilo'];
+$nome_progetto = $_POST['nome_progetto'];
+$email = $_SESSION['email'];
 
-// 2. Le variabili POST sono state impostate correttamente
-checkSetVars(['nome_progetto', 'nome_profilo']);
+// === CONTEXT ===
+$context = [
+    'collection' => 'PROFILO',
+    'action' => 'DELETE',
+    'redirect' => generate_url('progetto_aggiorna', ['nome' => $nome_progetto, 'attr' => 'profili']),
+    'procedure' => 'sp_profilo_delete',
+    'in' => [
+        'p_nome_profilo' => $nome_profilo,
+        'p_nome_progetto' => $nome_progetto,
+        'p_email_creatore' => $email
+    ]
+];
+$pipeline = new ValidationPipeline($context);
 
-// 3. L'utente è il creatore del progetto
-checkProgettoOwner($_POST['nome_progetto']);
+// === VALIDATION ===
+// L'UTENTE È IL CREATORE DEL PROGETTO
+$pipeline->check(
+    !is_progetto_owner($email, $nome_progetto),
+    "Non sei autorizzato ad effettuare questa operazione."
+);
 
 // === ACTION ===
-// Elimino il profilo (e tutte le skill associate ad esso + le candidature)
-try {
-    $in = [
-        'p_nome_profilo' => $_POST['nome_profilo'],
-        'p_nome_progetto' => $_POST['nome_progetto'],
-        'p_email_creatore' => $_SESSION['email']
-    ];
+// ELIMINAZIONE DEL PROFILO (+ SKILLS & CANDIDATURE ASSOCIATE)
+$pipeline->invoke();
 
-    sp_invoke('sp_profilo_delete', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante l'eliminazione del profilo: " . $ex->errorInfo[2],
-        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto'])
-    );
-}
-// Success, redirect alla pagina di gestione profili
-redirect(
-    true,
-    "Profilo '" . $_POST['nome_profilo'] . "' eliminato con successo.",
-    "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto'])
-);
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DI AGGIORNAMENTO PROFILI
+$pipeline->continue("Profilo eliminato con successo.");

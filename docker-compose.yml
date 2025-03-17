@@ -11,8 +11,10 @@ services:
         environment:
             - APP_ENV=${APP_ENV}
         depends_on:
-            - db
-            - mongodb
+            db:
+                condition: service_healthy
+            mongodb:
+                condition: service_started
         restart: unless-stopped
 
     db:
@@ -22,6 +24,12 @@ services:
         environment:
             MYSQL_ROOT_PASSWORD: ${DB_PASS}
             MYSQL_DATABASE: ${DB_NAME}
+        healthcheck:
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_PASS}"]
+            interval: 2s
+            timeout: 5s
+            retries: 20
+            start_period: 30s
         ports:
             - "3307:3306"
         volumes:
@@ -31,6 +39,7 @@ services:
 
     mongodb:
         image: mongo:latest
+        command: ["mongod", "--quiet", "--logpath", "/dev/null"]
         env_file:
             - ./.env
         ports:

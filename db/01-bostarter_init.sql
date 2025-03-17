@@ -382,6 +382,45 @@ BEGIN
 END//
 
 /*
+*  PROCEDURE: sp_util_reward_valid_finanziamento
+*  PURPOSE: Verifica se una specifica reward è valida per un determinato importo di finanziamento.
+*           Se la reward non esiste o l'importo è insufficiente, genera un errore.
+*
+*  @param IN p_nome_progetto - Nome del progetto
+*  @param IN p_codice_reward - Codice della reward da verificare
+*  @param IN p_importo - Importo del finanziamento
+*
+*  @throws 45000 - REWARD NON TROVATA
+*  @throws 45000 - IMPORTO INSUFFICIENTE PER LA REWARD
+*/
+CREATE PROCEDURE sp_util_reward_valid_finanziamento(
+	IN p_nome_progetto VARCHAR(100),
+	IN p_codice_reward VARCHAR(50),
+	IN p_importo DECIMAL(10, 2)
+)
+BEGIN
+	DECLARE min_importo_required DECIMAL(10, 2);
+
+	-- Verifica che la reward esista per il progetto
+	SELECT min_importo
+	INTO min_importo_required
+	FROM REWARD
+	WHERE nome_progetto = p_nome_progetto
+	  AND codice = p_codice_reward;
+
+	IF min_importo_required IS NULL THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'REWARD NON TROVATA';
+	END IF;
+
+	-- Verifica che l'importo sia sufficiente per la reward
+	IF p_importo < min_importo_required THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'IMPORTO INSUFFICIENTE PER LA REWARD SELEZIONATA';
+	END IF;
+END//
+
+/*
 *  PROCEDURE: sp_util_progetto_exists
 *  PURPOSE: Verifica se il progetto esiste.
 *
@@ -608,21 +647,18 @@ END//
 
 /*
 *  PROCEDURE: sp_util_admin_get_codice_sicurezza
-*  PURPOSE: Visualizzazione del codice di sicurezza di un admin.
+*  PURPOSE: Recuperare il codice di sicurezza di un admin.
 *  USED BY: ADMIN
 *
-*  @param IN p_email - Email dell'admin
+*  @param IN p_email - Email dell'admin da controllare
 *
-*  @param OUT p_codice_sicurezza_out - Codice di sicurezza dell'admin
 */
 CREATE PROCEDURE sp_util_admin_get_codice_sicurezza(
-	IN p_email VARCHAR(100),
-	OUT p_codice_sicurezza_out VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
 	START TRANSACTION;
 	SELECT codice_sicurezza
-	INTO p_codice_sicurezza_out
 	FROM ADMIN
 	WHERE email_utente = p_email;
 	COMMIT;
@@ -754,17 +790,13 @@ END//
 *  USED BY: CREATORE
 *
 *  @param IN p_nome_progetto - Nome del progetto
-*
-*  @param OUT p_costo_totale - Costo totale dei componenti
 */
 CREATE PROCEDURE sp_util_progetto_componenti_costo(
-	IN p_nome_progetto VARCHAR(100),
-	OUT p_costo_totale_out DECIMAL(10, 2)
+	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
 	START TRANSACTION;
-	SELECT SUM(prezzo * quantita)
-	INTO p_costo_totale_out
+	SELECT SUM(prezzo * quantita) AS costo_totale
 	FROM COMPONENTE
 	WHERE nome_progetto = p_nome_progetto;
 	COMMIT;
@@ -1235,7 +1267,7 @@ DELIMITER ;
 -- STORED PROCEDURES (MAIN)
 -- ==================================================
 
--- In questo blocco vengono definite le stored procedure principali ("main"). Implementano le funzionalità richieste dal sistema, con qualche aggiunta.
+-- In questo blocco vengono definite le stored procedure principali ("main"). Implementano le funzionalità richieste dal progetto, con qualche aggiunta.
 -- Vengono divise in base alla tabella di riferimento, con la seguente sintassi generale...
 
 -- NOME_TABELLA:
@@ -1307,16 +1339,9 @@ END//
 *  USED BY: ALL
 *
 *  @param IN p_email - Email dell'utente
-*
-*  @param OUT p_nickname_out - Nickname dell'utente
-*  @param OUT p_email_out - Email dell'utente
-*  @param OUT p_password_hash_out - Hash della password dell'utente
 */
 CREATE PROCEDURE sp_utente_login(
-	IN p_email VARCHAR(100),
-	OUT p_nickname_out VARCHAR(50),
-	OUT p_email_out VARCHAR(100),
-	OUT p_password_hash_out VARCHAR(255)
+	IN p_email VARCHAR(100)
 )
 BEGIN
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -1325,7 +1350,8 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- (ALL) Controllo che l'utente esista
+
+	-- Controllo che l'utente esista
 	IF NOT EXISTS (SELECT 1 FROM UTENTE WHERE email = p_email) THEN
 		SIGNAL SQLSTATE '45000'
 			SET MESSAGE_TEXT = 'EMAIL NON VALIDA';
@@ -1333,7 +1359,6 @@ BEGIN
 
 	-- Se il controllo passa, restituisco i dati dell'utente
 	SELECT nickname, email, password
-	INTO p_nickname_out, p_email_out, p_password_hash_out
 	FROM UTENTE
 	WHERE email = p_email;
 	COMMIT;
@@ -2614,6 +2639,7 @@ END//
 *     nome e/o descrizione attuali.
 *
 *  @param IN p_nome_componente - Nome del componente da aggiornare
+*  @param IN p_nuovo_nome_componente - Nuovo nome del componente (se diverso da quello attuale)
 *  @param IN p_nome_progetto - Nome del progetto hardware a cui appartiene il componente
 *  @param IN p_descrizione - Nuova descrizione del componente
 *  @param IN p_quantita - Nuova quantità del componente
@@ -2622,6 +2648,7 @@ END//
 */
 CREATE PROCEDURE sp_componente_update(
 	IN p_nome_componente VARCHAR(100),
+	IN p_nuovo_nome_componente VARCHAR(100),
 	IN p_nome_progetto VARCHAR(100),
 	IN p_descrizione TEXT,
 	IN p_quantita INT,
@@ -2657,6 +2684,16 @@ BEGIN
 			SET MESSAGE_TEXT = 'QUANTITY COMPONENTE DEVE ESSERE > 0';
 	END IF;
 
+	-- Controllo che non esista già un componente con il nuovo nome
+	IF p_nome_componente != p_nuovo_nome_componente AND
+	   EXISTS (SELECT 1
+	           FROM COMPONENTE
+	           WHERE nome_componente = p_nuovo_nome_componente
+		         AND nome_progetto = p_nome_progetto) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'COMPONENTE CON QUESTO NOME ESISTE GIA\'';
+	END IF;
+
 	-- Recupero il budget del progetto
 	SELECT budget
 	INTO budget_progetto
@@ -2690,9 +2727,10 @@ BEGIN
 
 	-- Se i controlli passano, aggiorno il componente
 	UPDATE COMPONENTE
-	SET descrizione = p_descrizione,
-	    quantita    = p_quantita,
-	    prezzo      = p_prezzo
+	SET nome_componente = p_nuovo_nome_componente,
+	    descrizione     = p_descrizione,
+	    quantita        = p_quantita,
+	    prezzo          = p_prezzo
 	WHERE nome_componente = p_nome_componente
 	  AND nome_progetto = p_nome_progetto;
 	COMMIT;

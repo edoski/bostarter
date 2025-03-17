@@ -1,5 +1,5 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 // Classi per MongoDB
 require_once __DIR__ . '/../vendor/autoload.php';
 
@@ -34,7 +34,6 @@ try {
     error_log("Errore di configurazione: " . $e->getMessage());
 }
 
-// === DATABASE ===
 // MySQL Connection
 try {
     $GLOBALS['pdo'] = new PDO("mysql:host=".DB_HOST.";dbname=".DB_NAME, DB_USER, DB_PASS);
@@ -54,7 +53,7 @@ try {
 
 // === FUNCTIONS ===
 // Funzioni per invocare le stored procedure, controlli di sicurezza, logging, ecc.
-require_once __DIR__ . '/../functions/sp_invoke.php';
-require_once __DIR__ . '/../functions/checks.php';
-require_once __DIR__ . '/../functions/redirect.php';
-require_once __DIR__ . '/../functions/log.php';
+// Includo tutti i file nella directory "/functions"
+foreach (glob(__DIR__ . '/../functions/*.php') as $filename) {
+    require_once $filename;
+}

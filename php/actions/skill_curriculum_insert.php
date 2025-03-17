@@ -1,39 +1,57 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: skill_curriculum_insert
+ * PERFORMED BY: ALL
+ * UI: public/curriculum.php
+ *
+ * PURPOSE:
+ * - Inserisce una nuova competenza nel curriculum di un utente.
+ * - Qualsiasi utente può inserire competenze nel proprio curriculum.
+ * - Se l'operazione va a buon fine, la competenza viene inserita nella tabella "SKILL_CURRICULUM".
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_skill_curriculum_insert".
+ *
+ * VARIABLES:
+ * - email: Email dell'utente
+ * - competenza: Competenza da inserire nel curriculum
+ * - livello: Livello di competenza (da 0 a 5)
+ */
+
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+check_POST(['competenza', 'livello']);
+$competenza = $_POST['competenza'];
+$livello = $_POST['livello'];
+$email = $_SESSION['email'];
 
-// 2. Le variabili POST sono state impostate correttamente
-checkSetVars(
-    ['competenza', 'livello'],
-    '../public/curriculum.php'
+// === CONTEXT ===
+$context = [
+    'collection' => 'SKILL_CURRICULUM',
+    'action' => 'INSERT',
+    'redirect' => generate_url('curriculum'),
+    'procedure' => 'sp_skill_curriculum_insert',
+    'in' => [
+        'p_email' => $email,
+        'p_competenza' => $competenza,
+        'p_livello' => $livello
+    ]
+];
+$pipeline = new ValidationPipeline($context);
+
+// === VALIDATION ===
+// IL LIVELLO È UN INTERO COMPRESO TRA 0 E 5
+$pipeline->check(
+    !is_numeric($livello) || $livello < 0 || $livello > 5,
+    "Il livello di competenza deve essere un numero intero compreso tra 0 e 5."
 );
 
 // === ACTION ===
-// Inserimento della skill nel curriculum dell'utente
-try {
-    $in = [
-        'p_email' => $_SESSION['email'],
-        'p_competenza' => $_POST['competenza'],
-        'p_livello' => $_POST['livello']
-    ];
+// INSERIMENTO DELLA SKILL NEL CURRICULUM
+$pipeline->invoke();
 
-    sp_invoke('sp_skill_curriculum_insert', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore nell'inserimento della skill: " . $ex->errorInfo[2],
-        '../public/curriculum.php'
-    );
-}
-
-// Success, redirect alla pagina delle skill
-redirect(
-    true,
-    'Skill aggiunta con successo.',
-    '../public/curriculum.php'
-);
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DEL CURRICULUM
+$pipeline->continue("Skill aggiunta al curriculum con successo.");

@@ -1,48 +1,67 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: componente_insert
+ * PERFORMED BY: CREATORE
+ * UI: components/progetto_aggiorna_componenti.php
+ *
+ * PURPOSE:
+ * - Inserisce un nuovo componente per un progetto hardware.
+ * - Solo il creatore del progetto può inserire componenti.
+ * - Se l'operazione va a buon fine, il componente viene inserito nella tabella "COMPONENTE".
+ * - Se il costo totale dei componenti supera il budget del progetto, il budget viene automaticamente aumentato.
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_componente_insert".
+ *
+ * VARIABLES:
+ * - nome_componente: Nome del componente da inserire
+ * - nome_progetto: Nome del progetto hardware a cui appartiene il componente
+ * - descrizione: Descrizione del componente
+ * - quantita: Quantità del componente
+ * - prezzo: Prezzo unitario del componente
+ * - email: Email dell'utente creatore del progetto
+ */
+
+// === SETUP ===
 session_start();
 require_once '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
-
-// 2. Le variabili POST sono state impostate correttamente
-checkSetVars(['nome_progetto', 'nome_componente', 'descrizione', 'quantita', 'prezzo']);
-
-// 3. L'utente è il creatore del progetto
-checkProgettoOwner($_POST['nome_progetto']);
-
+// === VARIABLES ===
+check_POST(['nome_progetto', 'nome_componente', 'descrizione', 'quantita', 'prezzo']);
 $nome_progetto = $_POST['nome_progetto'];
 $nome_componente = $_POST['nome_componente'];
 $descrizione = $_POST['descrizione'];
 $quantita = intval($_POST['quantita']);
 $prezzo = floatval($_POST['prezzo']);
+$email = $_SESSION['email'];
 
-// === ACTION ===
-// Inserimento del componente nel progetto
-try {
-    $in = [
+// === CONTEXT ===
+$context = [
+    'collection' => 'COMPONENTE',
+    'action' => 'INSERT',
+    'redirect' => generate_url('progetto_aggiorna', ['attr' => 'componenti', 'nome' => $nome_progetto]),
+    'procedure' => 'sp_componente_insert',
+    'in' => [
         'p_nome_componente' => $nome_componente,
         'p_nome_progetto' => $nome_progetto,
         'p_descrizione' => $descrizione,
         'p_quantita' => $quantita,
         'p_prezzo' => $prezzo,
-        'p_email_creatore' => $_SESSION['email']
-    ];
+        'p_email_creatore' => $email
+    ]
+];
+$pipeline = new ValidationPipeline($context);
 
-    sp_invoke('sp_componente_insert', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante l'inserimento del componente: " . $ex->errorInfo[2],
-        "../public/progetto_aggiorna.php?attr=componenti&nome=" . urlencode($nome_progetto)
-    );
-}
-
-// Success, redirect alla pagina del progetto
-redirect(
-    true,
-    "Componente inserito con successo.",
-    "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
+// === VALIDATION ===
+// L'UTENTE È IL CREATORE DEL PROGETTO
+$pipeline->check(
+    !is_progetto_owner($email, $nome_progetto),
+    "Non sei autorizzato ad effettuare questa operazione."
 );
+
+// === ACTION ===
+// INSERIMENTO DEL COMPONENTE NEL PROGETTO
+$pipeline->invoke();
+
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DI AGGIORNAMENTO COMPONENTI
+$pipeline->continue("Componente inserito con successo.");

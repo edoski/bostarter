@@ -1,70 +1,65 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: finanziamento_insert
+ * PERFORMED BY: ALL
+ * UI: public/finanziamento_conferma.php
+ *
+ * PURPOSE:
+ * - Inserisce un nuovo finanziamento per un progetto.
+ * - Un utente può finanziare qualsiasi progetto aperto, inclusi i propri.
+ * - Se l'operazione va a buon fine, il finanziamento viene inserito nella tabella "FINANZIAMENTO".
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure: "sp_finanziamento_insert"
+ *
+ * VARIABLES:
+ * - email: Email dell'utente che finanzia
+ * - nome_progetto: Nome del progetto da finanziare
+ * - codice_reward: Codice della reward scelta
+ * - importo: Importo del finanziamento
+ */
+
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. Controllo che l'utente sia autenticato
-checkAuth();
-
-// 2. Le variabili POST sono state impostate correttamente
-checkSetVars(['nome', 'importo', 'reward']);
-
+// === VARIABLES ===
+check_POST(['nome', 'importo', 'reward']);
 $nome_progetto = $_POST['nome'];
 $importo = floatval($_POST['importo']);
 $reward = $_POST['reward'];
 $email = $_SESSION['email'];
 
-// 3. Controllo che la reward selezionata sia valida per l'importo donato
-try {
-    $in = ['p_nome_progetto' => $nome_progetto, 'p_importo' => $importo];
-    $valid_rewards = sp_invoke('sp_reward_selectAllByFinanziamentoImporto', $in);
-
-    $reward_valid = false;
-    foreach ($valid_rewards as $r) {
-        if ($r['codice'] == $reward) {
-            $reward_valid = true;
-            break;
-        }
-    }
-
-    if (!$reward_valid) {
-        redirect(
-            false,
-            "Reward selezionata non valida per l'importo donato.",
-            "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
-        );
-    }
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante la validazione della reward: " . $ex->errorInfo[2],
-        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
-    );
-}
-
-// === ACTION ===
-// Inserimento del finanziamento per il progetto
-try {
-    $in = [
+// === CONTEXT ===
+$context = [
+    'collection' => 'FINANZIAMENTO',
+    'action' => 'INSERT',
+    'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
+    'procedure' => 'sp_finanziamento_insert',
+    'in' => [
         'p_email' => $email,
         'p_nome_progetto' => $nome_progetto,
         'p_codice_reward' => $reward,
         'p_importo' => $importo
-    ];
+    ]
+];
+$pipeline = new ValidationPipeline($context);
 
-    sp_invoke('sp_finanziamento_insert', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante l'inserimento del finanziamento: " . $ex->errorInfo[2],
-        "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
-    );
-}
+// === VALIDATION ===
+// IL PROGETTO È APERTO
+$pipeline->invoke('sp_util_progetto_is_aperto', ['p_nome_progetto' => $nome_progetto]);
 
-// Success, redirect alla pagina del progetto
-redirect(
-    true,
-    "Finanziamento completato con successo.",
-    "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
-);
+// LA REWARD È VALIDA PER L'IMPORTO DONATO
+$in = [
+    'p_nome_progetto' => $nome_progetto,
+    'p_codice_reward' => $reward,
+    'p_importo' => $importo
+];
+$pipeline->invoke('sp_util_reward_valid_finanziamento', $in);
+
+// === ACTION ===
+// INSERIMENTO DEL FINANZIAMENTO
+$pipeline->invoke();
+
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DEL PROGETTO
+$pipeline->continue("Finanziamento effettuato con successo.");

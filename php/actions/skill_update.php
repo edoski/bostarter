@@ -1,42 +1,57 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: skill_update
+ * PERFOMED BY: ADMIN
+ * UI: public/curriculum.php
+ *
+ * PURPOSE:
+ * - Aggiorna il nome di una competenza nella lista globale delle competenze.
+ * - Solo gli amministratori possono aggiornare i nomi delle competenze.
+ * - Se l'operazione va a buon fine, il nome della competenza viene aggiornato nella tabella "SKILL".
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_skill_update".
+ *
+ * VARIABLES:
+ * - email_admin: Email dell'amministratore
+ * - vecchia_competenza: Nome attuale della competenza
+ * - nuova_competenza: Nuovo nome della competenza
+ */
+
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+check_POST(['vecchia_competenza', 'nuova_competenza']);
+$vecchia_competenza = $_POST['vecchia_competenza'];
+$nuova_competenza = $_POST['nuova_competenza'];
+$email = $_SESSION['email'];
 
-// 2. L'utente è un amministratore
-checkAdmin();
+// === CONTEXT ===
+$context = [
+    'collection' => 'SKILL',
+    'action' => 'UPDATE',
+    'redirect' => generate_url('curriculum'),
+    'procedure' => 'sp_skill_update',
+    'in' => [
+        'p_email_admin' => $email,
+        'p_vecchia_competenza' => $vecchia_competenza,
+        'p_nuova_competenza' => $nuova_competenza
+    ]
+];
+$pipeline = new ValidationPipeline($context);
 
-// 3. Le variabili POST sono state impostate correttamente
-checkSetVars(
-    ['vecchia_competenza', 'nuova_competenza'],
-    "../public/curriculum.php"
+// === VALIDATION ===
+// L'UTENTE È UN AMMINISTRATORE
+$pipeline->check(
+    !isset($_SESSION['is_admin']) || !$_SESSION['is_admin'],
+    "Non sei autorizzato ad effettuare questa operazione."
 );
 
 // === ACTION ===
-// Aggiornamento del nome della skill globale della piattaforma
-try {
-    $in = [
-        'p_email_admin' => $_SESSION['email'],
-        'p_vecchia_competenza' => $_POST['vecchia_competenza'],
-        'p_nuova_competenza' => $_POST['nuova_competenza']
-    ];
+// AGGIORNAMENTO DEL NOME DELLA SKILL NELLA LISTA GLOBALE
+$pipeline->invoke();
 
-    sp_invoke('sp_skill_update', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore nell'aggiornamento della skill globale: " . $ex->errorInfo[2],
-        '../public/curriculum.php'
-    );
-}
-
-// Success, redirect alla pagina delle skill
-redirect(
-    true,
-    'Skill globale aggiornata con successo.',
-    '../public/curriculum.php'
-);
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DEL CURRICULUM
+$pipeline->continue("Competenza '$vecchia_competenza' aggiornata a '$nuova_competenza' con successo.");

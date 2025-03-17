@@ -23,8 +23,7 @@ fi
 # Torno alla root del progetto
 cd ..
 
+# Faccio il build dei container
 docker-compose down -v
 export COMPOSE_BAKE=true
-docker-compose up --build -d
-
-echo "=== BOSTARTER INIZIALIZZATO. PIATTAFORMA PRONTA! ==="
+docker-compose up --build

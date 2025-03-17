@@ -11,7 +11,7 @@
         <div class="container-fluid d-flex align-items-center">
 
             <!-- Logo -->
-            <a class="navbar-brand fw-bold" href="../public/home.php">BOSTARTER</a>
+            <a class="navbar-brand fw-bold" href="../public/index.php">BOSTARTER</a>
 
             <!-- Gruppo Sinistro: Progetti, Statistiche, Curriculum, Finanziamenti (solo se logged in) -->
             <?php if (isset($_SESSION['email'])): ?>

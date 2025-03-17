@@ -1,149 +1,95 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: login_handler
+ * PERFORMED BY: ALL
+ * UI: public/login.php
+ *
+ * PURPOSE:
+ * - Gestisce l'autenticazione di un utente.
+ * - Verifica le credenziali e, se corrette, imposta le variabili di sessione.
+ * - Se l'utente è un admin, richiede anche il codice di sicurezza.
+ * - Per maggiori dettagli, vedere la documentazione delle stored procedure: "sp_utente_login", "sp_utente_select"
+ *
+ * VARIABLES:
+ * - email: Email dell'utente
+ * - password: Password dell'utente
+ * - codice_sicurezza: Codice di sicurezza (solo per admin)
+ */
+
+// === SETUP ===
 session_start();
 require '../config/config.php';
 
-// === CHECKS ===
-// 1. Le variabili POST sono state impostate correttamente
-checkSetVars(
-    ['email', 'password'],
-    "../public/login.php"
+// === VARIABLES ===
+check_POST(['email', 'password']);
+$email = trim($_POST['email']);
+$password = trim($_POST['password']);
+$codice_sicurezza = $_POST['codice_sicurezza'] ?? null; // Se non è un admin, il codice di sicurezza è null
+
+// === CONTEXT ===
+$context = [
+    'collection' => 'UTENTE',
+    'action' => 'LOGIN',
+    'redirect_fail' => generate_url('login'),
+    'redirect_success' => generate_url('home'),
+    'procedure' => 'sp_utente_login',
+    'in' => ['p_email' => $email]
+];
+$pipeline = new ValidationPipeline($context);
+
+// === VALIDATION ===
+// L'EMAIL È VALIDA
+$pipeline->check(
+    !filter_var($email, FILTER_VALIDATE_EMAIL),
+    "L'indirizzo email inserito non è valido. Riprova."
 );
 
-// 2. Recupero i dati inviati dal form
-$email = trim($_POST['email'] ?? '');
-$password = trim($_POST['password'] ?? '');
-$codiceSicurezza = trim($_POST['codice_sicurezza'] ?? '') ?: null; // Se non è stato inviato, imposto a null
+// L'UTENTE CON L'EMAIL SPECIFICATA ESISTE
+$login_data = $pipeline->fetch($context['procedure']);
 
-// 3. Controllo che non siano vuoti
-if (empty($email) || empty($password)) {
-    redirect(
-        false,
-        "Email e password sono obbligatori.",
-        "../public/login.php"
+// LA PASSWORD INSERITA È CORRETTA
+$pipeline->check(
+    !password_verify($password, $login_data['password']),
+    "Password inserita non valida. Riprova."
+);
+
+// CONTROLLO SE L'UTENTE È UN ADMIN
+$is_admin = $pipeline->fetch('sp_util_admin_exists')['is_admin'];
+
+// SE L'UTENTE È UN ADMIN, CONTROLLO IL CODICE DI SICUREZZA
+if ($is_admin) {
+    $codice_out = $pipeline->fetch('sp_util_admin_get_codice_sicurezza')['codice_sicurezza'];
+    $pipeline->check(
+        !password_verify($codice_sicurezza, $codice_out),
+        "Codice di sicurezza non valido. Riprova."
     );
 }
+
+// CONTROLLO SE L'UTENTE È UN CREATORE
+$is_creatore = $pipeline->fetch('sp_util_creatore_exists')['is_creatore'];
 
 // === ACTION ===
-// Login dell'utente
-try {
-    $in = [
-        'p_email' => $email
-    ];
+// RECUPERO I DATI DELL'UTENTE
+$user_data = $pipeline->fetch('sp_utente_select');
 
-    $outLogin = [
-        'p_nickname_out' => null,
-        'p_email_out' => null,
-        'p_password_hash_out' => null
-    ];
+// IMPOSTO LE VARIABILI DI SESSIONE
+$_SESSION['email'] = htmlspecialchars($login_data['email']);
+$_SESSION['nickname'] = htmlspecialchars($login_data['nickname']);
+$_SESSION['nome'] = htmlspecialchars($user_data['nome']);
+$_SESSION['cognome'] = htmlspecialchars($user_data['cognome']);
+$_SESSION['luogo_nascita'] = htmlspecialchars($user_data['luogo_nascita']);
+$_SESSION['anno_nascita'] = htmlspecialchars($user_data['anno_nascita']);
+$_SESSION['is_admin'] = $is_admin;
+$_SESSION['is_creatore'] = $is_creatore;
 
-    sp_invoke('sp_utente_login', $in, $outLogin);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Email o password non valide.",
-        "../public/login.php"
-    );
-}
+// DATI DA LOGGARE
+$logs = [
+    'p_email' => $email,
+    'p_nickname' => $_SESSION['nickname'],
+    'p_is_admin' => $_SESSION['is_admin'],
+    'p_is_creatore' => $_SESSION['is_creatore']
+];
 
-// Verifico di aver ricevuto i dati
-if (!$outLogin) {
-    redirect(
-        false,
-        "Errore durante il login. Riprova.",
-        "../public/login.php"
-    );
-}
-
-// Verifico la password
-if (!password_verify($password, $outLogin['p_password_hash_out'])) {
-    redirect(
-        false,
-        "Email o password non valide.",
-        "../public/login.php"
-    );
-}
-
-// ADMIN CHECK
-// Prima di impostare le variabili di sessione, controlliamo se l'utente è admin e se il codice di sicurezza è corretto
-try {
-    $in = ['p_email' => $outLogin['p_email_out']];
-    // Restituisce un array con il campo booleano 'is_admin'
-    $_SESSION['is_admin'] = sp_invoke('sp_util_admin_exists', $in)[0]['is_admin'];
-
-    $outAdmin = ['p_codice_sicurezza_out' => null];
-    sp_invoke('sp_util_admin_get_codice_sicurezza', $in, $outAdmin);
-
-    if ($_SESSION['is_admin']) {
-        if (empty($codiceSicurezza)) {
-            redirect(
-                false,
-                "Devi inserire il codice di sicurezza per accedere come amministratore.",
-                "../public/login.php"
-            );
-        }
-        if (!password_verify($codiceSicurezza, $outAdmin['p_codice_sicurezza_out'])) {
-            redirect(
-                false,
-                "Codice di sicurezza non valido.",
-                "../public/login.php"
-            );
-        }
-    }
-} catch (PDOException $ex) {
-    $_SESSION['is_admin'] = false;
-    redirect(
-        false,
-        "Errore durante il controllo dell'amministratore: " . $ex->errorInfo[2],
-        "../public/login.php"
-    );
-}
-
-// SET SESSION VARIABLES AND RETRIEVE ADDITIONAL DATA
-// Se arrivo qui, la password (e, se admin, il codice di sicurezza) sono corretti
-$_SESSION['email'] = $outLogin['p_email_out'];
-$_SESSION['nickname'] = $outLogin['p_nickname_out'];
-
-// Recupero il resto delle informazioni dell'utente
-try {
-    $in = ['p_email' => $outLogin['p_email_out']];
-    $datiUtente = sp_invoke('sp_utente_select', $in);
-
-    if (!empty($datiUtente[0])) {
-        $_SESSION['nome'] = $datiUtente[0]['nome'] ?? '';
-        $_SESSION['cognome'] = $datiUtente[0]['cognome'] ?? '';
-        $_SESSION['luogo_nascita'] = $datiUtente[0]['luogo_nascita'] ?? '';
-        $_SESSION['anno_nascita'] = $datiUtente[0]['anno_nascita'] ?? '';
-    }
-} catch (PDOException $ex) {
-    $_SESSION['nome'] = '';
-    $_SESSION['cognome'] = '';
-    $_SESSION['luogo_nascita'] = '';
-    $_SESSION['anno_nascita'] = '';
-
-    redirect(
-        false,
-        "Errore durante il recupero delle informazioni utente: " . $ex->errorInfo[2],
-        "../public/home.php"
-    );
-}
-
-// Controllo se l'utente è un creatore
-try {
-    $in = ['p_email' => $outLogin['p_email_out']];
-    $_SESSION['is_creatore'] = sp_invoke('sp_util_creatore_exists', $in)[0]['is_creatore'];
-} catch (PDOException $ex) {
-    $_SESSION['is_creatore'] = false;
-    redirect(
-        false,
-        "Errore durante il controllo del creatore: " . $ex->errorInfo[2],
-        "../public/login.php"
-    );
-}
-
-// Success, redirect alla pagina home
-redirect(
-    true,
-    "Login effettuato con successo.",
-    "../public/home.php"
-);
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA HOME
+$pipeline->continue("Login effettuato con successo.", $logs);

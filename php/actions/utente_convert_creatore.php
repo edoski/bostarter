@@ -1,38 +1,58 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: utente_convert_creatore
+ * PERFOMED BY: UTENTE, ADMIN
+ * UI: public/progetti.php
+ *
+ * PURPOSE:
+ * - Converte un utente normale in un utente creatore.
+ * - Qualsiasi utente può richiedere di diventare creatore.
+ * - Se l'operazione va a buon fine, l'utente viene inserito nella tabella "CREATORE".
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_util_utente_convert_creatore".
+ *
+ * VARIABLES:
+ * - email: Email dell'utente da convertire in creatore
+ */
+
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+$email = $_SESSION['email'];
 
-// 2. L'utente non è un creatore
-if ($_SESSION['is_creatore']) {
-    redirect(
-        false,
-        "Sei già un utente creatore.",
-        "../public/progetti.php"
-    );
-}
+// === CONTEXT ===
+$context = [
+    'collection' => 'UTENTE',
+    'action' => 'CONVERT',
+    'redirect_fail' => generate_url('progetti'),
+    'redirect_success' => generate_url('home'),
+    'procedure' => 'sp_util_utente_convert_creatore',
+    'in' => ['p_email' => $email]
+];
+$pipeline = new ValidationPipeline($context);
+
+// === VALIDATION ===
+// L'UTENTE NON È GIÀ UN CREATORE
+$pipeline->check(
+    isset($_SESSION['is_creatore']) && $_SESSION['is_creatore'],
+    "Sei già un utente creatore."
+);
 
 // === ACTION ===
-// Aggiornamento del ruolo dell'utente a creatore
-try {
-    $in = ['p_email' => $_SESSION['email']];
-    sp_invoke('sp_util_utente_convert_creatore', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante la conversione dell'utente a creatore: " . $ex->errorInfo[2],
-        "../public/progetti.php"
-    );
-}
+// AGGIORNAMENTO DEL RUOLO DELL'UTENTE A CREATORE
+$pipeline->invoke();
 
-// Success, redirect alla pagina dei progetti
+// AGGIORNAMENTO DELLA VARIABILE DI SESSIONE
 $_SESSION['is_creatore'] = true;
-redirect(
-    true,
-    "Complimenti! Ora sei un utente creatore.",
-    "../public/home.php"
-);
+
+// DATI AGGIUNTIVI DA LOGGARE
+$logs = [
+    'email' => $email,
+    'is_creatore' => true
+];
+
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA HOME
+$pipeline->continue("Ruolo aggiornato a creatore con successo.", $logs);

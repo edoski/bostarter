@@ -331,7 +331,7 @@ CALL sp_progetto_insert(
 -- ==================================================
 -- COMPONENTE OPERATIONS (CREATORE)
 -- ==================================================
--- For ProgettoBeta:
+-- === ProgettoBeta ===
 CALL sp_componente_insert(
         'Comp1',
         'ProgettoBeta',
@@ -380,7 +380,7 @@ CALL sp_componente_insert(
 -- ==================================================
 -- PROFILO & SKILL_PROFILO OPERATIONS (CREATORE)
 -- ==================================================
--- For ProgettoAlpha:
+-- === ProgettoAlpha ===
 -- Backend Developer
 CALL sp_profilo_insert(
         'Backend Developer',
@@ -547,7 +547,7 @@ CALL sp_skill_profilo_insert(
 -- ==================================================
 -- PARTECIPANTE OPERATIONS (ALL)
 -- ==================================================
--- For ProgettoAlpha:
+-- === ProgettoAlpha ===
 -- Project Manager
 CALL sp_partecipante_utente_insert(
         'judy@example.com',
@@ -588,7 +588,7 @@ CALL sp_partecipante_utente_insert(
 -- ==================================================
 -- COMMENTO OPERATIONS (ALL)
 -- ==================================================
-
+-- === ProgettoAlpha ===
 CALL sp_commento_insert(
         'heidi@example.com',
         'ProgettoAlpha',
@@ -621,6 +621,7 @@ CALL sp_commento_risposta_insert(
         'Grazie, Mike!'
      );
 
+-- === ProgettoBeta ===
 CALL sp_commento_insert(
         'judy@example.com',
         'ProgettoBeta',

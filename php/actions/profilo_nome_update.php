@@ -1,40 +1,61 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: profilo_nome_update
+ * PERFORMED BY: CREATORE
+ * UI: components/progetto_aggiorna_profili.php
+ *
+ * PURPOSE:
+ * - Aggiorna il nome di un profilo esistente di un progetto software.
+ * - Solo il creatore del progetto può aggiornare profili.
+ * - Se l'operazione va a buon fine, il nome del profilo viene aggiornato nella tabella "PROFILO".
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_profilo_nome_update".
+ *
+ * VARIABLES:
+ * - profilo: Nome attuale del profilo da aggiornare
+ * - nome_progetto: Nome del progetto software a cui appartiene il profilo
+ * - nuovo_nome: Nuovo nome del profilo
+ * - email: Email dell'utente creatore del progetto
+ */
+
+// === SETUP ===
 session_start();
 require_once '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+check_POST(['profilo', 'nome_progetto', 'nuovo_nome']);
+$profilo = $_POST['profilo'];
+$nome_progetto = $_POST['nome_progetto'];
+$nuovo_nome = $_POST['nuovo_nome'];
+$email = $_SESSION['email'];
 
-// 2. Le variabili POST sono state impostate correttamente
-checkSetVars(['nome_progetto', 'profilo', 'nuovo_nome']);
+// === CONTEXT ===
+$context = [
+    'collection' => 'PROFILO',
+    'action' => 'UPDATE',
+    'redirect_fail' => generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $nome_progetto]),
+    'redirect_success' => generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $nome_progetto, 'profilo' => $nuovo_nome]),
+    'procedure' => 'sp_profilo_nome_update',
+    'in' => [
+        'p_nome_profilo' => $profilo,
+        'p_nome_progetto' => $nome_progetto,
+        'p_nuovo_nome' => $nuovo_nome,
+        'p_email_creatore' => $email
+    ]
+];
+$pipeline = new ValidationPipeline($context);
 
-// 3. L'utente è il creatore del progetto
-checkProgettoOwner($_POST['nome_progetto']);
+// === VALIDATION ===
+// L'UTENTE È IL CREATORE DEL PROGETTO
+$pipeline->check(
+    !is_progetto_owner($email, $nome_progetto),
+    "Non sei autorizzato ad effettuare questa operazione."
+);
 
 // === ACTION ===
-// Aggiornamento del nome del profilo
-try {
-    $in = [
-        'p_nome_profilo' => $_POST['profilo'],
-        'p_nome_progetto' => $_POST['nome_progetto'],
-        'p_nuovo_nome' => $_POST['nuovo_nome'],
-        'p_email_creatore' => $_SESSION['email']
-    ];
+// AGGIORNAMENTO DEL NOME DEL PROFILO
+$pipeline->invoke();
 
-    sp_invoke('sp_profilo_nome_update', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante l'aggiornamento del nome del profilo: " . $ex->errorInfo[2],
-        "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto'])
-    );
-}
-
-// Success, redirect alla pagina del profilo
-redirect(
-    true,
-    "Nome del profilo aggiornato con successo.",
-    "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_POST['nome_progetto']) . "&profilo=" . urlencode($_POST['nuovo_nome'])
-);
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DEL PROFILO AGGIORNATO
+$pipeline->continue("Nome del profilo aggiornato con successo.");

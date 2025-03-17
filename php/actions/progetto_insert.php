@@ -1,99 +1,86 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: progetto_insert
+ * PERFORMED BY: CREATORE
+ * UI: public/progetto_crea.php
+ *
+ * PURPOSE:
+ * - Inserisce un nuovo progetto nella piattaforma.
+ * - Solo utenti con ruolo di creatore possono inserire progetti.
+ * - Se l'operazione va a buon fine, il progetto viene inserito nella tabella "PROGETTO" e nelle tabelle "PROGETTO_SOFTWARE" o "PROGETTO_HARDWARE" in base al tipo.
+ * - Viene inserita una reward di default per il progetto.
+ * - L'attributo nr_progetti dell'utente creatore viene automaticamente incrementato.
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_progetto_insert".
+ *
+ * VARIABLES:
+ * - nome: Nome del progetto
+ * - email: Email dell'utente creatore
+ * - descrizione: Descrizione del progetto
+ * - budget: Budget richiesto per il progetto
+ * - data_limite: Data limite per il raggiungimento del budget
+ * - tipo: Tipo di progetto ('software' o 'hardware')
+ */
+
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
-
-// 2. L'utente è un creatore
-checkCreatore();
-
-// 3. Le variabili POST sono state impostate correttamente
-checkSetVars(['nome', 'descrizione', 'budget', 'data_limite', 'tipo']);
-
-// 4. Recupero e valido i dati
-$nome = trim($_POST['nome']);
-$descrizione = trim($_POST['descrizione']);
+// === VARIABLES ===
+check_POST(['nome', 'descrizione', 'budget', 'data_limite', 'tipo']);
+$nome = htmlspecialchars(trim($_POST['nome']));
+$descrizione = htmlspecialchars(trim($_POST['descrizione']));
 $budget = floatval($_POST['budget']);
 $data_limite = trim($_POST['data_limite']);
 $tipo = $_POST['tipo'];
 
-// Validazione
-if (empty($nome) || empty($descrizione) || $budget < 0.01 || empty($data_limite) || empty($tipo)) {
-    redirect(
-        false,
-        "Tutti i campi sono obbligatori e il budget deve essere maggiore di 0.01.",
-        "../public/progetto_crea.php"
-    );
-}
-
-if ($data_limite <= date('Y-m-d')) {
-    redirect(
-        false,
-        "La data limite deve essere futura.",
-        "../public/progetto_crea.php"
-    );
-}
-
-if ($tipo !== 'software' && $tipo !== 'hardware') {
-    redirect(
-        false,
-        "Il tipo di progetto deve essere software o hardware.",
-        "../public/progetto_crea.php"
-    );
-}
-
-// === ACTION ===
-// Inserimento del progetto
-try {
-    $in = [
+// === CONTEXT ===
+$context = [
+    'collection' => 'PROGETTO',
+    'action' => 'INSERT',
+    'redirect_fail' => generate_url('progetto_crea'),
+    'redirect_success' => generate_url('progetto_dettagli', ['nome' => $nome]),
+    'procedure' => 'sp_progetto_insert',
+    'in' => [
         'p_nome' => $nome,
         'p_email_creatore' => $_SESSION['email'],
         'p_descrizione' => $descrizione,
         'p_budget' => $budget,
         'p_data_limite' => $data_limite,
         'p_tipo' => $tipo
-    ];
+    ]
+];
+$pipeline = new ValidationPipeline($context);
 
-    sp_invoke('sp_progetto_insert', $in);
+// === VALIDATION ===
+// L'UTENTE È UN CREATORE
+$pipeline->check(
+    !isset($_SESSION['is_creatore']) || !$_SESSION['is_creatore'],
+    "Non sei autorizzato ad effettuare questa operazione."
+);
 
-    // Inserisco la reward RWD_Default
-    $defaultRewardPath = __DIR__ . '/../img/RWD_Default.jpg';
-    $defaultRewardCreated = false;
+// LA DATA LIMITE È SUCCESSIVA AD OGGI
+$pipeline->check(
+    $data_limite <= date('Y-m-d'),
+    "La data limite deve essere successiva ad oggi."
+);
 
-    if (file_exists($defaultRewardPath)) {
-        $imageData = file_get_contents($defaultRewardPath);
+// IL TIPO È VALIDO (SOFTWARE O HARDWARE)
+$pipeline->check(
+    $tipo !== 'software' && $tipo !== 'hardware',
+    "Il tipo di progetto deve essere 'software' o 'hardware'."
+);
 
-        $in_reward = [
-            'p_codice' => 'RWD_Default',
-            'p_nome_progetto' => $nome,
-            'p_email_creatore' => $_SESSION['email'],
-            'p_descrizione' => 'Commodo ipsum dolor dolore ullamco aliqua dolor aliqua.',
-            'p_foto' => $imageData,
-            'p_min_importo' => 0.01
-        ];
+// === ACTION ===
+// INSERIMENTO DEL PROGETTO
+$pipeline->invoke();
 
-        sp_invoke('sp_reward_insert', $in_reward);
-        $defaultRewardCreated = true;
-    } else {
-        // Log error but continue
-        error_log("RWD_Default.jpg not found at $defaultRewardPath");
-    }
+// INSERIMENTO DELLA REWARD DI DEFAULT
+$pipeline->check(
+    !seed_progetto_default_reward($nome),
+    "Errore durante l'inserimento della foto di default."
+);
 
-    // Redirect con messaggio appropriato
-    if ($defaultRewardCreated) {
-        redirect(
-            true,
-            "Progetto creato con successo. Per ciascuna sezione, clicca sul bottone giallo 'Modifica' per iniziare a personalizzare il progetto.",
-            "../public/progetto_dettagli.php?nome=" . urlencode($nome)
-        );
-    }
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante la creazione del progetto: " . $ex->errorInfo[2],
-        "../public/progetto_crea.php"
-    );
-}
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DEL PROGETTO
+$pipeline->continue("Progetto creato con successo. Per ciascuna sezione, clicca sul bottone giallo 'Modifica' per iniziare a personalizzare il progetto.");

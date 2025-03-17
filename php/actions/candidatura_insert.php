@@ -1,35 +1,59 @@
 <?php
-// === CONFIG ===
+/**
+ * ACTION: candidatura_insert
+ * PERFORMED BY: ALL
+ * UI: public/progetto_dettagli.php
+ *
+ * PURPOSE:
+ * - Invia una candidatura da parte di un utente per partecipare ad un progetto software.
+ * - Se l'operazione va a buon fine, l'utente viene inserito nella tabella "PARTECIPANTE", altrimenti viene restituito un messaggio di errore.
+ * - Per maggiori dettagli, vedere la documentazione della stored procedure "sp_partecipante_utente_insert".
+ *
+ * VARIABLES:
+ * - email: Email dell'utente che invia la candidatura
+ * - nome_progetto: Nome del progetto a cui l'utente vuole partecipare
+ * - nome_profilo: Nome del profilo che l'utente vuole ricoprire nel progetto
+ */
+
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+check_POST(['nome_progetto', 'nome_profilo']);
+$nome_progetto = $_POST['nome_progetto'];
+$nome_profilo = $_POST['nome_profilo'];
+$email = $_SESSION['email'];
 
-// 2. Le variabili POST sono state impostate correttamente
-checkSetVars(['nome_progetto', 'nome_profilo']);
+// === CONTEXT ===
+$context = [
+    'collection' => 'PARTECIPANTE',
+    'action' => 'INSERT',
+    'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
+    'procedure' => 'sp_partecipante_utente_insert',
+    'in' => [
+        'p_email' => $email,
+        'p_nome_progetto' => $nome_progetto,
+        'p_nome_profilo' => $nome_profilo
+    ]
+];
+$pipeline = new ValidationPipeline($context);
+
+// === VALIDATION ===
+// L'UTENTE NON È IL CREATORE DEL PROGETTO
+$pipeline->check(
+    is_progetto_owner($email, $nome_progetto),
+    "Non puoi candidarti al tuo stesso progetto."
+);
+
+// IL PROGETTO È APERTO
+$pipeline->invoke('sp_util_progetto_is_aperto', ['p_nome_progetto' => $nome_progetto]);
 
 // === ACTION ===
-try {
-    $in = [
-        'p_email' => $_SESSION['email'],
-        'p_nome_progetto' => $_POST['nome_progetto'],
-        'p_nome_profilo' => $_POST['nome_profilo']
-    ];
+// INVIO LA CANDIDATURA
+$pipeline->invoke();
 
-    sp_invoke('sp_partecipante_utente_insert', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante l'invio della candidatura: " . $ex->errorInfo[2],
-        "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
-    );
-}
-
-// Success, redirect alla pagina del progetto
-redirect(
-    true,
-    "Candidatura inviata con successo.",
-    "../public/progetto_dettagli.php?nome=" . urlencode($_POST['nome_progetto'])
-);
+// === SUCCESS ===
+// REDIRECT ALLA PAGINA DEL PROGETTO
+$pipeline->continue("Candidatura inviata con successo.");
