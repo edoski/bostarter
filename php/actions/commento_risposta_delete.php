@@ -31,6 +31,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'COMMENTO',
     'action' => 'DELETE',
+    'email' => $email,
     'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
     'procedure' => 'sp_commento_risposta_delete',
     'in' => [

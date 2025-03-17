@@ -31,6 +31,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'FOTO',
     'action' => 'DELETE',
+    'email' => $email,
     'redirect' => generate_url('progetto_aggiorna', ['nome' => $nome_progetto, 'attr' => 'descrizione']),
     'procedure' => 'sp_foto_delete',
     'in' => [

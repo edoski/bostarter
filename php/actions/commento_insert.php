@@ -31,6 +31,7 @@ $commento = $_POST['commento'];
 $context = [
     'collection' => 'COMMENTO',
     'action' => 'INSERT',
+    'email' => $email,
     'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
     'procedure' => 'sp_commento_insert',
     'in' => [

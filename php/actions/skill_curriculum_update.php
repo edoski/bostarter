@@ -32,6 +32,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'SKILL_CURRICULUM',
     'action' => 'UPDATE',
+    'email' => $email,
     'redirect' => generate_url('curriculum'),
     'procedure' => 'sp_skill_curriculum_update',
     'in' => [

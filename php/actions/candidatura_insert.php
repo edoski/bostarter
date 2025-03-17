@@ -30,6 +30,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'PARTECIPANTE',
     'action' => 'INSERT',
+    'email' => $email,
     'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
     'procedure' => 'sp_partecipante_utente_insert',
     'in' => [
@@ -39,16 +40,6 @@ $context = [
     ]
 ];
 $pipeline = new ValidationPipeline($context);
-
-// === VALIDATION ===
-// L'UTENTE NON È IL CREATORE DEL PROGETTO
-$pipeline->check(
-    is_progetto_owner($email, $nome_progetto),
-    "Non puoi candidarti al tuo stesso progetto."
-);
-
-// IL PROGETTO È APERTO
-$pipeline->invoke('sp_util_progetto_is_aperto', ['p_nome_progetto' => $nome_progetto]);
 
 // === ACTION ===
 // INVIO LA CANDIDATURA

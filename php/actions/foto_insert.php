@@ -31,6 +31,7 @@ $foto = file_get_contents($_FILES['foto']['tmp_name']);
 $context = [
     'collection' => 'FOTO',
     'action' => 'INSERT',
+    'email' => $email,
     'redirect' => generate_url('progetto_aggiorna', ['nome' => $nome_progetto, 'attr' => 'descrizione']),
     'procedure' => 'sp_foto_insert',
     'in' => [

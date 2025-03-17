@@ -34,6 +34,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'PROGETTO',
     'action' => 'UPDATE',
+    'email' => $email,
     'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
     'procedure' => 'sp_progetto_budget_update',
     'in' => [

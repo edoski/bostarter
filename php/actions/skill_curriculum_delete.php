@@ -30,6 +30,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'SKILL_CURRICULUM',
     'action' => 'DELETE',
+    'email' => $email,
     'redirect' => generate_url('curriculum'),
     'procedure' => 'sp_skill_curriculum_delete',
     'in' => [

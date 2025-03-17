@@ -33,6 +33,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'PROFILO',
     'action' => 'UPDATE',
+    'email' => $email,
     'redirect_fail' => generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $nome_progetto]),
     'redirect_success' => generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $nome_progetto, 'profilo' => $nuovo_nome]),
     'procedure' => 'sp_profilo_nome_update',

@@ -45,6 +45,7 @@ $codice_sicurezza = trim($_POST['codice_sicurezza'] ?? '');
 $context = [
     'collection' => 'UTENTE',
     'action' => 'REGISTER',
+    'email' => $email,
     'redirect_fail' => generate_url('register'),
     'redirect_success' => generate_url('home'),
     'procedure' => 'sp_utente_register',

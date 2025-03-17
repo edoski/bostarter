@@ -31,6 +31,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'SKILL_CURRICULUM',
     'action' => 'INSERT',
+    'email' => $email,
     'redirect' => generate_url('curriculum'),
     'procedure' => 'sp_skill_curriculum_insert',
     'in' => [

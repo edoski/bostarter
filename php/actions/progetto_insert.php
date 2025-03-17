@@ -38,6 +38,7 @@ $tipo = $_POST['tipo'];
 $context = [
     'collection' => 'PROGETTO',
     'action' => 'INSERT',
+    'email' => $_SESSION['email'],
     'redirect_fail' => generate_url('progetto_crea'),
     'redirect_success' => generate_url('progetto_dettagli', ['nome' => $nome]),
     'procedure' => 'sp_progetto_insert',

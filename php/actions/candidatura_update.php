@@ -35,6 +35,7 @@ $nuovo_stato = $_POST['nuovo_stato'];
 $context = [
     'collection' => 'PARTECIPANTE',
     'action' => 'UPDATE',
+    'email' => $email,
     'redirect' => generate_url('candidature'),
     'procedure' => 'sp_partecipante_creatore_update',
     'in' => [
@@ -48,15 +49,6 @@ $context = [
 $pipeline = new ValidationPipeline($context);
 
 // === VALIDATION ===
-// L'UTENTE È IL CREATORE DEL PROGETTO
-$pipeline->check(
-    !is_progetto_owner($email, $nome_progetto),
-    "Non sei autorizzato ad effettuare questa operazione."
-);
-
-// IL PROGETTO È APERTO
-$pipeline->invoke('sp_util_progetto_is_aperto', ['p_nome_progetto' => $nome_progetto]);
-
 // LO STATO È VALIDO (ACCETTATO/RIFIUTATO)
 $pipeline->check(
     $nuovo_stato != 'accettato' && $nuovo_stato != 'rifiutato',
@@ -68,5 +60,5 @@ $pipeline->check(
 $pipeline->invoke();
 
 // === SUCCESS ===
-// REDIRECT A CANDIDATURE
+// REDIRECT A PAGINA CANDIDATURE
 $pipeline->continue("Partecipante " . $nuovo_stato . " con successo.");

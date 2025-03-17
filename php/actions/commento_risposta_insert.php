@@ -33,6 +33,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'COMMENTO',
     'action' => 'REPLY',
+    'email' => $email,
     'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
     'procedure' => 'sp_commento_risposta_insert',
     'in' => [

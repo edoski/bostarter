@@ -33,6 +33,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'FINANZIAMENTO',
     'action' => 'INSERT',
+    'email' => $email,
     'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
     'procedure' => 'sp_finanziamento_insert',
     'in' => [

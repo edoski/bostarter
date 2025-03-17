@@ -26,6 +26,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'UTENTE',
     'action' => 'CONVERT',
+    'email' => $email,
     'redirect_fail' => generate_url('progetti'),
     'redirect_success' => generate_url('home'),
     'procedure' => 'sp_util_utente_convert_creatore',

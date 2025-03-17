@@ -40,6 +40,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'COMPONENTE',
     'action' => 'UPDATE',
+    'email' => $email,
     'redirect' => generate_url('progetto_aggiorna', ['attr' => 'componenti', 'nome' => $nome_progetto]),
     'procedure' => 'sp_componente_update',
     'in' => [

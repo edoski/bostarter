@@ -31,6 +31,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'PROFILO',
     'action' => 'INSERT',
+    'email' => $email,
     'redirect' => generate_url('progetto_aggiorna', ['nome' => $nome_progetto, 'attr' => 'profili']),
     'procedure' => 'sp_profilo_insert',
     'in' => [

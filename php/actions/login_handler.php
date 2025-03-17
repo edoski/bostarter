@@ -30,6 +30,7 @@ $codice_sicurezza = $_POST['codice_sicurezza'] ?? null; // Se non è un admin, i
 $context = [
     'collection' => 'UTENTE',
     'action' => 'LOGIN',
+    'email' => $email,
     'redirect_fail' => generate_url('login'),
     'redirect_success' => generate_url('home'),
     'procedure' => 'sp_utente_login',

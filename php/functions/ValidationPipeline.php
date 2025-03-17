@@ -27,15 +27,16 @@ class ValidationPipeline
     public function check(bool $failure, ?string $message, ?string $redirect = null): void
     {
         // === PARSING ===
-        $collection = $this->context['collection'] ?? "UNDEFINED";
-        $action = $this->context['action'] ?? "UNDEFINED";
-        $procedure = $this->context['procedure'] ?? "UNDEFINED";
+        $collection = $this->context['collection'] ?? "N/A";
+        $action = $this->context['action'] ?? "N/A";
+        $procedure = $this->context['procedure'] ?? "N/A";
+        $email = $_SESSION['email'] ?? $this->context['email'] ?? "N/A";
         $data = $this->context['in'] ?? [];
         $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index');
         $message = $message ?? "Errore durante l'operazione.";
 
         // === ACTION ===
-        if ($failure) fail($collection, $action, $procedure, $data, $redirect, $message);
+        if ($failure) fail($collection, $action, $procedure, $email, $data, $redirect, $message);
     }
 
     /**
@@ -51,20 +52,20 @@ class ValidationPipeline
     public function fetch(?string $procedure = null, ?array $params = null, ?string $redirect = null): array
     {
         // === PARSING ===
-        $collection = $this->context['collection'] ?? "UNDEFINED";
-        $action = $this->context['action'] ?? "UNDEFINED";
-        $procedure = $procedure ?? $this->context['procedure'] ?? "UNDEFINED";
+        $collection = $this->context['collection'] ?? "N/A";
+        $action = $this->context['action'] ?? "N/A";
+        $procedure = $procedure ?? $this->context['procedure'] ?? "N/A";
+        $email = $_SESSION['email'] ?? $this->context['email'] ?? "N/A";
         $params = $params ?? $this->context['in'] ?? [];
         $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index');
 
         // === ACTION ===
         try {
-            return sp_invoke($procedure, $params)[0]; // Il risultato è un array di record, ne prendo il primo (e unico)
+            // Il risultato è un array di record, ne prendo il primo (e unico)
+            return sp_invoke($procedure, $params)[0];
         } catch (PDOException $ex) {
-            fail(
-                $collection, $action, $procedure, $params, $redirect,
-                "Errore durante l'operazione: " . $ex->errorInfo[2]
-            );
+            fail($collection, $action, $procedure, $email, $params, $redirect,
+                "Errore durante l'operazione: " . $ex->errorInfo[2]);
             return [];
         }
     }
@@ -82,9 +83,10 @@ class ValidationPipeline
     public function invoke(?string $procedure = null, ?array $params = null, ?string $redirect = null): void
     {
         // === PARSING ===
-        $collection = $this->context['collection'] ?? "UNDEFINED";
-        $action = $this->context['action'] ?? "UNDEFINED";
-        $procedure = $procedure ?? $this->context['procedure'] ?? "UNDEFINED";
+        $collection = $this->context['collection'] ?? "N/A";
+        $action = $this->context['action'] ?? "N/A";
+        $procedure = $procedure ?? $this->context['procedure'] ?? "N/A";
+        $email = $_SESSION['email'] ?? $this->context['email'] ?? "N/A";
         $params = $params ?? $this->context['in'] ?? [];
         $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index');
 
@@ -92,10 +94,8 @@ class ValidationPipeline
         try {
             sp_invoke($procedure, $params);
         } catch (PDOException $ex) {
-            fail(
-                $collection, $action, $procedure, $params, $redirect,
-                "Errore durante l'operazione: " . $ex->errorInfo[2]
-            );
+            fail($collection, $action, $procedure, $email, $params, $redirect,
+                "Errore durante l'operazione: " . $ex->errorInfo[2]);
         }
     }
 
@@ -112,9 +112,10 @@ class ValidationPipeline
     public function fetch_all(?string $procedure = null, ?array $params = null, ?string $redirect = null): array
     {
         // === PARSING ===
-        $collection = $this->context['collection'] ?? "UNDEFINED";
-        $action = $this->context['action'] ?? "UNDEFINED";
-        $procedure = $procedure ?? $this->context['procedure'] ?? "UNDEFINED";
+        $collection = $this->context['collection'] ?? "N/A";
+        $action = $this->context['action'] ?? "N/A";
+        $procedure = $procedure ?? $this->context['procedure'] ?? "N/A";
+        $email = $_SESSION['email'] ?? $this->context['email'] ?? "N/A";
         $params = $params ?? $this->context['in'] ?? [];
         $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index');
 
@@ -122,10 +123,8 @@ class ValidationPipeline
         try {
             return sp_invoke($procedure, $params); // Il risultato è un array di record
         } catch (PDOException $ex) {
-            fail(
-                $collection, $action, $procedure, $params, $redirect,
-                "Errore durante l'operazione: " . $ex->errorInfo[2]
-            );
+            fail($collection, $action, $procedure, $email, $params, $redirect,
+                "Errore durante l'operazione: " . $ex->errorInfo[2]);
             return [];
         }
     }
@@ -141,16 +140,15 @@ class ValidationPipeline
     public function continue(?string $message = null, ?array $data = null, ?string $redirect = null): void
     {
         // === PARSING ===
-        $collection = $this->context['collection'] ?? "UNDEFINED";
-        $action = $this->context['action'] ?? "UNDEFINED";
-        $procedure = $this->context['procedure'] ?? "UNDEFINED";
+        $collection = $this->context['collection'] ?? "N/A";
+        $action = $this->context['action'] ?? "N/A";
+        $procedure = $this->context['procedure'] ?? "N/A";
+        $email = $_SESSION['email'] ?? $this->context['email'] ?? "N/A";
         $data = $data ?? $this->context['in'] ?? [];
         $redirect = $redirect ?? $this->context['redirect_success'] ?? $this->context['redirect'] ?? generate_url('index');
+        $message = $message ?? "Operazione completata con successo.";
 
         // === REDIRECT ===
-        success(
-            $collection, $action, $procedure, $data, $redirect,
-            $message ?? "Operazione completata con successo."
-        );
+        success($collection, $action, $procedure, $email, $data, $redirect, $message);
     }
 }

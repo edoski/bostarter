@@ -21,11 +21,12 @@ function redirect(bool $success, string $message, string $location): void
  * @param string $collection Il nome della collezione interessata.
  * @param string $action L'azione eseguita.
  * @param string $procedure La stored procedure eseguita.
+ * @param string $email L'email dell'utente coinvolto.
  * @param array $data I dati associati all'evento da loggare.
  * @param string $location La pagina a cui reindirizzare l'utente.
  * @param string $message Il messaggio di successo da mostrare all'utente.
  */
-function success(string $collection, string $action, string $procedure, array $data, string $location, string $message): void
+function success(string $collection, string $action, string $procedure, string $email, array $data, string $location, string $message): void
 {
     // === LOGGING ===
     log_event(
@@ -33,6 +34,7 @@ function success(string $collection, string $action, string $procedure, array $d
         $collection,
         $action,
         $procedure,
+        $email,
         $data,
         $message
     );
@@ -48,11 +50,12 @@ function success(string $collection, string $action, string $procedure, array $d
  * @param string $collection Il nome della collezione interessata.
  * @param string $action L'azione eseguita.
  * @param string $procedure La stored procedure eseguita.
+ * @param string $email L'email dell'utente coinvolto.
  * @param array $data I dati associati all'evento da loggare.
  * @param string $location La pagina a cui reindirizzare l'utente.
  * @param string $message Il messaggio di errore da mostrare all'utente.
  */
-function fail(string $collection, string $action, string $procedure, array $data, string $location, string $message): void
+function fail(string $collection, string $action, string $procedure, string $email, array $data, string $location, string $message): void
 {
     // === LOGGING ===
     log_event(
@@ -60,6 +63,7 @@ function fail(string $collection, string $action, string $procedure, array $data
         $collection,
         $action,
         $procedure,
+        $email,
         $data,
         $message
     );

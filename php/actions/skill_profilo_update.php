@@ -36,6 +36,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'SKILL_PROFILO',
     'action' => 'UPDATE',
+    'email' => $email,
     'redirect' => generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $nome_progetto, 'profilo' => $nome_profilo]),
     'procedure' => 'sp_skill_profilo_update',
     'in' => [

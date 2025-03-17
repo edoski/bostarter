@@ -38,6 +38,7 @@ $email = $_SESSION['email'];
 $context = [
     'collection' => 'COMPONENTE',
     'action' => 'INSERT',
+    'email' => $email,
     'redirect' => generate_url('progetto_aggiorna', ['attr' => 'componenti', 'nome' => $nome_progetto]),
     'procedure' => 'sp_componente_insert',
     'in' => [

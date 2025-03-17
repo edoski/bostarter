@@ -37,6 +37,7 @@ $min_importo = floatval($_POST['min_importo']);
 $context = [
     'collection' => 'REWARD',
     'action' => 'INSERT',
+    'email' => $email,
     'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
     'procedure' => 'sp_reward_insert',
     'in' => [
