@@ -40,7 +40,7 @@ $context = [
         'p_livello' => $livello
     ]
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === VALIDATION ===
 // IL LIVELLO È UN INTERO COMPRESO TRA 0 E 5

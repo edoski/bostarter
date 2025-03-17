@@ -37,13 +37,19 @@ $context = [
         'p_email' => $email
     ]
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === VALIDATION ===
 // L'UTENTE È UN AMMINISTRATORE
 $pipeline->check(
     !isset($_SESSION['is_admin']) || !$_SESSION['is_admin'],
     "Non sei autorizzato ad effettuare questa operazione."
+);
+
+// LA COMPETENZA NON È VUOTA
+$pipeline->check(
+    !isset($competenza) || strlen($competenza) < 1,
+    "Il nome della competenza non può essere vuoto."
 );
 
 // === ACTION ===

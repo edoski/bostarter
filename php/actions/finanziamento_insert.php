@@ -43,19 +43,7 @@ $context = [
         'p_importo' => $importo
     ]
 ];
-$pipeline = new ValidationPipeline($context);
-
-// === VALIDATION ===
-// IL PROGETTO È APERTO
-$pipeline->invoke('sp_util_progetto_is_aperto', ['p_nome_progetto' => $nome_progetto]);
-
-// LA REWARD È VALIDA PER L'IMPORTO DONATO
-$in = [
-    'p_nome_progetto' => $nome_progetto,
-    'p_codice_reward' => $reward,
-    'p_importo' => $importo
-];
-$pipeline->invoke('sp_util_reward_valid_finanziamento', $in);
+$pipeline = new ActionPipeline($context);
 
 // === ACTION ===
 // INSERIMENTO DEL FINANZIAMENTO

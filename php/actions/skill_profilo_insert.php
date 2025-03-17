@@ -47,15 +47,9 @@ $context = [
         'p_livello_richiesto' => $livello
     ]
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === VALIDATION ===
-// L'UTENTE È IL CREATORE DEL PROGETTO
-$pipeline->check(
-    !is_progetto_owner($email, $nome_progetto),
-    "Non sei autorizzato ad effettuare questa operazione."
-);
-
 // IL LIVELLO È UN INTERO COMPRESO TRA 0 E 5
 $pipeline->check(
     !is_numeric($livello) || $livello < 0 || $livello > 5,

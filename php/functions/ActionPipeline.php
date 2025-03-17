@@ -6,7 +6,7 @@
  * - Logga le operazioni effettuate.
  *
  */
-class ValidationPipeline
+class ActionPipeline
 {
     // Dati di contesto per la validazione, logging, e redirect
     private array $context;
@@ -32,7 +32,7 @@ class ValidationPipeline
         $procedure = $this->context['procedure'] ?? "N/A";
         $email = $_SESSION['email'] ?? $this->context['email'] ?? "N/A";
         $data = $this->context['in'] ?? [];
-        $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index');
+        $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index') ?? "N/A";
         $message = $message ?? "Errore durante l'operazione.";
 
         // === ACTION ===
@@ -57,7 +57,7 @@ class ValidationPipeline
         $procedure = $procedure ?? $this->context['procedure'] ?? "N/A";
         $email = $_SESSION['email'] ?? $this->context['email'] ?? "N/A";
         $params = $params ?? $this->context['in'] ?? [];
-        $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index');
+        $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index') ?? "N/A";
 
         // === ACTION ===
         try {
@@ -88,7 +88,7 @@ class ValidationPipeline
         $procedure = $procedure ?? $this->context['procedure'] ?? "N/A";
         $email = $_SESSION['email'] ?? $this->context['email'] ?? "N/A";
         $params = $params ?? $this->context['in'] ?? [];
-        $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index');
+        $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index') ?? "N/A";
 
         // === ACTION ===
         try {
@@ -117,7 +117,7 @@ class ValidationPipeline
         $procedure = $procedure ?? $this->context['procedure'] ?? "N/A";
         $email = $_SESSION['email'] ?? $this->context['email'] ?? "N/A";
         $params = $params ?? $this->context['in'] ?? [];
-        $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index');
+        $redirect = $redirect ?? $this->context['redirect_fail'] ?? $this->context['redirect'] ?? generate_url('index') ?? "N/A";
 
         // === ACTION ===
         try {
@@ -145,7 +145,7 @@ class ValidationPipeline
         $procedure = $this->context['procedure'] ?? "N/A";
         $email = $_SESSION['email'] ?? $this->context['email'] ?? "N/A";
         $data = $data ?? $this->context['in'] ?? [];
-        $redirect = $redirect ?? $this->context['redirect_success'] ?? $this->context['redirect'] ?? generate_url('index');
+        $redirect = $redirect ?? $this->context['redirect_success'] ?? $this->context['redirect'] ?? generate_url('index') ?? "N/A";
         $message = $message ?? "Operazione completata con successo.";
 
         // === REDIRECT ===

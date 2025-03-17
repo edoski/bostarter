@@ -51,7 +51,7 @@ $context = [
         'p_tipo' => $tipo
     ]
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === VALIDATION ===
 // L'UTENTE È UN CREATORE
@@ -70,6 +70,12 @@ $pipeline->check(
 $pipeline->check(
     $tipo !== 'software' && $tipo !== 'hardware',
     "Il tipo di progetto deve essere 'software' o 'hardware'."
+);
+
+// IL BUDGET È MAGGIORE DI 0
+$pipeline->check(
+    $budget <= 0,
+    "Il budget deve essere maggiore di 0."
 );
 
 // === ACTION ===

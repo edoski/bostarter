@@ -38,7 +38,7 @@ $context = [
         'p_competenza' => $competenza
     ]
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === ACTION ===
 // RIMOZIONE DELLA SKILL DAL CURRICULUM

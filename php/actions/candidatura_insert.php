@@ -39,7 +39,7 @@ $context = [
         'p_nome_profilo' => $nome_profilo
     ]
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === ACTION ===
 // INVIO LA CANDIDATURA

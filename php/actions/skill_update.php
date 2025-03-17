@@ -40,13 +40,19 @@ $context = [
         'p_nuova_competenza' => $nuova_competenza
     ]
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === VALIDATION ===
 // L'UTENTE È UN AMMINISTRATORE
 $pipeline->check(
     !isset($_SESSION['is_admin']) || !$_SESSION['is_admin'],
     "Non sei autorizzato ad effettuare questa operazione."
+);
+
+// LA NUOVA COMPETENZA NON È VUOTA
+$pipeline->check(
+    !isset($nuova_competenza) || strlen($nuova_competenza) < 1,
+    "Il nome della competenza non può essere vuoto."
 );
 
 // === ACTION ===

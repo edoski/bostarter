@@ -42,13 +42,13 @@ $context = [
         'p_nome_progetto' => $nome_progetto
     ]
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === VALIDATION ===
 // L'UTENTE È L'AUTORE DEL COMMENTO O ADMIN
 $pipeline->check(
     !($_SESSION['is_admin'] || $email_autore === $email),
-    "Non sei autorizzato ad effettuare questa operazione."
+    "Non sei autorizzato ad eliminare questo commento."
 );
 
 // === ACTION ===

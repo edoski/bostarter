@@ -40,14 +40,7 @@ $context = [
         'p_nome_progetto' => $nome_progetto
     ]
 ];
-$pipeline = new ValidationPipeline($context);
-
-// === VALIDATION ===
-// L'UTENTE È IL CREATORE DEL PROGETTO O ADMIN
-$pipeline->check(
-    !($_SESSION['is_admin'] || is_progetto_owner($email, $nome_progetto)),
-    "Non sei autorizzato ad effettuare questa operazione."
-);
+$pipeline = new ActionPipeline($context);
 
 // === ACTION ===
 // CANCELLAZIONE DELLA RISPOSTA

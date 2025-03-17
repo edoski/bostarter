@@ -33,7 +33,7 @@ $context = [
     'email' => $email,
     'redirect' => generate_url('login')
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === ACTION ===
 // SERVER-SIDE: DISTRUGGO LA SESSIONE

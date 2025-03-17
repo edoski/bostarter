@@ -40,18 +40,9 @@ $context = [
         'p_descrizione' => $descrizione
     ]
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === VALIDATION ===
-// L'UTENTE È IL CREATORE DEL PROGETTO
-$pipeline->check(
-    !is_progetto_owner($email, $nome_progetto),
-    "Non sei autorizzato ad effettuare questa operazione."
-);
-
-// IL PROGETTO È APERTO
-$pipeline->invoke('sp_util_progetto_is_aperto', ['p_nome_progetto' => $nome_progetto]);
-
 // LA DESCRIZIONE È VALIDA
 $pipeline->check(
     empty($descrizione),

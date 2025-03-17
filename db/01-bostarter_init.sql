@@ -309,7 +309,7 @@ BEGIN
 	               FROM ADMIN
 	               WHERE email_utente = p_email) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'UTENTE NON ADMIN';
+			SET MESSAGE_TEXT = 'Utente non è un admin.';
 	END IF;
 END//
 
@@ -329,7 +329,7 @@ BEGIN
 	               FROM CREATORE
 	               WHERE email_utente = p_email) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'UTENTE NON CREATORE';
+			SET MESSAGE_TEXT = 'Utente non è un creatore.';
 	END IF;
 END//
 
@@ -352,7 +352,7 @@ BEGIN
 	               WHERE nome = p_nome_progetto
 		             AND email_creatore = p_email) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'UTENTE NON CREATORE DEL PROGETTO';
+			SET MESSAGE_TEXT = 'Utente non è il creatore del progetto.';
 	END IF;
 END//
 
@@ -410,13 +410,13 @@ BEGIN
 
 	IF min_importo_required IS NULL THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'REWARD NON TROVATA';
+			SET MESSAGE_TEXT = 'Reward non trovata.';
 	END IF;
 
 	-- Verifica che l'importo sia sufficiente per la reward
 	IF p_importo < min_importo_required THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'IMPORTO INSUFFICIENTE PER LA REWARD SELEZIONATA';
+			SET MESSAGE_TEXT = 'Importo insufficiente per la reward selezionata.';
 	END IF;
 END//
 
@@ -436,7 +436,7 @@ BEGIN
 	               FROM PROGETTO
 	               WHERE nome = p_nome_progetto) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROGETTO NON ESISTENTE';
+			SET MESSAGE_TEXT = 'Il progetto non esiste.';
 	END IF;
 END//
 
@@ -456,7 +456,7 @@ BEGIN
 	               FROM PROGETTO_SOFTWARE
 	               WHERE nome_progetto = p_nome_progetto) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROGETTO NON DI TIPO SOFTWARE';
+			SET MESSAGE_TEXT = 'Il progetto non è di tipo software.';
 	END IF;
 END//
 
@@ -476,7 +476,7 @@ BEGIN
 	               FROM PROGETTO_HARDWARE
 	               WHERE nome_progetto = p_nome_progetto) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROGETTO NON DI TIPO HARDWARE';
+			SET MESSAGE_TEXT = 'Il progetto non è di tipo hardware.';
 	END IF;
 END//
 
@@ -499,7 +499,7 @@ BEGIN
 	               WHERE nome_profilo = p_nome_profilo
 		             AND nome_progetto = p_nome_progetto) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROFILO NON ESISTENTE';
+			SET MESSAGE_TEXT = 'Profilo non esistente.';
 	END IF;
 END//
 
@@ -525,7 +525,7 @@ BEGIN
 		             AND nome_progetto = p_nome_progetto
 		             AND competenza = p_competenza) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'COMPETENZA NON PRESENTE NEL PROFILO';
+			SET MESSAGE_TEXT = 'Competenza non presente nel profilo.';
 	END IF;
 END//
 
@@ -545,7 +545,7 @@ BEGIN
 	               FROM COMMENTO
 	               WHERE id = p_id) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'COMMENTO NON ESISTENTE';
+			SET MESSAGE_TEXT = 'Il commento non esiste.';
 	END IF;
 END//
 
@@ -641,7 +641,7 @@ CREATE PROCEDURE sp_util_progetto_is_aperto(
 BEGIN
 	IF (SELECT stato FROM PROGETTO WHERE nome = p_nome_progetto) = 'chiuso' THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROGETTO CHIUSO';
+			SET MESSAGE_TEXT = 'Il progetto è chiuso.';
 	END IF;
 END//
 
@@ -687,13 +687,13 @@ BEGIN
 	-- Controllo che l'utente esista
 	IF NOT EXISTS (SELECT 1 FROM UTENTE WHERE email = p_email) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'EMAIL NON VALIDA';
+			SET MESSAGE_TEXT = 'Email non valida.';
 	END IF;
 
 	-- Controllo che l'utente non sia già un creatore
 	IF EXISTS (SELECT 1 FROM CREATORE WHERE email_utente = p_email) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'UTENTE GIA\' CREATORE';
+			SET MESSAGE_TEXT = 'Utente è già un creatore.';
 	END IF;
 
 	-- Conversione dell'utente in creatore
@@ -957,7 +957,7 @@ BEGIN
 		               WHERE nome_componente = p_nome_componente
 			             AND nome_progetto = p_nome_progetto) THEN
 			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = 'COMPONENTE NON ESISTENTE';
+				SET MESSAGE_TEXT = 'Componente non esistente.';
 		END IF;
 	END IF;
 END//
@@ -1009,11 +1009,7 @@ CREATE PROCEDURE sp_partecipante_creatore_check(
 	IN p_nome_profilo VARCHAR(100)
 )
 BEGIN
-	-- Controllo che:
-	-- 1. Il progetto esista
-	-- 2. Il programma sia ancora aperto
-	-- 3. Il progetto sia di tipo software
-	-- 4. Il profilo esista
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
 
 	-- Controllo che l'utente sia il creatore del progetto
@@ -1027,7 +1023,7 @@ BEGIN
 		             AND nome_profilo = p_nome_profilo
 		             AND stato = 'potenziale') THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'CANDIDATURA NON ESISTENTE';
+			SET MESSAGE_TEXT = 'Candidatura non esistente.';
 	END IF;
 END//
 
@@ -1052,12 +1048,17 @@ BEGIN
 	-- Dichiarazione variabile per la competenza mancante/suo livello insufficiente (se esiste)
 	DECLARE missing_skill VARCHAR(100) DEFAULT NULL;
 
-	-- Controllo che:
-	-- 1. Il progetto esista
-	-- 2. Il programma sia ancora aperto
-	-- 3. Il progetto sia di tipo software
-	-- 4. Il profilo esista
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_partecipante_check(p_nome_progetto, p_nome_profilo);
+
+	-- Controllo che l'utente NON sia il creatore del progetto
+	IF EXISTS (SELECT 1
+	           FROM PROGETTO
+	           WHERE nome = p_nome_progetto
+		         AND email_creatore = p_email) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Non puoi candidarti al tuo stesso progetto.';
+	END IF;
 
 	-- Controllo che il profilo disponga di competenze richieste (che non sia un profilo vuoto/in formazione dal creatore)
 	IF NOT EXISTS (SELECT 1
@@ -1067,8 +1068,7 @@ BEGIN
 		             AND competenza IS NOT NULL
 		             AND competenza != '') THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT =
-					'PROFILO SENZA COMPETENZE DEFINITE. ATTENDI CHE IL CREATORE AGGIUNGA LE COMPETENZE RICHIESTE';
+			SET MESSAGE_TEXT = 'Profilo senza competenze definite. Attendi che il creatore aggiunga le competenze richieste.';
 	END IF;
 
 	-- Controllo che il profilo non sia già stato occupato da un altro utente
@@ -1078,16 +1078,7 @@ BEGIN
 		         AND nome_profilo = p_nome_profilo
 		         AND stato = 'accettato') THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROFILO GIA\' OCCUPATO';
-	END IF;
-
-	-- Controllo che l'utente NON sia il creatore del progetto
-	IF EXISTS (SELECT 1
-	           FROM PROGETTO
-	           WHERE nome = p_nome_progetto
-		         AND email_creatore = p_email) THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'UTENTE CREATORE DEL PROGETTO';
+			SET MESSAGE_TEXT = 'Profilo già occupato da un altro utente.';
 	END IF;
 
 	-- Controllo se l'utente è stato precedentemente rifiutato per questo profilo
@@ -1098,7 +1089,7 @@ BEGIN
 		         AND nome_profilo = p_nome_profilo
 		         AND stato = 'rifiutato') THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'UTENTE PRECEDENTEMENTE RIFIUTATO PER QUESTO PROFILO';
+			SET MESSAGE_TEXT = 'Utente precedentemente rifiutato per questo profilo.';
 	END IF;
 
 	-- Controllo che l'utente non abbia già una candidatura per quel profilo del progetto
@@ -1108,7 +1099,7 @@ BEGIN
 		         AND nome_progetto = p_nome_progetto
 		         AND nome_profilo = p_nome_profilo) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'CANDIDATURA GIA\' INSERITA';
+			SET MESSAGE_TEXT = 'Candidatura già presente per questo profilo. Attendi la risposta del creatore.';
 	END IF;
 
 	-- Per ogni competenza richiesta dal profilo, controlla che il candidato abbia una entry in SKILL_CURRICULUM
@@ -1126,7 +1117,7 @@ BEGIN
 	-- Se almeno una competenza problematica viene trovata, lancia un errore.
 	IF missing_skill IS NOT NULL THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'COMPETENZA MANCANTE O LIVELLO INSUFFICIENTE';
+			SET MESSAGE_TEXT = 'Competenza mancante o livello insufficiente. Assicurati di avere tutte le competenze richieste.';
 	END IF;
 END//
 
@@ -1168,7 +1159,7 @@ BEGIN
 			EXISTS (SELECT 1 FROM ADMIN WHERE email_utente = p_email_autore)
 			) THEN
 			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = 'NON SEI AUTORIZZATO A CANCELLARE QUESTO COMMENTO';
+				SET MESSAGE_TEXT = 'Non sei autorizzato a cancellare questo commento.';
 		END IF;
 	END IF;
 END//
@@ -1205,7 +1196,7 @@ BEGIN
 		-- Controllo che il commento NON ABBIA una risposta
 		IF EXISTS (SELECT 1 FROM COMMENTO WHERE id = p_commento_id AND risposta IS NOT NULL) THEN
 			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = 'COMMENTO CONTIENE RISPOSTA';
+				SET MESSAGE_TEXT = 'Il commento contiene già una risposta.';
 		END IF;
 	ELSE
 		-- Altrimenti si intende cancellare una risposta...
@@ -1215,13 +1206,13 @@ BEGIN
 			EXISTS (SELECT 1 FROM ADMIN WHERE email_utente = p_email_creatore)
 			) THEN
 			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = 'UTENTE NON CREATORE O ADMIN (CANCELLAZIONE RISPOSTA)';
+				SET MESSAGE_TEXT = 'Non sei autorizzato a cancellare questa risposta.';
 		END IF;
 
 		-- Controllo che il commento ABBIA una risposta da cancellare
 		IF EXISTS (SELECT 1 FROM COMMENTO WHERE id = p_commento_id AND risposta IS NULL) THEN
 			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = 'COMMENTO NON CONTIENE RISPOSTA';
+				SET MESSAGE_TEXT = 'Il commento non contiene una risposta.';
 		END IF;
 	END IF;
 END//
@@ -1248,8 +1239,14 @@ CREATE PROCEDURE sp_foto_check(
 	IN p_is_insert BOOLEAN
 )
 BEGIN
+	-- Controllo che il progetto esista
+	CALL sp_util_progetto_exists(p_nome_progetto);
+
 	-- Controllo che l'utente sia il creatore del progetto
 	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome_progetto);
+
+	-- Controllo che il progetto sia aperto
+	CALL sp_util_progetto_is_aperto(p_nome_progetto);
 
 	-- Controllo che la foto esista (solo per delete)
 	IF NOT p_is_insert AND NOT EXISTS (SELECT 1
@@ -1257,7 +1254,7 @@ BEGIN
 	                                   WHERE nome_progetto = p_nome_progetto
 		                                 AND id = p_foto_id) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'FOTO NON ESISTENTE';
+			SET MESSAGE_TEXT = 'Foto non esistente.';
 	END IF;
 END//
 
@@ -1307,17 +1304,30 @@ CREATE PROCEDURE sp_utente_register(
 	IN p_cognome VARCHAR(50),
 	IN p_anno_nascita INT,
 	IN p_luogo_nascita VARCHAR(50),
-	IN p_is_creatore BOOLEAN, -- Definito a livello di interfaccia
-	IN p_is_admin BOOLEAN, -- Definito a livello di interfaccia
-	IN p_codice_sicurezza VARCHAR(100) -- Definito a livello di interfaccia
+	IN p_is_creatore BOOLEAN,
+	IN p_is_admin BOOLEAN,
+	IN p_codice_sicurezza VARCHAR(100)
 )
 BEGIN
-	DECLARE EXIT HANDLER FOR SQLEXCEPTION -- Gestione delle eccezioni, rollback e propagazione dell'errore
+	DECLARE EXIT HANDLER FOR SQLEXCEPTION
 		BEGIN
 			ROLLBACK;
 			RESIGNAL;
 		END;
-	START TRANSACTION; -- Uso di transazione per garantire l'integrità dei dati
+	START TRANSACTION;
+
+	-- Controllo che l'utente non esista già
+	IF EXISTS (SELECT 1 FROM UTENTE WHERE email = p_email) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Email già registrata.';
+	END IF;
+
+	-- Controllo che l'utente sia maggiorenne
+	IF p_anno_nascita > YEAR(CURRENT_DATE()) - 18 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Devi essere maggiorenne per registrarti.';
+	END IF;
+
 	INSERT INTO UTENTE (email, password, nickname, nome, cognome, anno_nascita, luogo_nascita)
 	VALUES (p_email, p_password, p_nickname, p_nome, p_cognome, p_anno_nascita, p_luogo_nascita);
 
@@ -1354,10 +1364,10 @@ BEGIN
 	-- Controllo che l'utente esista
 	IF NOT EXISTS (SELECT 1 FROM UTENTE WHERE email = p_email) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'EMAIL NON VALIDA';
+			SET MESSAGE_TEXT = 'Email non valida.';
 	END IF;
 
-	-- Se il controllo passa, restituisco i dati dell'utente
+	-- OK, restituisco i dati dell'utente
 	SELECT nickname, email, password
 	FROM UTENTE
 	WHERE email = p_email;
@@ -1410,6 +1420,26 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
+
+	-- Controllo che la skill esista
+	IF NOT EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_competenza) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Skill non esistente.';
+	END IF;
+
+	-- Controllo che la skill non esista già nel curriculum dell'utente
+	IF EXISTS (SELECT 1 FROM SKILL_CURRICULUM WHERE email_utente = p_email AND competenza = p_competenza) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Skill già presente nel curriculum.';
+	END IF;
+
+	-- Controllo che il livello sia valido
+	IF p_livello < 0 OR p_livello > 5 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Livello non valido. Inserisci un valore tra 0 e 5.';
+	END IF;
+
+	-- OK, inserisco la skill nel curriculum
 	INSERT INTO SKILL_CURRICULUM (email_utente, competenza, livello_effettivo)
 	VALUES (p_email, p_competenza, p_livello);
 	COMMIT;
@@ -1437,23 +1467,34 @@ BEGIN
 		END;
 	START TRANSACTION;
 
+	-- Controllo che la skill esista
+	IF NOT EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_competenza) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Skill non esistente.';
+	END IF;
+
 	-- Controllo che la skill esista nel curriculum dell'utente
 	IF NOT EXISTS (SELECT 1 FROM SKILL_CURRICULUM WHERE email_utente = p_email AND competenza = p_competenza) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'SKILL NON PRESENTE NEL CURRICULUM';
+			SET MESSAGE_TEXT = 'Skill non presente nel curriculum.';
 	END IF;
 
-	-- Se l'utente è un partecipante a progetti che richiedono questa skill
-	-- e il nuovo livello è inferiore al livello richiesto, rimuovo le candidature
-	DELETE P
-	FROM PARTECIPANTE P
+	-- Controllo che il livello sia valido
+	IF p_livello < 0 OR p_livello > 5 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Livello non valido. Inserisci un valore tra 0 e 5.';
+	END IF;
+
+	-- SIDE EFFECT: Rifiuto automaticamente le candidature che non soddisfano il livello o la competenza richiesta
+	UPDATE PARTECIPANTE P
 		     JOIN SKILL_PROFILO SP ON P.nome_progetto = SP.nome_progetto AND P.nome_profilo = SP.nome_profilo
+	SET stato = 'rifiutato'
 	WHERE P.email_utente = p_email
 	  AND SP.competenza = p_competenza
 	  AND SP.livello_richiesto > p_livello
 	  AND P.stato IN ('potenziale', 'accettato');
 
-	-- Aggiorno il livello della skill
+	-- OK, aggiorno il livello della skill
 	UPDATE SKILL_CURRICULUM
 	SET livello_effettivo = p_livello
 	WHERE email_utente = p_email
@@ -1483,16 +1524,22 @@ BEGIN
 		END;
 	START TRANSACTION;
 
-	-- Verifico che la skill esista nel curriculum dell'utente
-	IF NOT EXISTS (SELECT 1 FROM SKILL_CURRICULUM WHERE email_utente = p_email AND competenza = p_competenza) THEN
+	-- Controllo che la skill esista
+	IF NOT EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_competenza) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'SKILL NON PRESENTE NEL CURRICULUM';
+			SET MESSAGE_TEXT = 'Skill non esistente.';
 	END IF;
 
-	-- Se l'utente è un partecipante potenziale a progetti che richiedono questa skill, rimuovo le candidature
-	DELETE P
-	FROM PARTECIPANTE P
+	-- Controllo che la skill esista nel curriculum dell'utente
+	IF NOT EXISTS (SELECT 1 FROM SKILL_CURRICULUM WHERE email_utente = p_email AND competenza = p_competenza) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Skill non presente nel curriculum.';
+	END IF;
+
+	-- SIDE EFFECT: Rifiuto automaticamente le candidature che non soddisfano il livello o la competenza richiesta
+	UPDATE PARTECIPANTE P
 		     JOIN SKILL_PROFILO SP ON P.nome_progetto = SP.nome_progetto AND P.nome_profilo = SP.nome_profilo
+	SET stato = 'rifiutato'
 	WHERE P.email_utente = p_email
 	  AND SP.competenza = p_competenza
 	  AND P.stato IN ('potenziale', 'accettato');
@@ -1612,7 +1659,7 @@ CREATE PROCEDURE sp_progetto_insert(
 	IN p_descrizione TEXT,
 	IN p_budget DECIMAL(10, 2),
 	IN p_data_limite DATE,
-	IN p_tipo ENUM ('software','hardware') -- Tipo di progetto, definito a livello di interfaccia (checkbox)
+	IN p_tipo ENUM ('software','hardware')
 )
 BEGIN
 	DECLARE EXIT HANDLER FOR SQLEXCEPTION
@@ -1624,10 +1671,28 @@ BEGIN
 	-- Controllo che l'utente sia un creatore
 	CALL sp_util_utente_is_creatore(p_email_creatore);
 
+	-- Controllo che il progetto non esista già
+	IF EXISTS (SELECT 1 FROM PROGETTO WHERE nome = p_nome) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Un progetto con questo nome esiste già.';
+	END IF;
+
 	-- Controllo che la data_limite sia futura alla data attuale
 	IF p_data_limite <= CURRENT_DATE THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'DATA LIMITE DEVE ESSERE FUTURA';
+			SET MESSAGE_TEXT = 'Data limite deve essere futura alla data attuale.';
+	END IF;
+
+	-- Controllo che il tipo di progetto sia valido
+	IF p_tipo NOT IN ('software', 'hardware') THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Il tipo di progetto deve essere software o hardware.';
+	END IF;
+
+	-- Controllo che il budget sia maggiore di 0
+	IF p_budget <= 0 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Il budget deve essere maggiore di 0.';
 	END IF;
 
 	INSERT INTO PROGETTO (nome, email_creatore, descrizione, budget, data_limite)
@@ -1665,17 +1730,22 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che:
-	-- 1. L'utente sia il creatore del progetto
-	-- 2. La descrizione sia almeno 1 carattere
+	-- Controllo che il progetto esista
+	CALL sp_util_progetto_exists(p_nome);
+
+	-- Controllo che l'utente sia il creatore del progetto
 	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome);
 
+	-- Controllo che il progetto sia aperto
+	CALL sp_util_progetto_is_aperto(p_nome);
+
+	-- Controllo che la descrizione non sia vuota
 	IF p_descrizione IS NULL OR LENGTH(p_descrizione) < 1 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'LA DESCRIZIONE DEVE AVERE ALMENO 1 CARATTERE';
+			SET MESSAGE_TEXT = 'La descrizione non può essere vuota.';
 	END IF;
 
-	-- Se i controlli passano, aggiorno la descrizione
+	-- OK, aggiorno la descrizione
 	UPDATE PROGETTO
 	SET descrizione = p_descrizione
 	WHERE nome = p_nome;
@@ -1717,16 +1787,16 @@ BEGIN
 	FROM PROGETTO
 	WHERE nome = p_nome;
 
-	-- Se il progetto non è aperto, restituisce un errore (non è possibile modificare un progetto chiuso)
+	-- Controllo che il progetto non sia chiuso
 	IF current_state != 'aperto' THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'IMPOSSIBILE MODIFICARE BUDGET DI PROGETTO CHIUSO';
+			SET MESSAGE_TEXT = 'Impossible modificare il budget di un progetto chiuso.';
 	END IF;
 
 	-- Mi assicuro che il nuovo budget sia maggiore di 0
 	IF p_budget <= 0 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'BUDGET PROGETTO DEVE ESSERE > 0';
+			SET MESSAGE_TEXT = 'Il budget deve essere maggiore di 0.';
 	END IF;
 
 	-- Per i progetti hardware, verifico che il nuovo budget sia almeno uguale al costo totale dei componenti
@@ -1738,7 +1808,7 @@ BEGIN
 
 		IF p_budget < tot_componenti THEN
 			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = 'BUDGET PROGETTO DEVE ESSERE >= SOMMA COSTO COMPONENTI';
+				SET MESSAGE_TEXT = 'Il budget deve essere almeno pari al costo totale dei componenti.';
 		END IF;
 	END IF;
 
@@ -1801,6 +1871,9 @@ BEGIN
 		END;
 	START TRANSACTION;
 
+	-- Controllo che il progetto sia aperto
+	CALL sp_util_progetto_is_aperto(p_nome_progetto);
+
 	-- Controllo che l'utente non abbia già effettuato un finanziamento nello stesso giorno
 	SELECT COUNT(*)
 	INTO num_finanziamenti
@@ -1811,16 +1884,7 @@ BEGIN
 
 	IF num_finanziamenti > 0 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'FINANZIAMENTO GIA\' EFFETTUATO NELLO STESSO GIORNO';
-	END IF;
-
-	-- Controllo che il progetto sia aperto
-	IF NOT EXISTS (SELECT 1
-	               FROM PROGETTO
-	               WHERE nome = p_nome_progetto
-		             AND stato = 'aperto') THEN
-		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'PROGETTO CHIUSO O NON ESISTENTE';
+			SET MESSAGE_TEXT = 'Finanziamento già effettuato oggi.';
 	END IF;
 
 	-- Controllo che la reward esista
@@ -1829,16 +1893,19 @@ BEGIN
 	               WHERE codice = p_codice_reward
 		             AND nome_progetto = p_nome_progetto) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'REWARD SELEZIONATA INESISTENTE';
+			SET MESSAGE_TEXT = 'Reward selezionata inesistente.';
 	END IF;
 
-	-- Controllo che l'importo sia maggiore >= 1 centesimo
+	-- Controllo che l'importo sia >= 0.01
 	IF p_importo < 0.01 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'IMPORTO DEVE ESSERE >= 0.01';
+			SET MESSAGE_TEXT = 'Importo deve essere maggiore o uguale a 0.01.';
 	END IF;
 
-	-- Se i controlli passano, inserisco il finanziamento
+	-- Controllo che l'importo sia maggiore o uguale al minimo richiesto dalla reward
+	CALL sp_util_reward_valid_finanziamento(p_nome_progetto, p_codice_reward, p_importo);
+
+	-- OK, inserisco il finanziamento
 	INSERT INTO FINANZIAMENTO (email_utente, nome_progetto, codice_reward, importo)
 	VALUES (p_email, p_nome_progetto, p_codice_reward, p_importo);
 	COMMIT;
@@ -1957,10 +2024,10 @@ BEGIN
 	-- Controllo che il commento sia almeno lungo 1 carattere
 	IF p_testo IS NULL OR LENGTH(p_testo) < 1 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'IL COMMENTO DEVE AVERE ALMENO 1 CARATTERE';
+			SET MESSAGE_TEXT = 'Il commento non può essere vuoto.';
 	END IF;
 
-	-- Se i controlli passano, inserisco il commento
+	-- OK, inserisco il commento
 	INSERT INTO COMMENTO (email_utente, nome_progetto, testo)
 	VALUES (p_email_autore, p_nome_progetto, p_testo);
 	COMMIT;
@@ -1988,13 +2055,10 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che:
-	--  1. Esista il progetto
-	--  2. Esista il commento
-	--  3. L'utente sia l'autore del commento, OPPURE un admin
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_commento_check(p_id, p_nome_progetto, p_email, FALSE);
 
-	-- Se i controlli passano, cancello il commento
+	-- OK, cancello il commento
 	DELETE
 	FROM COMMENTO
 	WHERE id = p_id;
@@ -2041,14 +2105,10 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che:
-	--  1. Esista il progetto
-	--  2. Esista il commento
-	--  3. L'utente sia il creatore del progetto
-	--  4. Il commento non abbia già una risposta
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_commento_risposta_check(p_commento_id, p_nome_progetto, p_email_creatore, TRUE);
 
-	-- Se i controlli passano, inserisco la risposta
+	-- OK, inserisco la risposta
 	UPDATE COMMENTO
 	SET risposta = p_risposta
 	WHERE id = p_commento_id;
@@ -2077,14 +2137,10 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che:
-	--  1. Esista il progetto
-	--  2. Esista il commento
-	--  3. L'utente sia il creatore del progetto, OPPURE un admin
-	--  4. Il commento abbia una risposta
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_commento_risposta_check(p_commento_id, p_nome_progetto, p_email_creatore, FALSE);
 
-	-- Se i controlli passano, cancello la risposta
+	-- OK, cancello la risposta
 	UPDATE COMMENTO
 	SET risposta = NULL
 	WHERE id = p_commento_id;
@@ -2125,18 +2181,10 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che:
-	--  1. Il progetto esista
-	--  2. Il progetto sia di tipo software
-	--  3. Il profilo per quel progetto esista
-	--  4. L'utente non sia il creatore del progetto
-	--  5. Il profilo per quel progetto non sia già stato occupato da un altro utente
-	--  6. L'utente non sia già stato rifiutato per quel profilo del progetto
-	--  7. L'utente non abbia già una candidatura per quel profilo del progetto
-	--  8. L'utente, per ogni competenza richiesta, abbia il livello richiesto
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_partecipante_utente_check(p_email, p_nome_progetto, p_nome_profilo);
 
-	-- Se i controlli passano, inserisco la candidatura
+	-- OK, inserisco la candidatura
 	INSERT INTO PARTECIPANTE (email_utente, nome_progetto, nome_profilo)
 	VALUES (p_email, p_nome_progetto, p_nome_profilo);
 	COMMIT;
@@ -2168,15 +2216,10 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che:
-	--  1. Il progetto esista
-	--  2. Il progetto sia di tipo software
-	--  3. Il profilo per quel progetto esista
-	--  4. L'utente sia il creatore del progetto
-	--  5. La candidatura esista
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_partecipante_creatore_check(p_email_creatore, p_email_candidato, p_nome_progetto, p_nome_profilo);
 
-	-- Se i controlli passano, aggiorno lo stato della candidatura
+	-- OK, aggiorno lo stato della candidatura
 	UPDATE PARTECIPANTE
 	SET stato = p_nuovo_stato
 	WHERE email_utente = p_email_candidato
@@ -2313,16 +2356,16 @@ BEGIN
 	-- Controllo che la competenza non esista già
 	IF EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_competenza) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'COMPETENZA ESISTE GIA\'';
+			SET MESSAGE_TEXT = 'Skill già esistente';
 	END IF;
 
 	-- Controllo che la competenza non sia nulla o vuota
 	IF p_competenza IS NULL OR p_competenza = '' THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'COMPETENZA NON VALIDA';
+			SET MESSAGE_TEXT = 'Skill non può essere nulla o vuota';
 	END IF;
 
-	-- Se i controlli passano, inserisco la competenza
+	-- OK, inserisco la competenza
 	INSERT INTO SKILL (competenza)
 	VALUES (p_competenza);
 	COMMIT;
@@ -2356,22 +2399,22 @@ BEGIN
 	-- Controllo che la vecchia skill esista
 	IF NOT EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_vecchia_competenza) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'SKILL NON ESISTENTE';
+			SET MESSAGE_TEXT = 'Skill non esistente';
 	END IF;
 
 	-- Controllo che la nuova skill non esista già
 	IF EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_nuova_competenza) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'NUOVA SKILL ESISTE GIA\'';
+			SET MESSAGE_TEXT = 'Esiste già una skill con questo nome';
 	END IF;
 
 	-- Controllo che la nuova skill non sia nulla o vuota
 	IF p_nuova_competenza IS NULL OR TRIM(p_nuova_competenza) = '' THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'NUOVA SKILL DEVE AVERE ALMENO 1 CARATTERE';
+			SET MESSAGE_TEXT = 'Skill non può essere nulla o vuota';
 	END IF;
 
-	-- Se i controlli passano, aggiorno il nome della skill
+	-- OK, aggiorno il nome della skill
 	UPDATE SKILL
 	SET competenza = p_nuova_competenza
 	WHERE competenza = p_vecchia_competenza;
@@ -2426,13 +2469,40 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che:
-	--  1. Il progetto esista
-	--  2. L'utente sia il creatore del progetto
+	--  Controllo che il progetto esista
 	CALL sp_util_progetto_exists(p_nome_progetto);
+
+	--  Controllo che l'utente sia il creatore del progetto
 	CALL sp_util_creatore_is_progetto_owner(p_email_creatore, p_nome_progetto);
 
-	-- Se i controlli passano, inserisco la reward
+	--  Controllo che il progetto sia aperto
+	CALL sp_util_progetto_is_aperto(p_nome_progetto);
+
+	--  Controllo che il codice della reward non sia già stato utilizzato
+	IF EXISTS(SELECT 1 FROM REWARD WHERE codice = p_codice AND nome_progetto = p_nome_progetto) THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Codice reward già utilizzato per questo progetto.';
+	END IF;
+
+	--  Controllo che la descrizione non sia vuota
+	IF p_descrizione IS NULL OR LENGTH(p_descrizione) < 1 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'La descrizione non può essere vuota.';
+	END IF;
+
+	--  Controllo che l'importo minimo sia >= 0.01
+	IF p_min_importo < 0.01 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'Importo minimo deve essere maggiore o uguale a 0.01.';
+	END IF;
+
+	--  Controllo che la foto sia valida
+	IF p_foto IS NULL THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'La foto non può essere vuota.';
+	END IF;
+
+	-- OK, inserisco la reward
 	INSERT INTO REWARD (codice, nome_progetto, descrizione, foto, min_importo)
 	VALUES (p_codice, p_nome_progetto, p_descrizione, p_foto, p_min_importo);
 	COMMIT;
@@ -2453,7 +2523,7 @@ BEGIN
 	-- Controllo che il progetto esista
 	CALL sp_util_progetto_exists(p_nome_progetto);
 
-	-- Se il controllo passa, restituisco le reward
+	-- OK, restituisco le reward
 	SELECT codice, descrizione, foto, min_importo
 	FROM REWARD
 	WHERE nome_progetto = p_nome_progetto;
@@ -2523,11 +2593,7 @@ BEGIN
 		END;
 	START TRANSACTION;
 
-	-- Controllo che:
-	--  1. Il progetto esista
-	--  2. L'utente sia il creatore del progetto
-	--  3. Il progetto sia di tipo hardware
-	--  4. Il progetto sia ancora aperto
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, TRUE);
 
 	-- Recupero il budget del progetto
@@ -2552,7 +2618,7 @@ BEGIN
 		WHERE nome = p_nome_progetto;
 	END IF;
 
-	-- Se i controlli passano, inserisco il componente
+	-- OK, inserisco il componente
 	INSERT INTO COMPONENTE (nome_componente, nome_progetto, descrizione, quantita, prezzo)
 	VALUES (p_nome_componente, p_nome_progetto, p_descrizione, p_quantita, p_prezzo);
 	COMMIT;
@@ -2586,18 +2652,13 @@ BEGIN
 		END;
 	START TRANSACTION;
 
-	-- Controllo che:
-	--  1. Il progetto esista
-	--  2. L'utente sia il creatore del progetto
-	--  3. Il progetto sia ancora aperto
-	--  4. Il progetto sia di tipo hardware
-	--  5. Il componente esista
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, FALSE);
 
 	-- Controllo che ci sia almeno un componente rimanente
 	IF (SELECT COUNT(*) FROM COMPONENTE WHERE nome_progetto = p_nome_progetto) = 1 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'IMPOSSIBILE RIMUOVERE ULTIMO COMPONENTE';
+			SET MESSAGE_TEXT = 'Deve esserci almeno un componente per il progetto';
 	END IF;
 
 	-- Recupera il budget del progetto
@@ -2621,7 +2682,7 @@ BEGIN
 	SET budget = new_budget
 	WHERE nome = p_nome_progetto;
 
-	-- Se i controlli passano, rimuovo il componente
+	-- OK, rimuovo il componente
 	DELETE
 	FROM COMPONENTE
 	WHERE nome_componente = p_nome_componente
@@ -2670,18 +2731,13 @@ BEGIN
 		END;
 	START TRANSACTION;
 
-	-- Controllo che:
-	--  1. Il progetto esista
-	--  2. L'utente sia il creatore del progetto
-	--  3. Il progetto sia ancora aperto
-	--  4. Il progetto sia di tipo hardware
-	--  5. Il componente esista
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, FALSE);
 
 	-- Controllo che la quantità del componente sia > 0
 	IF p_quantita <= 0 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'QUANTITY COMPONENTE DEVE ESSERE > 0';
+			SET MESSAGE_TEXT = 'La quantità del componente deve essere maggiore di 0';
 	END IF;
 
 	-- Controllo che non esista già un componente con il nuovo nome
@@ -2691,7 +2747,7 @@ BEGIN
 	           WHERE nome_componente = p_nuovo_nome_componente
 		         AND nome_progetto = p_nome_progetto) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'COMPONENTE CON QUESTO NOME ESISTE GIA\'';
+			SET MESSAGE_TEXT = 'Esiste già un componente con questo nome';
 	END IF;
 
 	-- Recupero il budget del progetto
@@ -2725,7 +2781,7 @@ BEGIN
 	SET budget = budget + eccesso
 	WHERE nome = p_nome_progetto;
 
-	-- Se i controlli passano, aggiorno il componente
+	-- OK, aggiorno il componente
 	UPDATE COMPONENTE
 	SET nome_componente = p_nuovo_nome_componente,
 	    descrizione     = p_descrizione,
@@ -2781,12 +2837,10 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che:
-	--  1. L'utente sia il creatore del progetto
-	--  2. Il progetto sia di tipo software
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, TRUE);
 
-	-- Se i controlli passano, inserisco il profilo
+	-- OK, inserisco il profilo
 	INSERT INTO PROFILO (nome_profilo, nome_progetto)
 	VALUES (p_nome_profilo, p_nome_progetto);
 	COMMIT;
@@ -2814,13 +2868,10 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che:
-	--  1. L'utente sia il creatore del progetto
-	--  2. Il progetto sia di tipo software
-	--  3. Il profilo esista
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, FALSE);
 
-	-- Se i controlli passano, rimuovo il profilo
+	-- OK, rimuovo il profilo
 	DELETE
 	FROM PROFILO
 	WHERE nome_profilo = p_nome_profilo
@@ -2874,13 +2925,10 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che:
-	--  1. L'utente sia il creatore del progetto
-	--  2. Il progetto sia di tipo software
-	--  3. Il profilo esista
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, FALSE);
 
-	-- Se i controlli passano, aggiorno il nome del profilo
+	-- OK, aggiorno il nome del profilo
 	UPDATE PROFILO
 	SET nome_profilo = p_nuovo_nome
 	WHERE nome_profilo = p_nome_profilo
@@ -2920,11 +2968,7 @@ BEGIN
 		END;
 	START TRANSACTION;
 
-	-- Controllo che:
-	--  1. Il progetto esista
-	--  2. L'utente sia il creatore del progetto
-	--  3. Il progetto sia di tipo software
-	--  4. Il profilo esista
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, TRUE);
 
 	-- SIDE EFFECT: Rifiuto automaticamente le candidature che non soddisfano il livello o la competenza richiesta
@@ -2939,7 +2983,7 @@ BEGIN
 		                AND SC.competenza = p_competenza
 		                AND SC.livello_effettivo >= p_livello_richiesto);
 
-	-- Se i controlli passano, inserisco la skill nel profilo del progetto
+	-- OK, inserisco la skill nel profilo del progetto
 	INSERT INTO SKILL_PROFILO (nome_profilo, competenza, nome_progetto, livello_richiesto)
 	VALUES (p_nome_profilo, p_competenza, p_nome_progetto, p_livello_richiesto);
 	COMMIT;
@@ -2970,15 +3014,10 @@ BEGIN
 		END;
 	START TRANSACTION;
 
-	-- Controllo che:
-	--  1. Il progetto esista
-	--  2. L'utente sia il creatore del progetto
-	--  3. Il progetto sia di tipo software
-	--  4. Il profilo esista
-	--  5. Il profilo abbia la competenza richiesta
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, FALSE);
 
-	-- Se i controlli passano, rimuovo la skill dal profilo
+	-- OK, rimuovo la skill dal profilo
 	DELETE
 	FROM SKILL_PROFILO
 	WHERE nome_profilo = p_nome_profilo
@@ -3014,12 +3053,7 @@ BEGIN
 		END;
 	START TRANSACTION;
 
-	-- Controllo che:
-	--  1. Il progetto esista
-	--  2. L'utente sia il creatore del progetto
-	--  3. Il progetto sia di tipo software
-	--  4. Il profilo esista
-	--  5. Il profilo abbia la competenza richiesta
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_skill_profilo_check(p_nome_profilo, p_email_creatore, p_nome_progetto, p_competenza, FALSE);
 
 	-- SIDE EFFECT: Rifiuto automaticamente le candidature che non soddisfano il nuovo livello richiesto
@@ -3034,7 +3068,7 @@ BEGIN
 		                AND SC.competenza = p_competenza
 		                AND SC.livello_effettivo >= p_nuovo_livello_richiesto);
 
-	-- Se i controlli passano, aggiorno il livello richiesto della skill
+	-- OK, aggiorno il livello richiesto della skill
 	UPDATE SKILL_PROFILO
 	SET livello_richiesto = p_nuovo_livello_richiesto
 	WHERE nome_profilo = p_nome_profilo
@@ -3091,10 +3125,10 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che l'utente sia il creatore del progetto
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_foto_check(p_nome_progetto, p_email_creatore, NULL, TRUE);
 
-	-- Se il controllo passa, aggiungo la foto
+	-- OK, aggiungo la foto
 	INSERT INTO FOTO (nome_progetto, foto)
 	VALUES (p_nome_progetto, p_foto);
 	COMMIT;
@@ -3121,12 +3155,10 @@ BEGIN
 			RESIGNAL;
 		END;
 	START TRANSACTION;
-	-- Controllo che:
-	--  1. L'utente sia il creatore del progetto
-	--  2. La foto esista
+	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_foto_check(p_nome_progetto, p_email_creatore, p_foto_id, FALSE);
 
-	-- Se i controlli passano, rimuovo la foto
+	-- OK, rimuovo la foto
 	DELETE
 	FROM FOTO
 	WHERE nome_progetto = p_nome_progetto

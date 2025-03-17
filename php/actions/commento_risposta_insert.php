@@ -43,14 +43,7 @@ $context = [
         'p_risposta' => $risposta
     ]
 ];
-$pipeline = new ValidationPipeline($context);
-
-// === VALIDATION ===
-// L'UTENTE È IL CREATORE DEL PROGETTO
-$pipeline->check(
-    !is_progetto_owner($email, $nome_progetto),
-    "Non sei autorizzato ad effettuare questa operazione."
-);
+$pipeline = new ActionPipeline($context);
 
 // === ACTION ===
 // INSERIMENTO DELLA RISPOSTA AL COMMENTO

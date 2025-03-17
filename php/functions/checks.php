@@ -20,20 +20,6 @@ function check_auth(): void
 }
 
 /**
- * Controlla se l'utente è un amministratore. Se non lo è, reindirizza alla pagina home.
- */
-function check_admin(): void
-{
-    if (!isset($_SESSION['is_admin']) || !$_SESSION['is_admin']) {
-        redirect(
-            false,
-            "Non sei autorizzato ad effettuare questa operazione.",
-            "../public/home.php"
-        );
-    }
-}
-
-/**
  * Controlla se l'utente è il creatore di un progetto.
  *
  * @param string $email L'email dell'utente da controllare.

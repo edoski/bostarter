@@ -32,7 +32,7 @@ $context = [
     'procedure' => 'sp_util_utente_convert_creatore',
     'in' => ['p_email' => $email]
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === VALIDATION ===
 // L'UTENTE NON È GIÀ UN CREATORE
@@ -44,8 +44,6 @@ $pipeline->check(
 // === ACTION ===
 // AGGIORNAMENTO DEL RUOLO DELL'UTENTE A CREATORE
 $pipeline->invoke();
-
-// AGGIORNAMENTO DELLA VARIABILE DI SESSIONE
 $_SESSION['is_creatore'] = true;
 
 // DATI AGGIUNTIVI DA LOGGARE

@@ -50,14 +50,7 @@ $context = [
         'p_email_creatore' => $email
     ]
 ];
-$pipeline = new ValidationPipeline($context);
-
-// === VALIDATION ===
-// L'UTENTE È IL CREATORE DEL PROGETTO
-$pipeline->check(
-    !is_progetto_owner($email, $nome_progetto),
-    "Non sei autorizzato ad effettuare questa operazione."
-);
+$pipeline = new ActionPipeline($context);
 
 // === ACTION ===
 // INSERIMENTO DEL COMPONENTE NEL PROGETTO

@@ -46,7 +46,7 @@ $context = [
         'p_nuovo_stato' => $nuovo_stato
     ]
 ];
-$pipeline = new ValidationPipeline($context);
+$pipeline = new ActionPipeline($context);
 
 // === VALIDATION ===
 // LO STATO È VALIDO (ACCETTATO/RIFIUTATO)
