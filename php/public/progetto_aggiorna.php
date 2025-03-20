@@ -63,7 +63,7 @@ $progetto['tipo'] = $pipeline->fetch('sp_util_progetto_type', $in)['tipo_progett
             // UPDATE BUDGET
             require '../components/progetto_aggiorna_budget.php';
             break;
-        case "reward":
+        case "rewards":
             // UPDATE/INSERT REWARD
             require '../components/progetto_aggiorna_reward.php';
             break;

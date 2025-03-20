@@ -440,6 +440,8 @@ function render_profili(array $profili, array $partecipanti_accettati, array $pr
                                             <button class="btn btn-danger w-100" disabled>Candidatura rifiutata</button>
                                         <?php elseif (!$utente_idoneo): ?>
                                             <button class="btn btn-secondary w-100" disabled>Non idoneo</button>
+                                        <?php elseif (empty($skills)): ?>
+                                            <button class="btn btn-secondary w-100" disabled>Profilo in creazione</button>
                                         <?php else: ?>
                                             <form action="../actions/candidatura_insert.php" method="post">
                                                 <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($progetto['nome']); ?>">

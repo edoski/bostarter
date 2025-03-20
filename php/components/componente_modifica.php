@@ -15,7 +15,7 @@
 
             // Calcola il costo totale attuale di tutti i componenti
             $costo_totale = 0;
-            foreach ($componenti as $comp) {
+            foreach ($componenti['data'] as $comp) {
                 $costo_totale += $comp['prezzo'] * $comp['quantita'];
             }
 
@@ -28,7 +28,7 @@
             <!-- Avviso Budget -->
             <div class="alert alert-info mb-4">
                 <h5 class="alert-heading">Informazioni Budget</h5>
-                <p>Budget attuale del progetto: <strong><?= number_format($budget_progetto, 2); ?>€</strong></p>
+                <p>Budget attuale del progetto: <strong><?= number_format($progetto['budget'], 2); ?>€</strong></p>
                 <p>Costo totale attuale dei componenti: <strong><?= number_format($costo_totale, 2); ?>€</strong></p>
 
                 <?php if (!$nuovo_componente): ?>

@@ -8,11 +8,15 @@
             <?php endif; ?>
         </div>
         <div class="card-body overflow-y-auto">
-            <?php if (empty($componenti)): ?>
+            <?php if ($componenti['failed']): ?>
+                <div class="alert alert-danger" role="alert">
+                    Errore nel recupero dei componenti.
+                </div>
+            <?php elseif (empty($componenti['data'])): ?>
                 <p class="text-center">Nessun componente esistente</p>
             <?php else: ?>
                 <div class="list-group">
-                    <?php foreach ($componenti as $componente): ?>
+                    <?php foreach ($componenti['data'] as $componente): ?>
                         <div class="list-group-item">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0"><?= htmlspecialchars($componente['nome_componente']); ?></h6>

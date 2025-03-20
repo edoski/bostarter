@@ -32,7 +32,7 @@ $context = [
     'collection' => 'PROFILO',
     'action' => 'INSERT',
     'email' => $email,
-    'redirect' => generate_url('progetto_aggiorna', ['nome' => $nome_progetto, 'attr' => 'profili']),
+    'redirect' => generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $nome_progetto, 'profilo' => $nome_profilo]),
     'procedure' => 'sp_profilo_insert',
     'in' => [
         'p_nome_profilo' => $nome_profilo,

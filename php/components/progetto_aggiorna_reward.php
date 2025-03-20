@@ -1,15 +1,7 @@
 <?php
 // Recupero le reward esistenti del progetto
-try {
-    $in = ['p_nome_progetto' => $_GET['nome']];
-    $rewards = sp_invoke('sp_reward_selectAllByProgetto', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero delle reward: " . $ex->errorInfo[2],
-        '../public/progetti.php'
-    );
-}
+$in = ['p_nome_progetto' => $_GET['nome']];
+$rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto', $in);
 ?>
 
 <div class="card mb-4 shadow-sm">
@@ -19,9 +11,13 @@ try {
     <div class="card-body">
         <!-- Lista reward esistenti -->
         <h4 class="mb-3">Reward Esistenti</h4>
-        <?php if (!empty($rewards)): ?>
+        <?php if ($rewards['failed']): ?>
+            <p class="alert alert-danger">Errore durante il recupero delle reward.</p>
+        <?php elseif (empty($rewards['data'])): ?>
+            <p class="alert alert-warning">Nessuna reward definita per questo progetto. Aggiungi almeno la reward RWD_Default.</p>
+        <?php else: ?>
             <div class="d-flex flex-nowrap overflow-auto mb-4">
-                <?php foreach ($rewards as $reward): ?>
+                <?php foreach ($rewards['data'] as $reward): ?>
                     <div class="flex-shrink-0 w-25 p-2">
                         <div class="card shadow-sm">
                             <div class="card-header">
@@ -45,8 +41,6 @@ try {
                     </div>
                 <?php endforeach; ?>
             </div>
-        <?php else: ?>
-            <p class="alert alert-warning">Nessuna reward definita per questo progetto. Aggiungi almeno la reward RWD_Default.</p>
         <?php endif; ?>
 
         <hr>

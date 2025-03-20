@@ -1,15 +1,7 @@
 <?php
 // Recupero le foto del progetto
-try {
-    $in = ['p_nome_progetto' => $_GET['nome']];
-    $photos = sp_invoke('sp_foto_selectAll', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero delle foto: " . $ex->errorInfo[2],
-        '../public/progetti.php'
-    );
-}
+$in = ['p_nome_progetto' => $_GET['nome']];
+$photos = $pipeline->fetch_all('sp_foto_selectAll', $in);
 ?>
 
 <!-- Form per la descrizione -->
@@ -38,10 +30,18 @@ try {
         <h3>Inserisci/Elimina Foto</h3>
     </div>
     <div class="card-body">
-        <?php if (!empty($photos)): ?>
+        <?php if ($photos['failed']): ?>
+            <div class="alert alert-danger" role="alert">
+                Errore nel recupero delle foto.
+            </div>
+        <?php elseif (empty($photos['data'])): ?>
+            <div class="alert alert-info" role="alert">
+                Nessuna foto presente.
+            </div>
+        <?php else: ?>
             <div class="card-body">
                 <div class="d-flex flex-nowrap overflow-auto">
-                    <?php foreach ($photos as $photo): ?>
+                    <?php foreach ($photos['data'] as $photo): ?>
                         <div class="flex-shrink-0 w-25 px-2">
                             <?php $base64 = base64_encode($photo['foto']); ?>
                             <form action="../actions/foto_delete.php" method="post">

@@ -203,6 +203,9 @@ seed_progetto_finanziamento(
     12000.00
 );
 
+// ProgettoKappa
+seed_progetto_default_reward('ProgettoKappa', 'ivan@example.com');
+
 echo "OK.\n";
 
 echo "=== SEEDING seed_data.php COMPLETE! ===\n";
