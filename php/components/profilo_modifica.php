@@ -151,7 +151,10 @@
                                    value="3">
                         </div>
                         <div class="col-md-2 mb-3 d-flex align-items-end">
-                            <button type="submit" class="btn btn-success w-100">Aggiungi</button>
+                            <button type="submit" class="btn btn-success w-100"
+                                    onclick="return confirm('Sei sicuro di voler aggiungere questa competenza al profilo? Candidature esistenti potrebbero essere rimosse.')">
+                                Aggiungi
+                            </button>
                         </div>
                     </div>
                 </form>
