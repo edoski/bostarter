@@ -1,18 +1,32 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
-
-// 2. L'utente è admin
-checkAdmin();
-
+// === VARIABLES ===
 $vecchia_competenza = $_GET['competenza'] ?? '';
+$email = $_SESSION['email'];
+$is_admin = $_SESSION['is_admin'];
+
+// === CONTEXT ===
+$context = [
+    'collection' => 'SKILL',
+    'action' => 'VIEW',
+    'email' => $email,
+    'redirect' => generate_url('curriculum')
+];
+$pipeline = new EventPipeline($context);
+
+// === VALIDATION ===
+// L'UTENTE È UN AMMINISTRATORE
+$pipeline->check(
+        !(isset($is_admin) || $is_admin),
+    "Non sei autorizzato a visualizzare questa pagina",
+);
 ?>
 
+<!-- === PAGE === -->
 <?php require '../components/header.php'; ?>
     <div class="container my-4">
         <div class="card">
@@ -35,7 +49,8 @@ $vecchia_competenza = $_GET['competenza'] ?? '';
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <a href="../public/curriculum.php" class="btn btn-secondary">Annulla</a>
+                        <a href="<?php echo htmlspecialchars(generate_url('curriculum')); ?>"
+                           class="btn btn-secondary">Annulla</a>
                         <button type="submit" class="btn btn-danger">Aggiorna</button>
                     </div>
                 </form>

@@ -1,52 +1,67 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+$email = $_SESSION['email'];
+$is_creatore = $_SESSION['is_creatore'];
 
-// === DATABASE ===
-// Recupero le candidature inviate dall'utente
-try {
-    $in = ['p_email' => $_SESSION['email']];
-    $candidature_utente = sp_invoke('sp_partecipante_selectAllByUtente', $in);
-} catch (PDOException $ex) {
-    $candidature_utente = [];
-    $candidatureError = "Errore nel recupero delle candidature: " . $ex->errorInfo[2];
-}
+// === CONTEXT ===
+$context = [
+    'collection' => 'CANDIDATURE',
+    'action' => 'VIEW',
+    'email' => $email,
+    'in' => ['p_email' => $email],
+];
+$pipeline = new EventPipeline($context);
 
-// Se l'utente è un creatore, recupero anche le candidature ricevute dai suoi progetti
-$candidature_ricevute = [];
-if ($_SESSION['is_creatore']) {
-    try {
-        $in = ['p_email_creatore' => $_SESSION['email']];
-        $candidature_ricevute = sp_invoke('sp_partecipante_selectAllByCreatore', $in);
-    } catch (PDOException $ex) {
-        $candidatureRicevuteError = "Errore nel recupero delle candidature ricevute: " . $ex->errorInfo[2];
-    }
+// === DATA ===
+// RECUPERO CANDIDATURE INVIATE DALL'UTENTE
+$candidature_inviate = $pipeline->fetch_all('sp_partecipante_selectAllByUtente');
+
+// SE UTENTE CREATORE, RECUPERO CANDIDATURE RICEVUTE PER I SUOI PROGETTI
+if ($is_creatore) $candidature_ricevute = $pipeline->fetch_all('sp_partecipante_selectAllByCreatore');
+
+// === RENDERING ===
+/**
+ * Restituisce un badge colorato in base allo stato della candidatura.
+ *
+ * @param string $stato Lo stato della candidatura (potenziale, accettato, rifiutato)
+ * @return string Il badge HTML
+ */
+function render_badge(string $stato): string
+{
+    $badges = [
+        'potenziale' => '<span class="badge bg-warning">In attesa</span>',
+        'accettato' => '<span class="badge bg-success">Accettato</span>',
+        'rifiutato' => '<span class="badge bg-danger">Rifiutato</span>'
+    ];
+    return $badges[$stato] ?? '';
 }
 ?>
 
+<!-- === PAGE ===-->
 <?php require '../components/header.php'; ?>
 <div class="container my-4">
-    <!-- Messaggio di successo/errore post-azione -->
+    <!-- ALERTS -->
     <?php include '../components/error_alert.php'; ?>
     <?php include '../components/success_alert.php'; ?>
 
+    <!-- TITLE -->
     <h1 class="mb-4">Candidature</h1>
 
-    <!-- Sezione per utenti creatori - Candidature ricevute -->
-    <?php if ($_SESSION['is_creatore']): ?>
+    <!-- CANDIDATURE RICEVUTE (CREATORE) -->
+    <?php if ($is_creatore): ?>
         <div class="card mb-4 shadow-sm">
             <div class="card-header bg-primary text-white">
                 <h4 class="mb-0">Candidature Ricevute</h4>
             </div>
             <div class="card-body">
-                <?php if (isset($candidatureRicevuteError)): ?>
-                    <p class="text-danger"><?php echo htmlspecialchars($candidatureRicevuteError); ?></p>
-                <?php elseif (empty($candidature_ricevute)): ?>
+                <?php if ($candidature_ricevute['failed']): ?>
+                    <p class="text-danger">C'è stato un errore nel recupero delle candidature ricevute.</p>
+                <?php elseif (empty($candidature_ricevute['data'])): ?>
                     <p>Non hai ricevuto candidature per i tuoi progetti.</p>
                 <?php else: ?>
                     <div class="table-responsive">
@@ -61,10 +76,10 @@ if ($_SESSION['is_creatore']) {
                             </tr>
                             </thead>
                             <tbody>
-                            <?php foreach ($candidature_ricevute as $candidatura): ?>
+                            <?php foreach ($candidature_ricevute['data'] as $candidatura): ?>
                                 <tr>
                                     <td>
-                                        <a href="../public/progetto_dettagli.php?nome=<?php echo urlencode($candidatura['nome_progetto']); ?>">
+                                        <a href="<?php echo htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $candidatura['nome_progetto']])); ?>">
                                             <?php echo htmlspecialchars($candidatura['nome_progetto']); ?>
                                         </a>
                                     </td>
@@ -73,15 +88,7 @@ if ($_SESSION['is_creatore']) {
                                         <?php echo htmlspecialchars($candidatura['candidato_nickname']); ?>
                                         <small class="text-muted d-block"><?php echo htmlspecialchars($candidatura['email_utente']); ?></small>
                                     </td>
-                                    <td>
-                                        <?php if ($candidatura['stato'] == 'potenziale'): ?>
-                                            <span class="badge bg-warning">In attesa</span>
-                                        <?php elseif ($candidatura['stato'] == 'accettato'): ?>
-                                            <span class="badge bg-success">Accettato</span>
-                                        <?php elseif ($candidatura['stato'] == 'rifiutato'): ?>
-                                            <span class="badge bg-danger">Rifiutato</span>
-                                        <?php endif; ?>
-                                    </td>
+                                    <td><?php echo render_badge($candidatura['stato']); ?></td>
                                     <td>
                                         <?php if ($candidatura['stato'] == 'potenziale'): ?>
                                             <form action="../actions/candidatura_update.php" method="post" class="d-inline">
@@ -99,7 +106,7 @@ if ($_SESSION['is_creatore']) {
                                                 <button type="submit" class="btn btn-sm btn-danger">Rifiuta</button>
                                             </form>
                                         <?php else: ?>
-                                            -
+                                            <p class="fw-bold">-</p>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -112,15 +119,15 @@ if ($_SESSION['is_creatore']) {
         </div>
     <?php endif; ?>
 
-    <!-- Sezione per tutti gli utenti - Candidature inviate -->
+    <!-- CANDIDATURE INVIATE (ALL) -->
     <div class="card shadow-sm">
         <div class="card-header bg-warning text-white">
             <h4 class="mb-0">Candidature Inviate</h4>
         </div>
         <div class="card-body">
-            <?php if (isset($candidatureError)): ?>
-                <p class="text-danger"><?php echo htmlspecialchars($candidatureError); ?></p>
-            <?php elseif (empty($candidature_utente)): ?>
+            <?php if ($candidature_inviate['failed']): ?>
+                <p class="text-danger">C'è stato un errore nel recupero delle candidature inviate.</p>
+            <?php elseif (empty($candidature_inviate['data'])): ?>
                 <p>Non hai ancora inviato candidature.</p>
             <?php else: ?>
                 <div class="table-responsive">
@@ -134,25 +141,17 @@ if ($_SESSION['is_creatore']) {
                         </tr>
                         </thead>
                         <tbody>
-                        <?php foreach ($candidature_utente as $candidatura): ?>
+                        <?php foreach ($candidature_inviate['data'] as $candidatura): ?>
                             <tr>
                                 <td>
-                                    <a href="../public/progetto_dettagli.php?nome=<?php echo urlencode($candidatura['nome_progetto']); ?>">
+                                    <a href="<?php echo generate_url('progetto_dettagli', ['nome' => $candidatura['nome_progetto']]); ?>">
                                         <?php echo htmlspecialchars($candidatura['nome_progetto']); ?>
                                     </a>
                                     <small class="text-muted d-block"><?php echo htmlspecialchars($candidatura['descrizione']); ?></small>
                                 </td>
                                 <td><?php echo htmlspecialchars($candidatura['creatore_nickname']); ?></td>
                                 <td><?php echo htmlspecialchars($candidatura['nome_profilo']); ?></td>
-                                <td>
-                                    <?php if ($candidatura['stato'] == 'potenziale'): ?>
-                                        <span class="badge bg-warning">In attesa</span>
-                                    <?php elseif ($candidatura['stato'] == 'accettato'): ?>
-                                        <span class="badge bg-success">Accettato</span>
-                                    <?php elseif ($candidatura['stato'] == 'rifiutato'): ?>
-                                        <span class="badge bg-danger">Rifiutato</span>
-                                    <?php endif; ?>
-                                </td>
+                                <td><?php echo render_badge($candidatura['stato']); ?></td>
                             </tr>
                         <?php endforeach; ?>
                         </tbody>

@@ -49,7 +49,7 @@ $context = [
         'p_min_importo' => $min_importo
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === VALIDATION ===
 // L'IMMAGINE È STATA CARICATA CORRETTAMENTE

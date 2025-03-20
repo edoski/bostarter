@@ -25,6 +25,7 @@ RUN echo '#!/bin/bash\n\
 set -e\n\
 cd /var/www/html\n\
 php config/seed_data.php\n\
+echo -e "\n=== BOSTARTER INIZIALIZZATO. PIATTAFORMA PRONTA! ===\n"\n\
 exec apache2-foreground' > /usr/local/bin/startup.sh && \
     chmod +x /usr/local/bin/startup.sh
 

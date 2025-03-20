@@ -1,138 +1,112 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+$email = $_SESSION['email'];
+$is_creatore = $_SESSION['is_creatore'];
 
-// === DATABASE ===
-// Recupero tutti i progetti
-try {
-    $progetti = sp_invoke('sp_progetto_selectAll');
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero dei progetti: " . $ex->errorInfo[2],
-        "../public/home.php"
-    );
-}
+// === CONTEXT ===
+$context = [
+    'collection' => 'PROGETTI',
+    'action' => 'VIEW',
+    'email' => $email,
+];
+$pipeline = new EventPipeline($context);
 
+// === DATA ===
+// RECUPERO TUTTI I PROGETTI
+$progetti = $pipeline->fetch_all('sp_progetto_selectAll');
 
-// Per ogni progetto, calcolo il tipo, il totale dei finanziamenti e i giorni rimasti alla scadenza
-$today = new DateTime();
-foreach ($progetti as &$progetto) {
-    // Recupero il tipo del progetto
+foreach ($progetti['data'] as &$progetto) {
+    $in = ['p_nome_progetto' => $progetto['nome']];
+
+    // TIPO DEL PROGETTO
+    $progetto['tipo'] = $pipeline->fetch('sp_util_progetto_type', $in)['tipo_progetto'];
+
+    // SOMMA DEI FINANZIAMENTI E PERCENTUALE DI COMPLETAMENTO
+    $progetto['tot_finanziamento'] = $pipeline->fetch('sp_finanziamento_selectSumByProgetto', $in)['totale_finanziamenti'];
+    $progetto['percentuale'] = ($progetto['tot_finanziamento'] / $progetto['budget']) * 100;
+
+    // GIORNI RIMASTI ALLA SCADENZA
     try {
-        $in = ['p_nome_progetto' => $progetto['nome']];
-
-        // Restituisce un array di record, di cui il primo (e unico) si rappresenta come il campo testo 'tipo_progetto'
-        $progetto['tipo'] = sp_invoke('sp_util_progetto_type', $in)[0]['tipo_progetto'] ?? '';
-    } catch (PDOException $ex) {
-        redirect(
-            false,
-            "Errore durante il recupero del tipo del progetto: " . $ex->errorInfo[2],
-            "../public/home.php"
-        );
-    }
-
-    // Recupero il totale dei finanziamenti per il progetto
-    try {
-        $in = ['p_nome_progetto' => $progetto['nome']];
-
-        // Restituisce un array di record, di cui il primo (e unico) si rappresenta come il campo numerico 'totale_finanziamenti'
-        $totalFin = sp_invoke('sp_finanziamento_selectSumByProgetto', $in)[0]['totale_finanziamenti'] ?? 0;
-
-        $progetto['tot_finanziamento'] = $totalFin;
-        $budget = $progetto['budget'];
-        $progetto['percentuale'] = ($budget > 0) ? ($totalFin / $budget) * 100 : 0;
-    } catch (PDOException $ex) {
-        redirect(
-            false,
-            "Errore durante il recupero del totale dei finanziamenti: " . $ex->errorInfo[2],
-            "../public/home.php"
-        );
-    }
-
-    // Calcolo i giorni rimasti alla scadenza del progetto
-    try {
-        $scadenzaDate = new DateTime($progetto['data_limite']);
-        $progetto['giorni_rimasti'] = ($today < $scadenzaDate) ? $today->diff($scadenzaDate)->days : 0;
-    } catch (DateMalformedStringException $e) {
-        $progetto['giorni_rimasti'] = "Errore";
+        $today = new DateTime();
+        $data_scadenza = new DateTime($progetto['data_limite']);
+        $progetto['giorni_rimasti'] = ($today < $data_scadenza) ? $today->diff($data_scadenza)->days : 0;
+    } catch (Exception $e) {
+        $progetto['giorni_rimasti'] = "Error";
     }
 }
 ?>
 
+<!-- === PAGE === -->
 <?php require '../components/header.php'; ?>
     <div class="container my-4">
-        <!-- Titolo e pulsante di creazione progetto / conversione creatore -->
         <div class="d-flex justify-content-between align-items-center">
+            <!-- TITOLO -->
             <h1 class="mb-4">Progetti</h1>
-            <?php if ($_SESSION['is_creatore']): ?>
-                <form action="../public/progetto_crea.php">
+
+            <!-- BOTTONE CREA PROGETTO / DIVENTA CREATORE -->
+            <?php if ($is_creatore): ?>
+                <form action="<?php echo htmlspecialchars(generate_url('progetto_crea')); ?>">
                     <button class="btn btn-outline-primary" type="submit">Crea Progetto</button>
                 </form>
             <?php else: ?>
                 <form action="../actions/utente_convert_creatore.php">
-                    <input type="hidden" name="email" value="<?php echo $_SESSION['email']; ?>">
+                    <input type="hidden" name="email" value="<?php echo $email; ?>">
                     <button class="btn btn-outline-primary" onclick="return confirm('Sei sicuro di voler diventare un creatore?')"
                             type="submit">Diventa Creatore</button>
                 </form>
             <?php endif; ?>
         </div>
 
-        <!-- Messaggio di successo/errore post-azione -->
+        <!-- ALERT -->
         <?php include '../components/error_alert.php'; ?>
         <?php include '../components/success_alert.php'; ?>
 
-        <?php if (!empty($progetto)): ?>
+        <!-- PROGETTI -->
+        <?php if ($progetti['failed']): ?>
+            <p>Errore durante il recupero dei progetti.</p>
+        <?php elseif (empty($progetti['data'])): ?>
+            <p>Nessun progetto trovato.</p>
+        <?php else: ?>
             <div class="row">
                 <?php
                 unset($progetto); // IMPORTANT: Unsetto la variabile $progetto per evitare conflitti con il ciclo successivo
-                foreach ($progetti as $progetto): ?>
-                    <!-- Card Progetto -->
+                foreach ($progetti['data'] as $progetto): ?>
                     <div class="col-md-4 mb-4">
-                        <a href="progetto_dettagli.php?nome=<?php echo urlencode($progetto['nome']); ?>"
+                        <a href="<?php echo htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $progetto['nome']])); ?>"
                            class="text-decoration-none text-reset">
                             <div class="card h-100 shadow-sm">
-                                <!-- Header: Nome Progetto e Tipo -->
                                 <div class="card-header text-white bg-primary">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <!-- Nome Progetto e Tipo -->
                                         <div>
                                             <h5 class="card-title mb-0 fw-bolder"><?php echo htmlspecialchars($progetto['nome']); ?></h5>
                                             <small class="text-light fw-bold"><?php echo strtoupper(htmlspecialchars($progetto['tipo'])); ?></small>
                                         </div>
-                                        <!-- Status: Aperto / Chiuso -->
                                         <span class="badge p-2 fs-5 <?php echo(strtolower(htmlspecialchars($progetto['stato'])) === 'chiuso' ? 'bg-danger' : 'bg-success'); ?>">
                                         <?php echo strtoupper(htmlspecialchars($progetto['stato'])); ?>
                                     </span>
                                     </div>
                                 </div>
 
-                                <!-- Body: Descrizione, Creatore, Budget e Progress Bar -->
                                 <div class="card-body d-flex flex-column justify-content-between">
                                     <div>
-                                        <!-- Creatore -->
                                         <p class="card-text">
                                             <strong>Creatore:</strong> <?php echo htmlspecialchars($progetto['email_creatore']); ?>
                                         </p>
-                                        <!-- Budget -->
                                         <p class="card-text">
                                             <strong>Budget:</strong> <?php echo htmlspecialchars(number_format($progetto['budget'], 2)); ?>€
                                         </p>
-                                        <!-- Descrizione -->
                                         <p class="card-text"><?php echo htmlspecialchars($progetto['descrizione']); ?></p>
                                     </div>
                                     <div>
-                                        <!-- Percentuale di completamento -->
                                         <div class="d-flex w-100 fw-bold justify-content-center">
                                             <?php echo round($progetto['percentuale'], 2); ?>%
                                         </div>
 
-                                        <!-- Barra di progresso Finanziamenti / Budget -->
                                         <div class="progress mt-2 position-relative" style="height: 30px;">
                                             <div class="progress-bar fw-bold bg-success"
                                                  style="width: <?php echo round($progetto['percentuale'], 2); ?>%; height: 100%;">
@@ -167,8 +141,6 @@ foreach ($progetti as &$progetto) {
                     </div>
                 <?php endforeach; ?>
             </div>
-        <?php else: ?>
-            <p>Nessun progetto trovato.</p>
         <?php endif; ?>
     </div>
 <?php require '../components/footer.php'; ?>

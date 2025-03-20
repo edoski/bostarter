@@ -40,7 +40,7 @@ $context = [
         'p_foto_id' => $foto_id
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === ACTION ===
 // ELIMINAZIONE DELLA FOTO

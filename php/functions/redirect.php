@@ -16,7 +16,6 @@ function redirect(bool $success, string $message, string $location): void
 
 /**
  * Registra l'evento come operazione di successo e reindirizza l'utente.
- * Fa leva sulle funzioni log_event() e redirect().
  *
  * @param string $collection Il nome della collezione interessata.
  * @param string $action L'azione eseguita.
@@ -45,7 +44,6 @@ function success(string $collection, string $action, string $procedure, string $
 
 /**
  * Registra l'evento come operazione fallita e reindirizza l'utente.
- * Fa leva sulle funzioni log_event() e redirect().
  *
  * @param string $collection Il nome della collezione interessata.
  * @param string $action L'azione eseguita.

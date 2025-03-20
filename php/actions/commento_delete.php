@@ -42,7 +42,7 @@ $context = [
         'p_nome_progetto' => $nome_progetto
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === VALIDATION ===
 // L'UTENTE È L'AUTORE DEL COMMENTO O ADMIN

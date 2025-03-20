@@ -1,53 +1,35 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// Controllo se l'utente ha effettuato il login
-checkAuth();
+// === CONTEXT ===
+$context = [
+    'collection' => 'STATISTICHE',
+    'action' => 'VIEW',
+    'email' => $_SESSION['email']
+];
+$pipeline = new EventPipeline($context);
 
-// === DATABASE ===
-// Classifica dei top 3 utenti creatori, in base al loro valore di affidabilità
-try {
-    $creatori = sp_invoke('view_classifica_creatori_affidabilita');
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero dei creatori: " . $ex->errorInfo[2],
-        "../public/home.php"
-    );
-}
+// === DATA ===
+// TOP 3 CREATORI (AFFIDABILITÀ)
+$creatori = $pipeline->fetch_all('view_classifica_creatori_affidabilita');
 
-// Classifica dei top 3 progetti APERTI che sono più vicini al proprio completamento
-try {
-    $progetti = sp_invoke('view_classifica_progetti_completamento');
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero dei progetti: " . $ex->errorInfo[2],
-        "../public/home.php"
-    );
-}
+// TOP 3 PROGETTI (COMPLETAMENTO)
+$progetti = $pipeline->fetch_all('view_classifica_progetti_completamento');
 
-// Classifica dei top 3 utenti, in base al TOTALE di finanziamenti erogati
-try {
-    $finanziatori = sp_invoke('view_classifica_utenti_finanziamento');
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero dei finanziatori: " . $ex->errorInfo[2],
-        "../public/home.php"
-    );
-}
+// TOP 3 UTENTI (FINANZIAMENTI)
+$finanziatori = $pipeline->fetch_all('view_classifica_utenti_finanziamento');
 ?>
 
 <?php require '../components/header.php'; ?>
     <div class="container my-4 flex-grow-1">
-        <!-- Messaggio di successo/errore post-azione -->
+        <!-- ALERT -->
         <?php include '../components/error_alert.php'; ?>
         <?php include '../components/success_alert.php'; ?>
 
+        <!-- TITOLO -->
         <h1 class="mb-4">Statistiche</h1>
 
         <div class="row">
@@ -63,13 +45,26 @@ try {
                         </p>
                         <hr class="mb-4 border-4">
                         <ul class="list-group list-group-flush">
-                            <?php $rank = 1; ?>
-                            <?php foreach ($creatori as $creatore): ?>
+                            <?php if ($creatori['failed']): ?>
                                 <li class="list-group-item">
-                                    <?php echo $rank . ". " . htmlspecialchars($creatore['nickname']); ?>
+                                    <div class="text-center text-danger">
+                                        Errore nel caricamento dei dati.
+                                    </div>
                                 </li>
-                                <?php $rank++; ?>
-                            <?php endforeach; ?>
+                            <?php elseif (empty($creatori['data'])): ?>
+                                <li class="list-group-item">
+                                    <div class="text-center text-muted">
+                                        Nessun dato disponibile.
+                                    </div>
+                                </li>
+                            <?php else: ?>
+                                <?php $rank = 1; ?>
+                                <?php foreach ($creatori['data'] as $creatore): ?>
+                                    <li class="list-group-item">
+                                        <?php echo $rank++ . ". " . htmlspecialchars($creatore['nickname']); ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </ul>
                     </div>
                 </div>
@@ -87,29 +82,42 @@ try {
                         </p>
                         <hr class="mb-4 border-4">
                         <ul class="list-group list-group-flush">
-                            <?php $rank = 1; ?>
-                            <?php foreach ($progetti as $progetto): ?>
-                                <li class="list-group-item my-1">
-                                    <div class="d-flex">
-                                        <!-- Dettagli dei Progetti -->
-                                        <div class="flex-grow-1">
-                                            <div>
-                                                <?php echo $rank . ". " . htmlspecialchars($progetto['nome']); ?>
-                                            </div>
-                                            <div class="text-muted small">
-                                                <?php echo htmlspecialchars($progetto['tot_finanziamenti']) . " / " . htmlspecialchars($progetto['budget']) ?>€
-                                            </div>
-                                        </div>
-                                        <!-- Blue Badge con % Completamento -->
-                                        <div class="d-flex align-items-center">
-                                            <span class="badge bg-primary">
-                                                <?php echo htmlspecialchars(number_format(($progetto['tot_finanziamenti'] / $progetto['budget']) * 100, 2)) . "%"; ?>
-                                            </span>
-                                        </div>
+                            <?php if ($progetti['failed']): ?>
+                                <li class="list-group-item">
+                                    <div class="text-center text-danger">
+                                        Errore nel caricamento dei dati.
                                     </div>
                                 </li>
-                                <?php $rank++; ?>
-                            <?php endforeach; ?>
+                            <?php elseif (empty($progetti['data'])): ?>
+                                <li class="list-group-item">
+                                    <div class="text-center text-muted">
+                                        Nessun dato disponibile.
+                                    </div>
+                                </li>
+                            <?php else: ?>
+                            <?php $rank = 1; ?>
+                                <?php foreach ($progetti['data'] as $progetto): ?>
+                                    <li class="list-group-item my-1">
+                                        <div class="d-flex">
+                                            <!-- Dettagli dei Progetti -->
+                                            <div class="flex-grow-1">
+                                                <div>
+                                                    <?php echo $rank++ . ". " . htmlspecialchars($progetto['nome']); ?>
+                                                </div>
+                                                <div class="text-muted small">
+                                                    <?php echo htmlspecialchars($progetto['tot_finanziamenti']) . " / " . htmlspecialchars($progetto['budget']) ?>€
+                                                </div>
+                                            </div>
+                                            <!-- Blue Badge con % Completamento -->
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge bg-primary">
+                                                    <?php echo htmlspecialchars(number_format(($progetto['tot_finanziamenti'] / $progetto['budget']) * 100, 2)) . "%"; ?>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </li>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </ul>
                     </div>
                 </div>
@@ -127,13 +135,26 @@ try {
                         </p>
                         <hr class="mb-4 border-4">
                         <ul class="list-group list-group-flush">
-                            <?php $rank = 1; ?>
-                            <?php foreach ($finanziatori as $finanziatore): ?>
+                            <?php if ($finanziatori['failed']): ?>
                                 <li class="list-group-item">
-                                    <?php echo $rank . ". " . htmlspecialchars($finanziatore['nickname']); ?>
+                                    <div class="text-center text-danger">
+                                        Errore nel caricamento dei dati.
+                                    </div>
                                 </li>
-                                <?php $rank++; ?>
-                            <?php endforeach; ?>
+                            <?php elseif (empty($finanziatori['data'])): ?>
+                                <li class="list-group-item">
+                                    <div class="text-center text-muted">
+                                        Nessun dato disponibile.
+                                    </div>
+                                </li>
+                            <?php else: ?>
+                                <?php $rank = 1; ?>
+                                <?php foreach ($finanziatori['data'] as $finanziatore): ?>
+                                    <li class="list-group-item">
+                                        <?php echo $rank++ . ". " . htmlspecialchars($finanziatore['nickname']); ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </ul>
                     </div>
                 </div>

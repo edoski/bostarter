@@ -40,7 +40,8 @@ function generate_url(string $route, array $params = []): string
 
         // Conferme
         'finanziamento_conferma' => '../public/finanziamento_conferma.php',
-        'componente_conferma' => '../public/componente_conferma.php'
+        'componente_conferma_insert' => '../public/componente_conferma_insert.php',
+        'componente_conferma_update' => '../public/componente_conferma_update.php'
     ];
 
     if (!isset($routes[$route])) {

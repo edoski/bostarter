@@ -40,7 +40,7 @@ $context = [
         'p_nome_progetto' => $nome_progetto
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === ACTION ===
 // CANCELLAZIONE DELLA RISPOSTA

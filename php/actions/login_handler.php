@@ -36,7 +36,7 @@ $context = [
     'procedure' => 'sp_utente_login',
     'in' => ['p_email' => $email]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === VALIDATION ===
 // L'EMAIL È VALIDA

@@ -1,30 +1,26 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require '../config/config.php';
 
-// === CHECKS ===
-// 1. L'utente ha GIÀ effettuato il login
-if (isset($_SESSION['email'])) {
-    redirect(
-        true,
-        "Sei già loggato.",
-        "../public/home.php"
-    );
-}
+// === VALIDATION ===
+// L'UTENTE HA GIÀ EFFETTUATO IL LOGIN
+if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url('home'));
 ?>
 
 <?php require '../components/header.php'; ?>
 <div class="container flex-grow-1 d-flex align-items-center justify-content-center">
     <div class="row justify-content-center w-100 mb-5">
         <div class="col-12 col-md-9 col-lg-6">
-            <h1 class="text-center">Login</h1>
-            <!-- Messaggio di successo/errore post-azione -->
+            <!-- ALERT -->
             <?php include '../components/error_alert.php'; ?>
             <?php include '../components/success_alert.php'; ?>
 
+            <!-- TITLE -->
+            <h1 class="text-center">Login</h1>
+
             <form action="../actions/login_handler.php" method="POST">
-                <!-- Email -->
+                <!-- EMAIL -->
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
                     <input
@@ -37,7 +33,7 @@ if (isset($_SESSION['email'])) {
                     >
                 </div>
 
-                <!-- Password -->
+                <!-- PASSWORD -->
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
                     <input
@@ -50,7 +46,7 @@ if (isset($_SESSION['email'])) {
                     >
                 </div>
 
-                <!-- Codice di Sicurezza -->
+                <!-- CODICE DI SICUREZZA -->
                 <div class="mb-3">
                     <label for="codice_sicurezza" class="form-label">Codice di Sicurezza (ADMIN ONLY)</label>
                     <input
@@ -62,18 +58,16 @@ if (isset($_SESSION['email'])) {
                     >
                 </div>
 
-                <!-- Submit -->
-                <button type="submit" class="btn btn-primary w-100">
-                    Login
-                </button>
+                <!-- SUBMIT -->
+                <button type="submit" class="btn btn-primary w-100">Login</button>
             </form>
 
+            <!-- REGISTER -->
             <p class="text-center mt-3">
-                Non hai un account? <a href="register.php">Registrati</a>
+                Non hai un account? <a href="<?= htmlspecialchars(generate_url('register')) ?>"> Registrati</a>
             </p>
 
             <!-- AUTOLOGIN, UNCOMMENT IN SEDE D'ESAME -->
-            <!-- Feature (extra) comoda per rapidamente cambiare fra utenti di tipologia diversa -->
             <div class="card w-100 mt-5">
                 <div class="card-header bg-secondary text-white pb-0 pt-3">
                     <p class="fw-bold text-center">AUTOLOGIN (UTILE IN SEDE D'ESAME)</p>
@@ -87,14 +81,14 @@ if (isset($_SESSION['email'])) {
                         <button type="submit" class="btn btn-danger me-2">Alice (Admin)</button>
                     </form>
 
-                    <!-- Creatore Bob -->
+                    <!-- Creatore Bob (Software) -->
                     <form action="../actions/login_handler.php" method="POST" class="d-inline">
                         <input type="hidden" name="email" value="bob@example.com">
                         <input type="hidden" name="password" value="passBob">
                         <button type="submit" class="btn btn-primary">Bob (Creatore)</button>
                     </form>
 
-                    <!-- Creatore Diana -->
+                    <!-- Creatore Diana (Hardware) -->
                     <form action="../actions/login_handler.php" method="POST" class="d-inline">
                         <input type="hidden" name="email" value="diana@example.com">
                         <input type="hidden" name="password" value="passDiana">

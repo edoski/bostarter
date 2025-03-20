@@ -32,7 +32,7 @@ $context = [
     'procedure' => 'sp_util_utente_convert_creatore',
     'in' => ['p_email' => $email]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === VALIDATION ===
 // L'UTENTE NON È GIÀ UN CREATORE

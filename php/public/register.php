@@ -1,30 +1,27 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require '../config/config.php';
 
-// === CHECKS ===
-// 1. L'utente ha GIÀ effettuato il login
-if (isset($_SESSION['email'])) {
-    redirect(
-        true,
-        "Sei già loggato.",
-        "../public/home.php"
-    );
-}
+// === VALIDATION ===
+// L'UTENTE HA GIÀ EFFETTUATO IL LOGIN
+if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url('home'));
 ?>
 
+<!-- === PAGE === -->
 <?php require '../components/header.php'; ?>
 <div class="container flex-grow-1 d-flex align-items-center justify-content-center">
     <div class="row justify-content-center w-100 mb-5">
         <div class="col-12 col-md-9 col-lg-6">
-            <h1 class="text-center">Registrazione</h1>
-            <!-- Messaggio di successo/errore post-azione -->
+            <!-- ALERT -->
             <?php include '../components/error_alert.php'; ?>
             <?php include '../components/success_alert.php'; ?>
 
+            <!-- TITLE -->
+            <h1 class="text-center">Registrazione</h1>
+
             <form action="../actions/register_handler.php" method="POST">
-                <!-- Email -->
+                <!-- EMAIL -->
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
                     <input
@@ -36,7 +33,7 @@ if (isset($_SESSION['email'])) {
                             required>
                 </div>
 
-                <!-- Nickname -->
+                <!-- NICKNAME -->
                 <div class="mb-3">
                     <label for="nickname" class="form-label">Nickname</label>
                     <input
@@ -48,7 +45,7 @@ if (isset($_SESSION['email'])) {
                             required>
                 </div>
 
-                <!-- Nome -->
+                <!-- NOME -->
                 <div class="mb-3">
                     <label for="nome" class="form-label">Nome</label>
                     <input
@@ -60,7 +57,7 @@ if (isset($_SESSION['email'])) {
                             required>
                 </div>
 
-                <!-- Cognome -->
+                <!-- COGNOME -->
                 <div class="mb-3">
                     <label for="cognome" class="form-label">Cognome</label>
                     <input
@@ -72,7 +69,7 @@ if (isset($_SESSION['email'])) {
                             required>
                 </div>
 
-                <!-- Anno di Nascita -->
+                <!-- ANNO DI NASCITA -->
                 <div class="mb-3">
                     <label for="anno_nascita" class="form-label">Anno di Nascita</label>
                     <input
@@ -85,7 +82,7 @@ if (isset($_SESSION['email'])) {
                             required>
                 </div>
 
-                <!-- Luogo di Nascita -->
+                <!-- LUGOO DI NASCITA -->
                 <div class="mb-3">
                     <label for="luogo_nascita" class="form-label">Luogo di Nascita</label>
                     <input
@@ -97,7 +94,7 @@ if (isset($_SESSION['email'])) {
                             required>
                 </div>
 
-                <!-- Password -->
+                <!-- PASSWORD -->
                 <div class="mb-3">
                     <label for="password" class="form-label">Password</label>
                     <input
@@ -109,7 +106,7 @@ if (isset($_SESSION['email'])) {
                             required>
                 </div>
 
-                <!-- Conferma Password -->
+                <!-- CONFERMA PASSWORD -->
                 <div class="mb-3">
                     <label for="conferma_password" class="form-label">Conferma Password</label>
                     <input
@@ -121,7 +118,7 @@ if (isset($_SESSION['email'])) {
                             required>
                 </div>
 
-                <!-- Creatore Checkbox -->
+                <!-- IS CREATORE -->
                 <div class="mb-3 form-check">
                     <input
                             type="checkbox"
@@ -132,7 +129,7 @@ if (isset($_SESSION['email'])) {
                     <label class="form-check-label fw-bold" for="is_creatore"> Sei un creatore di progetti?</label>
                 </div>
 
-                <!-- Admin Checkbox -->
+                <!-- IS ADMIN -->
                 <div class="mb-3 form-check">
                     <input
                             type="checkbox"
@@ -143,6 +140,7 @@ if (isset($_SESSION['email'])) {
                     <label class="form-check-label fw-bold" for="is_admin"> Sei un amministratore?</label>
                 </div>
 
+                <!-- CODICE DI SICUREZZA -->
                 <div class="mb-3">
                     <label for="codice_sicurezza" class="form-label">Codice di Sicurezza (ADMIN ONLY)</label>
                     <input
@@ -155,11 +153,14 @@ if (isset($_SESSION['email'])) {
                             required>
                 </div>
 
-                <!-- Submit -->
+                <!-- SUBMIT -->
                 <button type="submit" class="btn btn-primary w-100">Registrati</button>
             </form>
 
-            <p class="text-center mt-3">Hai già un account? <a href="login.php">Accedi</a></p>
+            <!-- LOGIN -->
+            <p class="text-center mt-3">
+                Hai già un account? <a href="<?php echo htmlspecialchars(generate_url('login')); ?>">Accedi</a>
+            </p>
         </div>
     </div>
 </div>

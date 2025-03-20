@@ -1,14 +1,13 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
-
+// === VARIABLES ===
 $competenza = $_GET['competenza'] ?? '';
 $livello = $_GET['livello'] ?? 3;
+$email = $_SESSION['email'];
 ?>
 
 <?php require '../components/header.php'; ?>
@@ -33,7 +32,8 @@ $livello = $_GET['livello'] ?? 3;
                 </div>
 
                 <div class="d-flex justify-content-between">
-                    <a href="../public/curriculum.php" class="btn btn-secondary">Annulla</a>
+                    <a href="<?php echo htmlspecialchars(generate_url('curriculum')); ?>"
+                       class="btn btn-secondary">Annulla</a>
                     <button type="submit" class="btn btn-warning">Aggiorna</button>
                 </div>
             </form>

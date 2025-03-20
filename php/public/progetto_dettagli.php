@@ -1,203 +1,97 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+check_GET(['nome']);
+$nome_progetto = $_GET['nome'];
+$email = $_SESSION['email'];
+$is_admin = $_SESSION['is_admin'];
 
-// 2. È stato selezionato un progetto valido
-if (!isset($_GET['nome'])) {
-    redirect(
-        false,
-        "Errore selezionamento progetto. Riprova.",
-        '../public/progetti.php'
-    );
-}
+// === CONTEXT ===
+$context = [
+    'collection' => 'PROGETTO',
+    'action' => 'VIEW',
+    'email' => $email,
+    'redirect' => generate_url('progetti'),
+    'in' => ['p_nome_progetto' => $nome_progetto]
+];
+$pipeline = new EventPipeline($context);
 
-// === DATABASE ===
-// Recupero i dettagli del progetto
+// === DATA ===
+// DATI PROGETTO
+$progetto = $pipeline->fetch('sp_progetto_select');
+$progetto['tipo'] = $pipeline->fetch('sp_util_progetto_type')['tipo_progetto']; // TIPO
+$photos = $pipeline->fetch_all('sp_foto_selectAll');                            // FOTO
+$commenti = $pipeline->fetch_all('sp_commento_selectAll');                      // COMMENTI
+$rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto');               // REWARD
+
+// AFFIDABILITÀ
+$in_affidabilita = ['p_email' => $progetto['email_creatore']];
+$affidabilita = $pipeline->fetch('sp_util_creatore_get_affidabilita', $in_affidabilita)['affidabilita'];
+
+// GIORNI RIMASTI ALLA SCADENZA
 try {
-    $in = ['p_nome_progetto' => $_GET['nome']];
-    // sp_progetto_select ritorna un insieme di record, di cui il primo (e unico) si rappresenta come l'array del progetto
-    $progetto = sp_invoke('sp_progetto_select', $in)[0];
-
-    // Controllo se il progetto esiste
-    if (!isset($progetto)) {
-        redirect(
-            false,
-            "Progetto non trovato.",
-            '../public/progetti.php'
-        );
-    }
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero del progetto: " . $ex->errorInfo[2],
-        '../public/progetti.php'
-    );
+    $today = new DateTime();
+    $data_scadenza = new DateTime($progetto['data_limite']);
+    $progetto['giorni_rimasti'] = ($today < $data_scadenza) ? $today->diff($data_scadenza)->days : 0;
+} catch (Exception $e) {
+    $progetto['giorni_rimasti'] = "Error";
 }
 
-// Recupero il tipo del progetto
-try {
-    $in = ['p_nome_progetto' => $_GET['nome']];
-    // Restituisce un array di record, di cui il primo (e unico) si rappresenta come il campo testo 'tipo_progetto'
-    $progetto['tipo'] = sp_invoke('sp_util_progetto_type', $in)[0]['tipo_progetto'] ?? '';
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero del tipo del progetto: " . $ex->errorInfo[2],
-        "../public/progetti.php"
-    );
-}
+// DATI FINANZIAMENTI
+$progetto['tot_finanziamento'] = $pipeline->fetch('sp_finanziamento_selectSumByProgetto')['totale_finanziamenti']; // SOMMA
+$progetto['percentuale'] = ($progetto['tot_finanziamento'] / $progetto['budget']) * 100;                                     // PERCENTUALE COMPLETAMENTO
 
-// Recupero l'affidabilità del creatore
-try {
-    $in = ['p_email' => $progetto['email_creatore']];
-    $affidabilita = sp_invoke('sp_util_creatore_get_affidabilita', $in)[0]['affidabilita'];
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero dell'affidabilità: " . $ex->errorInfo[2],
-        '../public/progetti.php'
-    );
-}
+// CONTROLLO SE L'UTENTE HA GIÀ FINANZIATO IL PROGETTO OGGI
+$in = ['p_email' => $email, 'p_nome_progetto' => $progetto['nome']];
+$finanziato_oggi = $pipeline->fetch('sp_util_utente_finanziato_progetto_oggi', $in)['finanziato_oggi'];
 
-// Calcolo i giorni rimasti alla scadenza del progetto
-$today = new DateTime();
-try {
-    $scadenzaDate = new DateTime($progetto['data_limite']);
-    $progetto['giorni_rimasti'] = ($today < $scadenzaDate) ? $today->diff($scadenzaDate)->days : 0;
-} catch (DateMalformedStringException $e) {
-    $progetto['giorni_rimasti'] = "Errore";
-}
+// SE HARDWARE, RECUPERO COMPONENTI
+if ($progetto['tipo'] === 'HARDWARE') $componenti = $pipeline->fetch_all('sp_componente_selectAllByProgetto');
 
-// Recupero le foto del progetto
-try {
-    $in = ['p_nome_progetto' => $_GET['nome']];
-    $photos = sp_invoke('sp_foto_selectAll', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero delle foto: " . $ex->errorInfo[2],
-        '../public/progetti.php'
-    );
-}
-
-// Recupero il totale dei finanziamenti per il progetto
-try {
-    $in = ['p_nome_progetto' => $_GET['nome']];
-    // Restituisce un array di record, di cui il primo (e unico) si rappresenta come il campo numerico 'totale_finanziamenti'
-    $totalFin = sp_invoke('sp_finanziamento_selectSumByProgetto', $in)[0]['totale_finanziamenti'] ?? 0;
-
-    $progetto['tot_finanziamento'] = $totalFin;
-    $budget = $progetto['budget'];
-    $progetto['percentuale'] = ($budget > 0) ? ($totalFin / $budget) * 100 : 0;
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero del totale dei finanziamenti: " . $ex->errorInfo[2],
-        "../public/progetti.php"
-    );
-}
-
-// Recupero le reward del progetto
-try {
-    $in = ['p_nome_progetto' => $_GET['nome']];
-    $rewards = sp_invoke('sp_reward_selectAllByProgetto', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero delle reward: " . $ex->errorInfo[2],
-        '../public/progetti.php'
-    );
-}
-
-// Se il progetto è di tipo SOFTWARE, recupero i profili
+// SE SOFTWARE, RECUPERO PROFILI
 if ($progetto['tipo'] === 'SOFTWARE') {
-    try {
-        $in = ['p_nome_progetto' => $_GET['nome']];
-        $profili = [];
-        $result = sp_invoke('sp_profilo_selectAllByProgetto', $in);
+    // PROFILI E RELATIVE COMPETENZE
+    $dati_profili = $pipeline->fetch_all('sp_profilo_selectAllByProgetto');
 
-        foreach ($result as $row) {
+    // ORGANIZZAZIONE DATI PER PROFILO
+    $profili = [];
+    foreach ($dati_profili['data'] as $row) {
+        if (!empty($row['competenza'])) {
             $profili[$row['nome_profilo']][] = [
                 'competenza' => $row['competenza'],
                 'livello' => $row['livello_richiesto']
             ];
         }
-
-        // Filtra le entry vuote (accade quando viene appena creato un profilo, prima di aggiungere competenze)
-        foreach ($profili as $profiloName => &$competenze) {
-            $competenze = array_filter($competenze, function ($item) {
-                return !empty($item['competenza']);
-            });
-        }
-
-        // Recupero i partecipanti accettati
-        $acceptedResult = sp_invoke('sp_partecipante_selectAcceptedByProgetto', $in);
-        foreach ($acceptedResult as $row) {
-            $acceptedParticipants[$row['nome_profilo']] = [
-                'email_utente' => $row['email_utente'],
-                'nickname' => $row['nickname']
-            ];
-        }
-    } catch (PDOException $ex) {
-        redirect(
-            false,
-            "Errore durante il recupero dei profili: " . $ex->errorInfo[2],
-            '../public/progetti.php'
-        );
     }
-} else { // Altrimenti, il progetto è di tipo HARDWARE e recupero i componenti
-    try {
-        $in = ['p_nome_progetto' => $_GET['nome']];
-        $componenti = sp_invoke('sp_componente_selectAllByProgetto', $in);
-    } catch (PDOException $ex) {
-        redirect(
-            false,
-            "Errore durante il recupero dei componenti: " . $ex->errorInfo[2],
-            '../public/progetti.php'
-        );
+
+    // PARTECIPANTI ACCETTATI
+    $dati_partecipanti = $pipeline->fetch_all('sp_partecipante_selectAcceptedByProgetto');
+
+    // ORGANIZZAZIONE DATI PARTECIPANTI
+    $partecipanti_accettati = [];
+    foreach ($dati_partecipanti['data'] as $row) {
+        $partecipanti_accettati[$row['nome_profilo']] = [
+            'email_utente' => $row['email_utente'],
+            'nickname' => $row['nickname']
+        ];
     }
-}
-
-// Recupero i commenti del progetto
-try {
-    $in = ['p_nome_progetto' => $_GET['nome']];
-    $commenti = sp_invoke('sp_commento_selectAll', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero dei commenti: " . $ex->errorInfo[2],
-        '../public/progetti.php'
-    );
-}
-
-// Controllo se l'utente ha già finanziato il progetto oggi
-try {
-    $in = ['p_email' => $_SESSION['email'], 'p_nome_progetto' => $progetto['nome']];
-    $result = sp_invoke('sp_util_utente_finanziato_progetto_oggi', $in);
-    $finanziatoOggi = $result[0]['finanziato_oggi'];
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il controllo del finanziamento odierno: " . $ex->errorInfo[2],
-        '../public/progetti.php'
-    );
 }
 ?>
 
+<!-- === PAGE === -->
 <?php require '../components/header.php'; ?>
     <div class="container my-4">
-        <!-- Messaggio di successo/errore post-azione -->
+        <!-- ALERT -->
         <?php include '../components/error_alert.php'; ?>
         <?php include '../components/success_alert.php'; ?>
 
-        <!-- Progetto Section -->
+        <!-- PROGETTO -->
         <div class="card mb-4 shadow-sm">
-            <!-- Header: Nome Progetto, Tipo e Stato -->
+            <!-- NOME, TIPO, STATO -->
             <div class="card-header text-white bg-primary">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
@@ -210,7 +104,7 @@ try {
                 </div>
             </div>
 
-            <!-- Body: Dettagli Principali -->
+            <!-- CORPO -->
             <div class="card-body">
                 <p class="fs-5">
                     <strong>Creatore:</strong> <?php echo htmlspecialchars($progetto['email_creatore']); ?>
@@ -220,14 +114,14 @@ try {
                 <div class="card mb-3">
                     <div class="card-header d-inline-flex align-items-center justify-content-between">
                         <p class="fw-bold fs-5">Descrizione</p>
-                        <?php if (isProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
-                            <form action="../public/progetto_aggiorna.php?attr=descrizione&nome=<?php echo htmlspecialchars($progetto['nome']); ?>"
+                        <?php if (is_progetto_owner($email, $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
+                            <form action="<?php echo htmlspecialchars(generate_url('progetto_aggiorna', ['attr' => 'descrizione', 'nome' => $progetto['nome']])); ?>"
                                   method="post">
                                 <button type="submit" class="btn btn-warning">Modifica</button>
                             </form>
                         <?php endif; ?>
                     </div>
-                    <!-- Descrizione e Foto del progetto -->
+                    <!-- DESCRIZIONE & FOTO -->
                     <div class="card-body">
                         <?php if (!empty($progetto['descrizione'])): ?>
                             <p><?php echo htmlspecialchars($progetto['descrizione']); ?></p>
@@ -235,11 +129,15 @@ try {
                             <p>Nessuna descrizione disponibile per questo progetto.</p>
                         <?php endif; ?>
                         <hr>
-                        <?php if (!empty($photos)): ?>
-                            <p class="text-muted small"><?php if (count($photos) > 4): ?>(Scorri per visualizzare le restanti)<?php endif; ?></p>
+                        <?php if ($photos['failed']): ?>
+                            <p class="text-danger">Errore durante il recupero delle foto.</p>
+                        <?php elseif (empty($photos['data'])): ?>
+                            <p>Nessuna foto disponibile per questo progetto.</p>
+                        <?php else: ?>
+                            <p class="text-muted small"><?php if (count($photos['data']) > 4): ?>(Scorri per visualizzare le restanti)<?php endif; ?></p>
                             <div class="card-body">
                                 <div class="d-flex flex-nowrap overflow-auto">
-                                    <?php foreach ($photos as $photo): ?>
+                                    <?php foreach ($photos['data'] as $photo): ?>
                                         <div class="flex-shrink-0 w-25 p-2">
                                             <?php $base64 = base64_encode($photo['foto']); ?>
                                             <img src="data:image/jpeg;base64,<?php echo $base64; ?>"
@@ -249,16 +147,12 @@ try {
                                     <?php endforeach; ?>
                                 </div>
                             </div>
-                        <?php else: ?>
-                            <div class="card-body">
-                                <p>Nessuna foto disponibile per questo progetto.</p>
-                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
             </div>
 
-            <!-- Footer: Data Inserimento, Scadenza e Giorni Rimasti -->
+            <!-- DATA INSERIMENTO, SCADENZA, GIORNI RIMASTI -->
             <div class="card-footer d-flex justify-content-between align-items-center">
                 <div class="d-flex flex-column justify-content-center fw-bold my-2 fs-5">
                     Durata: <?php echo htmlspecialchars(date('d/m/Y', strtotime($progetto['data_inserimento']))); ?>
@@ -278,7 +172,7 @@ try {
 
         <hr>
 
-        <!-- Finanziamenti / Budget Section -->
+        <!-- FINANZIAMENTI / BUDGET -->
         <div class="card mb-4 shadow-sm">
             <div class="card-header fs-5 d-flex justify-content-between align-items-center">
                 <div class="d-flex flex-column">
@@ -288,29 +182,29 @@ try {
                         Ogni finanziamento è ricompensato con una delle reward disponibili.
                     </small>
                 </div>
-                <?php if (isProgettoOwner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                    <form action="../public/progetto_aggiorna.php?attr=budget&nome=<?php echo htmlspecialchars($progetto['nome']); ?>"
+                <?php if (is_progetto_owner($email, $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
+                    <form action="<?php echo htmlspecialchars(generate_url('progetto_aggiorna', ['attr' => 'budget', 'nome' => $progetto['nome']])); ?>"
                           method="post">
                         <button type="submit" class="btn btn-warning mt-2">Modifica</button>
                     </form>
                 <?php endif; ?>
             </div>
 
-            <!-- Body: Budget, Totale Finanziamenti, e Percentuale di Completamento -->
+            <!-- BUDGET, SOMMA FINANZIAMENTI, COMPLETAMENTO BUDGET -->
             <div class="card-body">
-                <!-- Budget -->
+                <!-- BUDGET -->
                 <div class="bg-secondary-subtle p-1 rounded text-center">
                     <p class="fs-4">
                         <strong>Budget:</strong> <?php echo htmlspecialchars(number_format($progetto['budget'], 2)); ?>€
                     </p>
                 </div>
                 <hr>
-                <!-- Percentuale di completamento -->
+                <!-- PERCENTUALE COMPLETAMENTO BUDGET -->
                 <div class="d-flex w-100 fw-bold justify-content-center fs-5">
                     <?php echo round($progetto['percentuale'], 2); ?>%
                 </div>
 
-                <!-- Barra di progresso Finanziamenti / Budget -->
+                <!-- BARRA COMPLETAMENTO BUDGET -->
                 <div class="progress my-2 position-relative" style="height: 40px;">
                     <div class="progress-bar fw-bold bg-success"
                          style="width: <?php echo round($progetto['percentuale'], 2); ?>%; height: 100%;">
@@ -323,29 +217,34 @@ try {
 
                 <hr class="my-4">
 
-                <!-- Reward Section -->
+                <!-- REWARDS -->
                 <div class="card mb-4 shadow-sm">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div class="fs-5 d-flex flex-column">
                             <strong>Reward</strong>
                             <small class="text-muted fs-6">
-                                <?php if (count($rewards) > 4): ?>(Scorri per visualizzare le restanti)<?php endif; ?>
+                                <?php if (count($rewards['data']) > 4): ?>(Scorri per visualizzare le restanti)<?php endif; ?>
                                 Visualizza le reward disponibili per il progetto. Ogni reward è ottenibile con un
                                 finanziamento di un certo importo.
                             </small>
                         </div>
-                        <?php if (isProgettoOwner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                            <form action="../public/progetto_aggiorna.php?attr=reward&nome=<?php echo htmlspecialchars($progetto['nome']); ?>" method="post">
+                        <?php if (is_progetto_owner($email, $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
+                            <form action="<?php echo htmlspecialchars(generate_url('progetto_aggiorna', ['attr' => 'rewards', 'nome' => $progetto['nome']])); ?>"
+                                  method="post">
                                 <button type="submit" class="btn btn-warning mt-2">Modifica</button>
                             </form>
                         <?php endif; ?>
                     </div>
 
-                    <!-- Body: Lista delle Reward -->
+                    <!-- LISTA REWARD -->
                     <div class="card-body">
                         <div class="d-flex flex-nowrap overflow-auto">
-                            <?php if (!empty($rewards)): ?>
-                                <?php foreach ($rewards as $reward): ?>
+                            <?php if ($rewards['failed']): ?>
+                                <p class="text-danger">Errore durante il recupero delle reward.</p>
+                            <?php elseif (empty($rewards['data'])): ?>
+                                <p>Nessuna reward disponibile per questo progetto.</p>
+                            <?php else: ?>
+                                <?php foreach ($rewards['data'] as $reward): ?>
                                     <div class="flex-shrink-0 w-25 p-2">
                                         <div class="card shadow-sm h-100">
                                             <div class="card-header">
@@ -357,7 +256,7 @@ try {
                                                     <?php echo htmlspecialchars(number_format($reward['min_importo'], 2)); ?>€
                                                 </p>
                                                 <p class="flex-grow-1"><?php echo htmlspecialchars($reward['descrizione']); ?></p>
-                                                <!-- Foto della reward -->
+                                                <!-- FOTO REWARD -->
                                                 <div class="d-flex justify-content-center mt-auto">
                                                     <?php $base64 = base64_encode($reward['foto']); ?>
                                                     <img src="data:image/jpeg;base64,<?php echo $base64; ?>"
@@ -368,19 +267,18 @@ try {
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
-                            <?php else: ?>
-                                <p>Nessuna reward disponibile per questo progetto.</p>
                             <?php endif; ?>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Footer: Finanzia Progetto -->
+            <!-- INSERIMENTO FINANZIAMENTO -->
             <?php if ($progetto['stato'] === 'aperto'): ?>
-                <?php if (!$finanziatoOggi): ?>
+                <?php if (!$finanziato_oggi): ?>
                     <div class="card-footer">
-                        <form action="../public/finanziamento_conferma.php" method="post">
+                        <form action="<?php echo htmlspecialchars(generate_url('finanziamento_conferma')); ?>"
+                              method="post">
                             <input type="hidden" name="nome" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
                             <div class="form-group mt-2">
                                 <label class="fs-5 mb-2 fw-bold" for="importo">Finanzia il Progetto (€)</label>
@@ -408,7 +306,7 @@ try {
 
         <hr>
 
-        <!-- Profili / Componenti Section -->
+        <!-- PROFILI / COMPONENTI -->
         <div class="card mt-4">
             <div class="card-header fs-5 d-flex justify-content-between align-items-center">
                 <div class="d-flex flex-column">
@@ -422,17 +320,17 @@ try {
                     <?php else: ?>
                         <strong>Componenti</strong>
                         <small class="text-muted fs-6">
-                            <?php if (count($componenti) > 4): ?>(Scorri per visualizzare i restanti)<?php endif; ?>
+                            <?php if (count($componenti['data']) > 4): ?>(Scorri per visualizzare i restanti)<?php endif; ?>
                             Di seguito i componenti richiesti per il progetto hardware.
                         </small>
                     <?php endif; ?>
                 </div>
-                <?php if (isProgettoOwner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
+                <?php if (is_progetto_owner($email, $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
                     <?php
                     $tipo = ($progetto['tipo'] === 'SOFTWARE') ? 'profili' : 'componenti';
                     $nome_progetto = htmlspecialchars($progetto['nome']);
                     ?>
-                    <form action="../public/progetto_aggiorna.php?attr=<?php echo $tipo ?>&nome=<?php echo $nome_progetto; ?>"
+                    <form action="<?php echo htmlspecialchars(generate_url('progetto_aggiorna', ['attr' => $tipo, 'nome' => $nome_progetto])); ?>"
                           method="post">
                         <button type="submit" class="btn btn-warning mt-2">Modifica</button>
                     </form>
@@ -440,7 +338,11 @@ try {
             </div>
             <div class="card-body d-flex flex-nowrap overflow-auto">
                 <?php if ($progetto['tipo'] === 'SOFTWARE'): ?>
-                    <?php if (!empty($profili)): ?>
+                    <?php if ($dati_profili['failed']): ?>
+                        <p class="text-danger">Errore durante il recupero dei profili.</p>
+                    <?php elseif (empty($profili)): ?>
+                        <p>Profili non disponibili per questo progetto.</p>
+                    <?php else: ?>
                         <?php foreach ($profili as $nome_profilo => $skills): ?>
                             <div class="flex-shrink-0 w-25 p-2">
                                 <div class="card shadow-sm h-100 d-flex flex-column">
@@ -463,56 +365,53 @@ try {
                                     </div>
                                     <?php if ($progetto['stato'] === 'aperto'): ?>
                                         <div class="card-footer">
-                                            <?php if (!isProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
-                                                <!-- Candidatura Button -->
+                                            <?php if (!is_progetto_owner($email, $progetto['nome'])): ?>
                                                 <?php
-                                                // Controllo se l'utente ha già inviato una candidatura
-                                                $userHasApplied = false;
-                                                $userWasRejected = false;
-                                                $userIsEligible = false;
+                                                // STATO INIZIALE CANDIDATURA
+                                                $utente_ha_candidatura = false;
+                                                $utente_rifiutato = false;
+                                                $utente_idoneo = false;
+                                                $profilo_occupato = isset($partecipanti_accettati[$nome_profilo]);
 
-                                                // Recupero lo stato della candidatura
-                                                try {
+                                                // VERIFICO SOLO SE IL PROFILO NON È GIÀ OCCUPATO
+                                                if (!$profilo_occupato) {
+                                                    // VERIFICO LO STATO DELLA CANDIDATURA
                                                     $in = [
-                                                        'p_email_utente' => $_SESSION['email'],
+                                                        'p_email_utente' => $email,
                                                         'p_nome_progetto' => $progetto['nome'],
                                                         'p_nome_profilo' => $nome_profilo
                                                     ];
-                                                    $result = sp_invoke('sp_partecipante_getStatus', $in);
 
-                                                    if (!empty($result)) {
-                                                        $status = $result[0]['stato'] ?? '';
-                                                        if ($status === 'potenziale') {
-                                                            $userHasApplied = true;
-                                                        } elseif ($status === 'rifiutato') {
-                                                            $userWasRejected = true;
+                                                    $stato_result = $pipeline->fetch('sp_partecipante_getStatus', $in);
+
+                                                    if (!empty($stato_result)) {
+                                                        $stato = $stato_result['stato'] ?? '';
+                                                        if ($stato === 'potenziale') {
+                                                            $utente_ha_candidatura = true;
+                                                        } elseif ($stato === 'rifiutato') {
+                                                            $utente_rifiutato = true;
                                                         }
                                                     }
 
-                                                    // Controllo se l'utente è idoneo per la candidatura
-                                                    if (!$userHasApplied && !$userWasRejected) {
-                                                        $eligibilityResult = sp_invoke('sp_util_partecipante_is_eligible', $in);
-                                                        $userIsEligible = $eligibilityResult[0]['eligible'] ?? false;
+                                                    // VERIFICO IDONEITÀ SOLO SE NON HA GIÀ CANDIDATURE
+                                                    if (!$utente_ha_candidatura && !$utente_rifiutato) {
+                                                        $idoneita_result = $pipeline->fetch('sp_util_partecipante_is_eligible', $in);
+                                                        $utente_idoneo = !empty($idoneita_result) && $idoneita_result['eligible'];
                                                     }
-                                                } catch (PDOException $ex) { print($ex->errorInfo[2]); }
+                                                }
                                                 ?>
 
-                                                <?php if (isset($acceptedParticipants[$nome_profilo])): ?>
-                                                    <!-- Profilo occupato -->
+                                                <?php if ($profilo_occupato): ?>
                                                     <button class="btn btn-secondary w-100" disabled>
-                                                        Occupato da <?php echo htmlspecialchars($acceptedParticipants[$nome_profilo]['nickname']); ?>
+                                                        Occupato da <?php echo htmlspecialchars($partecipanti_accettati[$nome_profilo]['nickname']); ?>
                                                     </button>
-                                                <?php elseif ($userHasApplied): ?>
-                                                    <!-- Utenza ha già inviato una candidatura -->
+                                                <?php elseif ($utente_ha_candidatura): ?>
                                                     <button class="btn btn-warning w-100" disabled>Candidatura in attesa</button>
-                                                <?php elseif ($userWasRejected): ?>
-                                                    <!-- Utente è stato rifiutato -->
+                                                <?php elseif ($utente_rifiutato): ?>
                                                     <button class="btn btn-danger w-100" disabled>Candidatura rifiutata</button>
-                                                <?php elseif (!$userIsEligible): ?>
-                                                    <!-- Utente non è idoneo per la candidatura -->
+                                                <?php elseif (!$utente_idoneo): ?>
                                                     <button class="btn btn-secondary w-100" disabled>Non idoneo</button>
                                                 <?php else: ?>
-                                                    <!-- Utente può inviare una candidatura -->
                                                     <form action="../actions/candidatura_insert.php" method="post">
                                                         <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
                                                         <input type="hidden" name="nome_profilo" value="<?php echo htmlspecialchars($nome_profilo); ?>">
@@ -525,12 +424,14 @@ try {
                                 </div>
                             </div>
                         <?php endforeach; ?>
-                    <?php else: ?>
-                        <p>Profili non disponibili per questo progetto.</p>
                     <?php endif; ?>
                 <?php else: ?>
-                    <?php if (!empty($componenti)): ?>
-                        <?php foreach ($componenti as $componente): ?>
+                    <?php if ($componenti['failed']): ?>
+                        <p class="text-danger">Errore durante il recupero dei componenti.</p>
+                    <?php elseif (empty($componenti['data'])): ?>
+                        <p>Componenti non disponibili per questo progetto.</p>
+                    <?php else: ?>
+                        <?php foreach ($componenti['data'] as $componente): ?>
                             <div class="flex-shrink-0 w-25 p-2">
                                 <div class="card shadow-sm h-100 d-flex flex-column">
                                     <div class="card-header">
@@ -544,8 +445,6 @@ try {
                                 </div>
                             </div>
                         <?php endforeach; ?>
-                    <?php else: ?>
-                        <p>Componenti non disponibili per questo progetto.</p>
                     <?php endif; ?>
                 <?php endif; ?>
             </div>
@@ -553,7 +452,7 @@ try {
 
         <hr>
 
-        <!-- Commenti Section -->
+        <!-- COMMENTI -->
         <div class="card mt-4">
             <div class="card-header fs-5 d-flex flex-column">
                 <strong>Commenti</strong>
@@ -562,8 +461,12 @@ try {
                 </small>
             </div>
             <div class="card-body overflow-auto" style="max-height: 500px;">
-                <?php if (!empty($commenti)): ?>
-                    <?php foreach ($commenti as $commento): ?>
+                <?php if ($commenti['failed']): ?>
+                    <p class="text-danger">Errore durante il recupero dei commenti.</p>
+                <?php elseif (empty($commenti['data'])): ?>
+                    <p>Nessun commento disponibile per questo progetto.</p>
+                <?php else: ?>
+                    <?php foreach ($commenti['data'] as $commento): ?>
                         <div class="card mb-4">
                             <div class="card-header">
                                 <strong>
@@ -571,18 +474,18 @@ try {
                                     <?php if ($commento['email_utente'] === $progetto['email_creatore']): ?>
                                         (Creatore)
                                     <?php endif; ?>
-                                    <?php if ($commento['email_utente'] === $_SESSION['email']): ?>
+                                    <?php if ($commento['email_utente'] === $email): ?>
                                         (You)
                                     <?php endif; ?>
                                 </strong>
-                                <!-- Mostra la data del commento -->
+                                <!-- DATA COMMENTO -->
                                 <small class="text-muted mx-2"><?php echo htmlspecialchars(date('d/m/Y H:i', strtotime($commento['data']))); ?></small>
                             </div>
                             <div class="card-body">
                                 <p><?php echo htmlspecialchars($commento['testo']); ?></p>
                             </div>
-                            <!-- Mostra il bottone per eliminare il commento -->
-                            <?php if ($commento['email_utente'] === $_SESSION['email'] || $_SESSION['is_admin']): ?>
+                            <!-- BOTTONE ELIMINA COMMENTO -->
+                            <?php if ($commento['email_utente'] === $email || $is_admin): ?>
                                 <div class="card-footer">
                                     <form action="../actions/commento_delete.php" method="post">
                                         <input type="hidden" name="id_commento" value="<?php echo htmlspecialchars($commento['id']); ?>">
@@ -592,15 +495,15 @@ try {
                                     </form>
                                 </div>
                             <?php endif; ?>
-                            <!-- Mostra la risposta al commento -->
+                            <!-- RISPOSTA COMMENTO -->
                             <?php if (!empty($commento['risposta'])): ?>
                                 <div class="card-footer">
                                     <strong>
                                         Risposta
-                                        (<?php if (isProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>You<?php else: ?>Creatore<?php endif; ?>)
+                                        (<?php if (is_progetto_owner($email, $progetto['nome'])): ?>You<?php else: ?>Creatore<?php endif; ?>)
                                     </strong>
                                     <p><?php echo htmlspecialchars($commento['risposta']); ?></p>
-                                    <?php if (isProgettoOwner($_SESSION['email'], $progetto['nome']) || $_SESSION['is_admin']): ?>
+                                    <?php if (is_progetto_owner($email, $progetto['nome']) || $is_admin): ?>
                                         <form action="../actions/commento_risposta_delete.php" method="post">
                                             <input type="hidden" name="id_commento" value="<?php echo htmlspecialchars($commento['id']); ?>">
                                             <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">
@@ -608,7 +511,7 @@ try {
                                         </form>
                                     <?php endif; ?>
                                 </div>
-                            <?php elseif (isProgettoOwner($_SESSION['email'], $progetto['nome'])): ?>
+                            <?php elseif (is_progetto_owner($email, $progetto['nome'])): ?>
                                 <div class="card-footer">
                                     <form action="../actions/commento_risposta_insert.php" method="post">
                                         <input type="hidden" name="id_commento" value="<?php echo htmlspecialchars($commento['id']); ?>">
@@ -623,12 +526,10 @@ try {
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
-                <?php else: ?>
-                    <p>Nessun commento disponibile per questo progetto.</p>
                 <?php endif; ?>
             </div>
 
-            <!-- Form per inserire un commento -->
+            <!-- INSERIMENTO COMMENTO -->
             <div class="card-footer">
                 <form action="../actions/commento_insert.php" method="post">
                     <input type="hidden" name="nome_progetto" value="<?php echo htmlspecialchars($progetto['nome']); ?>">

@@ -1,83 +1,85 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require_once '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// TODO: CONVERT ATTR FROM GET TO POST
 
-// 2. L'utente è il creatore del progetto
-checkProgettoOwner($_GET['nome']);
+// === VARIABLES ===
+check_GET(['nome', 'attr']);
+$email = $_SESSION['email'];
+$nome_progetto = $_GET['nome'];
+$attr = $_GET['attr'];
 
-// 3. Controllo che l'attributo sia stato specificato
-if (!isset($_GET['attr']) || !isset($_GET['nome'])) {
-    redirect(
-        false,
-        "Parametro mancante",
-        "../public/progetti.php"
-    );
-}
+// === CONTEXT ===
+$context = [
+    'collection' => 'PROGETTO',
+    'action' => 'VIEW',
+    'email' => $email,
+    'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto])
+];
+$pipeline = new EventPipeline($context);
 
-// 4. Controllo che il progetto sia aperto
-checkProgettoAperto($_GET['nome']);
+// === VALIDATION ===
+// L'UTENTE È IL CREATORE DEL PROGETTO
+$pipeline->check(
+    !is_progetto_owner($email, $nome_progetto),
+    "Non sei il creatore del progetto."
+);
 
-// === DATABASE ===
-// Recupero il progetto e il suo tipo
-try {
-    $in = ['p_nome_progetto' => $_GET['nome']];
-    $progetto = sp_invoke('sp_progetto_select', $in)[0];
-    $progetto['tipo'] = sp_invoke('sp_util_progetto_type', $in)[0]['tipo_progetto'];
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero del progetto: " . $ex->errorInfo[2],
-        "../public/progetti.php"
-    );
-}
+// IL PROGETTO È ANCORA APERTO
+$pipeline->invoke('sp_util_progetto_is_aperto', ['p_nome_progetto' => $nome_progetto]);
+
+// === DATA ===
+// RECUPERO DATI DEL PROGETTO
+$in = ['p_nome_progetto' => $nome_progetto];
+$progetto = $pipeline->fetch('sp_progetto_select', $in);
+$progetto['tipo'] = $pipeline->fetch('sp_util_progetto_type', $in)['tipo_progetto'];
 ?>
 
+<!-- === PAGE === -->
 <?php require '../components/header.php'; ?>
 <div class="container my-4">
-    <!-- Messaggio di successo/errore post-azione -->
+    <!-- ALERT -->
     <?php include '../components/error_alert.php'; ?>
     <?php include '../components/success_alert.php'; ?>
 
-    <!-- Tasto per tornare indietro -->
+    <!-- TORNA INDIETRO -->
     <div class="d-flex justify-content-start">
         <button class="btn btn-warning mb-3">
-            <a href="../public/progetto_dettagli.php?nome=<?php echo $_GET['nome']; ?>"
+            <a href="<?php echo htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $nome_progetto])); ?>"
                class="text-black text-decoration-none">Torna al Progetto</a>
         </button>
     </div>
 
-    <!-- Rendering del componente corretto in base all'attributo specificato -->
-    <?php switch ($_GET['attr']) {
+    <!-- RENDERING DELLA PAGINA IN BASE ALL'ATTRIBUTO -->
+    <?php switch ($attr) {
         case "descrizione":
-            // Update descrizione e insert/delete foto del progetto
+            // UPDATE DESCRIZIONE & INSERT/DELETE FOTO
             require '../components/progetto_aggiorna_descrizione.php';
             break;
         case "budget":
-            // Update budget del progetto
+            // UPDATE BUDGET
             require '../components/progetto_aggiorna_budget.php';
             break;
         case "reward":
-            // Update/insert di reward del progetto
+            // UPDATE/INSERT REWARD
             require '../components/progetto_aggiorna_reward.php';
             break;
         case "profili":
-            // Update/insert/delete di profili del progetto (software)
+            // UPDATE/INSERT/DELETE PROFILI (SOFTWARE)
             require '../components/progetto_aggiorna_profili.php';
             break;
         case "componenti":
-            // Update/insert/delete di componenti del progetto (hardware)
+            // UPDATE/INSERT/DELETE COMPONENTI (HARDWARE)
             require '../components/progetto_aggiorna_componenti.php';
             break;
         default:
             redirect(
                 false,
                 "Attributo non valido.",
-                "../public/progetto_dettagli.php?nome=" . $_GET['nome']
+                        htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $nome_progetto]))
             );
             break;
     } ?>

@@ -40,7 +40,7 @@ $context = [
         'p_descrizione' => $descrizione
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === VALIDATION ===
 // LA DESCRIZIONE È VALIDA

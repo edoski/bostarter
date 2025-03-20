@@ -1914,6 +1914,8 @@ END//
 /*
 *  PROCEDURE: sp_finanziamento_selectSumByProgetto
 *  PURPOSE: Restituisce la somma degli importi dei finanziamenti ricevuti da un progetto.
+*  USED BY: ALL
+*  NOTE: Se il progetto non ha ricevuto finanziamenti, restituisce 0 piuttosto che NULL.
 *
 *  @param IN p_nome_progetto - Nome del progetto da cui si vuole ottenere il totale dei finanziamenti
 */
@@ -1922,7 +1924,7 @@ CREATE PROCEDURE sp_finanziamento_selectSumByProgetto(
 )
 BEGIN
 	START TRANSACTION;
-	SELECT SUM(importo) AS totale_finanziamenti
+	SELECT IFNULL(SUM(importo), 0) AS totale_finanziamenti
 	FROM FINANZIAMENTO
 	WHERE nome_progetto = p_nome_progetto;
 	COMMIT;
@@ -1962,6 +1964,7 @@ END//
 /*
 *  PROCEDURE: sp_finanziamento_selectAllByUtente
 *  PURPOSE: Restituisce tutti i finanziamenti effettuati da un utente specifico con dettagli completi su reward e progetto.
+*  USED BY: ALL
 *
 *  @param IN p_email - Email dell'utente da cui si vuole ottenere la lista dei finanziamenti
 */
@@ -2150,7 +2153,7 @@ END//
 -- PARTECIPANTE:
 --  sp_partecipante_utente_insert
 --  sp_partecipante_creatore_update
---  sp_partecipante_selectAcceptedByProgetto
+--  sp_partecipante_selectAllAcceptedByProgetto
 --  sp_partecipante_selectAllByUtente
 --  sp_partecipante_selectAllByCreatore
 --  sp_partecipante_getStatus
@@ -2229,13 +2232,13 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_partecipante_selectAcceptedByProgetto
+*  PROCEDURE: sp_partecipante_selectAllAcceptedByProgetto
 *  PURPOSE: Visualizzazione di tutti i partecipanti accettati per un progetto.
 *  USED BY: ALL
 *
 *  @param IN p_nome_progetto - Nome del progetto
 */
-CREATE PROCEDURE sp_partecipante_selectAcceptedByProgetto(
+CREATE PROCEDURE sp_partecipante_selectAllAcceptedByProgetto(
 	IN p_nome_progetto VARCHAR(100)
 )
 BEGIN
@@ -2282,10 +2285,10 @@ END//
 *  PURPOSE: Visualizzazione di tutte le candidature ricevute per i progetti di un creatore.
 *  USED BY: CREATORE
 *
-*  @param IN p_email_creatore - Email del creatore
+*  @param IN p_email - Email del creatore
 */
 CREATE PROCEDURE sp_partecipante_selectAllByCreatore(
-	IN p_email_creatore VARCHAR(100)
+	IN p_email VARCHAR(100)
 )
 BEGIN
 	START TRANSACTION;
@@ -2297,7 +2300,7 @@ BEGIN
 	FROM PARTECIPANTE P
 		     JOIN PROGETTO PR ON P.nome_progetto = PR.nome
 		     JOIN UTENTE U ON P.email_utente = U.email
-	WHERE PR.email_creatore = p_email_creatore
+	WHERE PR.email_creatore = p_email
 	ORDER BY P.stato, P.nome_progetto, P.nome_profilo;
 	COMMIT;
 END//
@@ -2797,16 +2800,16 @@ END//
 *  PURPOSE: Restituisce la lista dei componenti di un progetto hardware.
 *  USED BY: ALL
 *
-*  @param IN p_nome_progetto - Nome del progetto hardware di cui si vogliono ottenere i componenti
+*  @param IN p_nome - Nome del progetto hardware di cui si vogliono ottenere i componenti
 */
 CREATE PROCEDURE sp_componente_selectAllByProgetto(
-	IN p_nome_progetto VARCHAR(100)
+	IN p_nome VARCHAR(100)
 )
 BEGIN
 	START TRANSACTION;
 	SELECT nome_componente, descrizione, quantita, prezzo
 	FROM COMPONENTE
-	WHERE nome_progetto = p_nome_progetto;
+	WHERE nome_progetto = p_nome;
 	COMMIT;
 END//
 

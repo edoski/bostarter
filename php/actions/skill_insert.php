@@ -24,6 +24,7 @@ check_auth();
 check_POST(['competenza']);
 $competenza = $_POST['competenza'];
 $email = $_SESSION['email'];
+$is_admin = $_SESSION['is_admin'];
 
 // === CONTEXT ===
 $context = [
@@ -37,12 +38,12 @@ $context = [
         'p_email' => $email
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === VALIDATION ===
 // L'UTENTE È UN AMMINISTRATORE
 $pipeline->check(
-    !isset($_SESSION['is_admin']) || !$_SESSION['is_admin'],
+    !isset($is_admin) || !$is_admin,
     "Non sei autorizzato ad effettuare questa operazione."
 );
 

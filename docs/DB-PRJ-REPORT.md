@@ -15,43 +15,41 @@
 
 
 
+# when done refactoring /public w ActionPipeline, push and ask claude to generate multiline header comments same as /actions but like this:
+```php
+/**
+ * PAGE:
+ * 
+ * ACTIONS:
+ *
+ * PURPOSE:
+ *
+```
+- ## and also add multiline docs above all /functions etc
+
+
+## refactor /componenti too, ensure that even after /public refactor is complete that variable names originating from /public and used in /componenti align
+
+
+## fix anno_nascita registrazione check to look at the curdate - 18yrs in days to evaluate if user is 18 (better precision otherwise 17yr olds X months can still sign up)
 
 
 
 
-## if no scenario uses fetch_all then remove it
+## use generate_url() to generate redirect URLs in /public
+- leave form tags leading to /actions alone? or refactor generate_url to also include actions in routes?
+
+# logs.php
+- remove logs recenti section and just have the table beneath showing w all the logs, and above it have the table selector area with an additional button Reset that resets the filter search (redirects back to plain logs.php w no query params)
+- create checkbox button to filter for errors only in logs.php
 
 
-# is it reasonable to have SUCCESS redirect section at end of /actions or should it be baked into pipeline->invoke() (redirect immediately happens after sp_invoke with success/fail handled by context) or should it be externalised (have redirect success and redirect fail section in /actions file)
-
-
-
-
-## CONSIDER REMOVING VALIDATION CHECKS IN ACTIONS WHERE THE CHECK IS ALREADY PERFORMED AT DB LEVEL
-
-
-## do i need to add validations to skill curriculum actions?
-
-
-## can I use a ValidationPipeline in checks.php?
+# comb thru init sql and for each sp verify it is being used, if not remove it
+- sp_util_progetto_owner_exists
 
 
 
-
-- [ ] register_handler.php
-- [ ] reward_insert.php
-- [ ] skill_curriculum_delete.php
-- [ ] skill_curriculum_insert.php
-- [ ] skill_curriculum_update.php
-- [ ] skill_insert.php
-- [ ] skill_profilo_delete
-- [ ] skill_profilo_insert
-- [ ] skill_profilo_update
-- [ ] skill_update.php
-- [ ] utente_convert_creatore.php
-- [ ] checks.php ??
-
-
+## can I use a ActionPipeline in checks.php?
 
 
 
@@ -63,6 +61,7 @@
 - ### create reusable components for cards like reward cards, see if more shared visual components, or if can turn standardise platform with new reusable components
 
 
+
 ## standardise POST var names like 'nome_progetto' instead of 'nome' when passing project name via post, etc
 - #### need to update progetto_aggiorna attr to be passed via POST no GET
 - ensure they are also specific like id_foto instead of id
@@ -71,7 +70,6 @@
 
 
 ## keep track of website structure, when complete paste it atop of section 6.2 report
-# actually do it from project pov
 ```
 bostarter/
 ├── actions/
@@ -118,8 +116,6 @@ bostarter/
 │   └── sp_invoke.php
 ├── public/
 │   ├── libs/
-│   │   ├── bootstrap.bundle.min.js
-│   │   └── bootstrap.min.css
 │   ├── candidature.php
 │   ├── curriculum.php
 │   ├── finanziamenti.php
@@ -714,6 +710,7 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 - multi-layer security check → redundant security > single line of defense php-level
 	- "security in depth"
+		- reasonable refactoring maintaining only checks which can be made purely in php while removing redundant ones which already baked into primary sp and require additional db call
 
 - profiles were global when PROFILO_PROGETTO was separate from SKILL_PROFILO, so I removed PROFILO_PROGETTO and added nome_progetto to PK of SKILL_PROFILO
 	- Otherwise updates for livello_richiesto were problematic due to profiles being global and thus multiple proj might reference the same profilo but have different livello_richiesto
@@ -743,10 +740,15 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 	- removing custom triggers and maintaining only the ones strictly required by project traccia. I opted to keep all the logic handling in sp's as it centralises all the logic checks and actions performed to the most relevant areas (eg. when a creatore updates a skill profilo level i want to see only the sp that he invokes and inside of it i should expect to infer every possible side-effect/change in db that emerges as a result of that operation)
 
 - while the existence check for the project might seem redundant from a pure data-integrity standpoint, it is valuable for providing a better, more controlled error response and enforcing additional business logic. EXAMPLE: The check for the project’s closed state is absolutely necessary for comments and financing operations because it’s not covered by the foreign key constraints.
+	- coming back to this from a near complete project pov im cleaning up unnecessary/redundant validations but maintaining key ones for php. Reasonable approach as reduces php code, avoids logical duplication of validations, eliminating the ones which would rely on sp calls that are already being made in the primary sp, but maintaining ones which do not rely on a sp call and can catch errors earlier on preventing unnecessary sp call
 
 - decomposing php site into components, actions, functions, and public (pages) to split page display from action logic, and components great for code reusability and security
 
 - navigating unforeseen complexity: apache web server permissions, configuring php environment, getting mongodb extension working → All lead to me learning a bit about docker and containerising the whole project, ensuring also universal portability of the project
+
+- ActionPipeline class
+	- cleaning up code significantly, removing boilerplate/excess overhead code, much cleaner interface, centralising data management (\$context array) and execution (methods of class) while also baking in logging functionality in a decoupled manner (class methods use fail and success functions, and these 2 functions redirect + log, but the primitive redirect function does not perform logging and is used elsewhere in code where logging unnecessary)
+
 
 # **6. FUNZIONALITÀ**
 ---
@@ -853,33 +855,39 @@ A capo di ogni file viene posta la sezione di configurazione (`=== SETUP ===`), 
 // === SETUP ===
 session_start();
 require '../config/config.php';
-
 check_auth();
-check_POST(...)
 
 // === VARIABLES ===
+check_POST(...);
 ...
 
-$in = [...];
-
-$collection = ...
-$action = ...
-$redirect_url = generate_url(...)
+// === CONTEXT ===
+$context = [
+	...
+];
+$pipeline = new EventPipeline($context);
 
 // === VALIDATION ===
-...
+$pipeline->check(...);
 
 // === ACTION ===
-try {
-    sp_invoke(...);
-} catch (PDOException $ex) {
-    fail(...)
-}
+$pipeline->invoke();
 
-// === REDIRECT ===
-success(...)
+// === SUCCESS ===
+$pipeline->continue();
 ```
-Risulta immediato che la struttura dei file in `/action` sia simile a quella vista di sopra. L'unica differenza è la seguente: Mancano la sezione per il recupero di dati dal database (`=== DATA ===`) e la pagina html (`<HTML>`), e si ha invece una sezione che prepara ed invoca una stored procedure (`=== ACTION ===`), essendo un file che deve fare un'operazione su una pagina. Si ha in fine una sezione per il logging dell'evento (MongoDB) e un successful/error redirect in base all'esito dell'operazione (`=== REDIRECT ===`).
+Risulta immediato che la struttura dei file in `/action` segue un pattern uniforme che sfrutta la classe `ActionPipeline` per gestire validazioni, esecuzione e redirect in modo consistente. Ogni file è organizzato in sezioni chiaramente delimitate:
+
+- **`=== SETUP ===`**: Inizializzazione della sessione e inclusione delle dipendenze
+- **`=== VARIABLES ===`**: Estrazione e validazione dei parametri di input
+- **`=== CONTEXT ===`**: Creazione di un contesto dell'operazione che include collezione, azione, redirect e procedura da eseguire
+- **`=== VALIDATION ===`**: Controlli di validazione utilizzando il pattern pipeline che interrompe l'esecuzione al primo errore
+- **`=== ACTION ===`**: Invocazione della stored procedure per eseguire l'operazione sul database
+- **`=== SUCCESS ===`**: Gestione del successo con logging dell'evento e redirect
+
+Questa architettura semplifica la gestione degli errori e il logging centralizzando queste funzionalità nella classe `ActionPipeline`. Rispetto alla struttura in `/public`, non sono necessarie sezioni per il recupero dati (`=== DATA ===`) o per il rendering HTML (`<HTML>`), poiché questi file si occupano esclusivamente di operazioni atomiche sul database con redirect automatica in base all'esito.
+
+Il pattern migliora la mantenibilità e la consistenza del codice grazie all'incapsulamento della logica di controllo e gestione errori, permettendo una separazione chiara tra validazione, esecuzione e gestione del risultato.
 
 ### **AUTENTICAZIONE UTENTE**
 - `login.php`
@@ -1063,13 +1071,9 @@ init.sh
 - Viene eseguito `docker-compose down -v` per arrestare e rimuovere eventuali container e volumi esistenti.
 - Viene eseguito `docker-compose up --build -d` per ricostruire e avviare i container.
 
-Se si vede comparire sul terminale i seguenti log, allora l'inizializzazione della piattaforma è andata a buon fine:
+Se si vede comparire sul terminale il seguente log, allora l'inizializzazione della piattaforma è andata a buon fine:
 ```sh
-web-1      | === SEEDING seed_data.php START! ===
-web-1      | Seeding ProgettoAlpha... OK.
-web-1      | Seeding ProgettoBeta... OK.
-web-1      | Seeding remaining projects... OK.
-web-1      | === SEEDING seed_data.php COMPLETE! ===
+web-1      | === BOSTARTER INIZIALIZZATO. PIATTAFORMA PRONTA! ===
 ```
 
 Questo script automatizza l’intero processo di configurazione, garantendo che tutte le dipendenze siano installate e che l’ambiente Docker sia correttamente ricostruito, rendendo l’avvio della piattaforma semplice e veloce.

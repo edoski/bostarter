@@ -1,212 +1,225 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+$email = $_SESSION['email'];
+$is_creatore = $_SESSION['is_creatore'];
+$is_admin = $_SESSION['is_admin'];
+$nome = $_SESSION['nome'];
+$cognome = $_SESSION['cognome'];
+$nickname = $_SESSION['nickname'];
+$anno_nascita = $_SESSION['anno_nascita'];
+$luogo_nascita = $_SESSION['luogo_nascita'];
 
-// === DATABASE ===
-// I dati dell'utente sono già presenti in $_SESSION
-// Se l'utente è un creatore, recupero i dati relativi ad esso
-if ($_SESSION['is_creatore']) {
-    try {
-        $in = ['p_email' => $_SESSION['email']];
+// === CONTEXT ===
+$context = [
+    'collection' => 'HOME',
+    'action' => 'VIEW',
+    'email' => $email,
+    'in' => ['p_email' => $email]
+];
+$pipeline = new EventPipeline($context);
 
-        // Recupero i progetti creati dall'utente
-        $progetti = sp_invoke('sp_progetto_selectByCreatore', $in);
+// === DATA ===
+// SE CREATORE, RECUPERO PROGETTI CREATI E RELATIVE STATISTICHE
+if ($is_creatore) {
+    // PROGETTI CREATI
+    $progetti = $pipeline->fetch_all('sp_progetto_selectByCreatore');
 
-        // Recupero la sua affidabilità
-        $_SESSION['affidabilita'] = sp_invoke('sp_util_creatore_get_affidabilita', $in)[0]['affidabilita'];
+    // AFFIDABILITÀ
+    $affidabilita = $_SESSION['affidabilita'] = $pipeline->fetch('sp_util_creatore_get_affidabilita')['affidabilita'];
 
-        // Recupero il suo nr_progetti
-        $_SESSION['nr_progetti'] = sp_invoke('sp_util_creatore_get_nr_progetti', $in)[0]['nr_progetti'];
+    // NUMERO PROGETTI
+    $nr_progetti = $_SESSION['nr_progetti'] = $pipeline->fetch('sp_util_creatore_get_nr_progetti')['nr_progetti'];
 
-        // Recupero il numero totale di partecipanti accettati
-        $totalPartecipanti = sp_invoke('sp_util_creatore_get_tot_partecipanti', $in)[0]['total_partecipanti'] ?? 0;
-    } catch (PDOException $ex) {
-        $progetti = [];
-        $progettiError = "Errore nel recupero dei progetti: " . $ex->errorInfo[2];
-        $totalPartecipanti = 0;
-    }
+    // SOMMA PARTECIPANTI
+    $tot_partecipanti = $pipeline->fetch('sp_util_creatore_get_tot_partecipanti')['total_partecipanti'];
 }
 
-// Recupero i finanziamenti effettuati dall'utente
-try {
-    $in = ['p_email' => $_SESSION['email']];
-    $finanziamenti = sp_invoke('sp_finanziamento_selectAllByUtente', $in);
+// RECUPERO FINANZIAMENTI EFFETTUATI DALL'UTENTE
+$finanziamenti = $pipeline->fetch_all('sp_finanziamento_selectAllByUtente');
 
-    // Calcolo il totale dei finanziamenti
-    $totale_finanziamenti = 0;
-    foreach ($finanziamenti as $finanziamento) {
-        $totale_finanziamenti += $finanziamento['importo'];
-    }
-} catch (PDOException $ex) {
-    $finanziamenti = [];
-    $finError = "Errore nel recupero dei finanziamenti: " . $ex->errorInfo[2];
-}
+// SOMMA FINANZIAMENTI
+$totale_finanziamenti = 0;
+foreach ($finanziamenti['data'] as $finanziamento) $totale_finanziamenti += $finanziamento['importo'];
 
-// Recupero le candidature inviate dall'utente
-try {
-    $in = ['p_email' => $_SESSION['email']];
-    $candidature = sp_invoke('sp_partecipante_selectAllByUtente', $in);
-} catch (PDOException $ex) {
-    $candidature = [];
-    $candidatureError = "Errore nel recupero delle candidature: " . $ex->errorInfo[2];
-}
+// RECUPERO PROGETTI A CUI L'UTENTE HA PARTECIPATO
+$candidature = $pipeline->fetch_all('sp_partecipante_selectAllByUtente');
 
-// Recupero le skill del curriculum dell'utente
-try {
-    $in = ['p_email' => $_SESSION['email']];
-    $skills = sp_invoke('sp_skill_curriculum_selectAll', $in);
-} catch (PDOException $ex) {
-    $skills = [];
-    $skillsError = "Errore nel recupero delle skills: " . $ex->errorInfo[2];
-}
+// RECUPERO SKILL CURRICULUM DELL'UTENTE
+$skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
 ?>
 
+<!-- === PAGE === -->
 <?php require '../components/header.php'; ?>
-<div class="container flex-grow-1 my-4">
-    <!-- Messaggio di successo/errore post-azione -->
-    <?php include '../components/error_alert.php'; ?>
-    <?php include '../components/success_alert.php'; ?>
+    <div class="container flex-grow-1 my-4">
+        <!-- ALERT -->
+        <?php include '../components/error_alert.php'; ?>
+        <?php include '../components/success_alert.php'; ?>
 
-    <!-- Top row -->
-    <div class="row g-4">
-        <!-- User Info (Bio) Card -->
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-secondary text-white">
-                    <h4 class="mb-0">Il tuo profilo</h4>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <!-- Dati personali -->
-                        <div class="col-12 col-md-6">
-                            <div class="card h-100">
-                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                    <h5 class="mb-0">Dati personali</h5>
-                                    <div>
-                                        <?php if (!$_SESSION['is_creatore'] && !$_SESSION['is_admin']): ?>
-                                            <span class="badge bg-light text-secondary fs-6">Utente</span>
-                                        <?php endif; ?>
-                                        <?php if ($_SESSION['is_creatore']): ?>
-                                            <span class="badge bg-primary fs-6">Creatore</span>
-                                        <?php endif; ?>
-                                        <?php if ($_SESSION['is_admin']): ?>
-                                            <span class="badge bg-danger fs-6">Admin</span>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-6">
-                                            <p><strong>Nome:</strong> <?php echo htmlspecialchars($_SESSION['nome']); ?></p>
-                                            <p><strong>Email:</strong> <?php echo htmlspecialchars($_SESSION['email']); ?></p>
-                                            <p><strong>Anno di nascita:</strong> <?php echo htmlspecialchars($_SESSION['anno_nascita']); ?></p>
+        <!-- TOP ROW -->
+        <div class="row g-4">
+            <!-- IL TUO PROFILO -->
+            <div class="col-12">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-secondary text-white">
+                        <h4 class="mb-0">Il tuo profilo</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <!-- DATI PERSONALI -->
+                            <div class="col-12 col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <h5 class="mb-0">Dati personali</h5>
+                                        <div>
+                                            <?php if (!$is_creatore && !$is_admin): ?>
+                                                <span class="badge bg-secondary-subtle text-secondary fs-6">Utente</span>
+                                            <?php endif; ?>
+                                            <?php if ($is_creatore): ?>
+                                                <span class="badge bg-primary fs-6">Creatore</span>
+                                            <?php endif; ?>
+                                            <?php if ($is_admin): ?>
+                                                <span class="badge bg-danger fs-6">Admin</span>
+                                            <?php endif; ?>
                                         </div>
-                                        <div class="col-6">
-                                            <p><strong>Cognome:</strong> <?php echo htmlspecialchars($_SESSION['cognome']); ?></p>
-                                            <p><strong>Nickname:</strong> <?php echo htmlspecialchars($_SESSION['nickname']); ?></p>
-                                            <p><strong>Luogo di nascita:</strong> <?php echo htmlspecialchars($_SESSION['luogo_nascita']); ?></p>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <p><strong>Nome:</strong> <?php echo htmlspecialchars($nome); ?></p>
+                                                <p><strong>Email:</strong> <?php echo htmlspecialchars($email); ?></p>
+                                                <p><strong>Anno di nascita:</strong> <?php echo htmlspecialchars($anno_nascita); ?>
+                                                </p>
+                                            </div>
+                                            <div class="col-6">
+                                                <p><strong>Cognome:</strong> <?php echo htmlspecialchars($cognome); ?></p>
+                                                <p><strong>Nickname:</strong> <?php echo htmlspecialchars($nickname); ?></p>
+                                                <p><strong>Luogo di nascita:</strong> <?php echo htmlspecialchars($luogo_nascita); ?></p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Statistiche utente -->
-                        <div class="col-12 col-md-6">
-                            <div class="card h-100">
-                                <div class="card-header bg-light">
-                                    <h5 class="mb-0">Le tue statistiche</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <!-- Skill dell'utente -->
-                                        <div class="col-md-4">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <span class="badge bg-primary me-2"><?php echo count($skills); ?></span>
-                                                <strong><a href="curriculum.php">Competenze</a></strong>
-                                            </div>
-                                            <?php if (!empty($skills) && count($skills) > 0): ?>
-                                                <div class="small text-muted">
-                                                    <?php
-                                                    $skillNames = array_column($skills, 'competenza');
-                                                    echo implode(', ', array_slice($skillNames, 0, 3));
-                                                    if (count($skillNames) > 3) echo "...";
-                                                    ?>
-                                                </div>
-                                            <?php else: ?>
-                                                <div class="small text-muted">Nessuna competenza inserita</div>
-                                            <?php endif; ?>
-                                        </div>
-
-                                        <!-- Candidature dell'utente -->
-                                        <div class="col-md-4">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <span class="badge bg-primary me-2"><?php echo count($candidature); ?></span>
-                                                <strong><a href="../public/candidature.php" class="text-primary">Candidature</a></strong>
-                                            </div>
-                                            <?php if (!empty($candidature)): ?>
-                                                <p class="small text-muted">
-                                                    <?php
-                                                    $stati = array_column($candidature, 'stato');
-                                                    $accettate = count(array_filter($stati, function($s) { return $s === 'accettato'; }));
-                                                    echo "Accettate: " . $accettate . "/" . count($candidature);
-                                                    ?>
-                                                </p>
-                                            <?php else: ?>
-                                                <p class="small text-muted">Nessuna candidatura inviata</p>
-                                            <?php endif; ?>
-                                        </div>
-
-                                        <!-- Finanziamenti dell'utente -->
-                                        <div class="col-md-4">
-                                            <div class="d-flex align-items-center mb-2">
-                                                <span class="badge bg-primary me-2"><?php echo count($finanziamenti); ?></span>
-                                                <strong><a href="../public/finanziamenti.php" class="text-primary">Finanziamenti</a></strong>
-                                            </div>
-                                            <?php if (!empty($finanziamenti)): ?>
-                                                <p class="small text-muted">Totale: <?php echo number_format($totale_finanziamenti, 2); ?>€</p>
-                                            <?php else: ?>
-                                                <p class="small text-muted">Nessun finanziamento effettuato</p>
-                                            <?php endif; ?>
-                                        </div>
+                            <!-- LE TUE STATISTICHE -->
+                            <div class="col-12 col-md-6">
+                                <div class="card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Le tue statistiche</h5>
                                     </div>
-
-                                    <!-- Informazioni creatore (se applicable) -->
-                                    <?php if ($_SESSION['is_creatore']): ?>
-                                        <hr>
+                                    <div class="card-body">
                                         <div class="row">
-                                            <div class="col-4">
+                                            <!-- SKILL UTENTE -->
+                                            <div class="col-md-4">
                                                 <div class="d-flex align-items-center mb-2">
-                                                    <span class="badge bg-primary me-2"><?php echo htmlspecialchars($_SESSION['nr_progetti']); ?></span>
-                                                    <strong>Progetti</strong>
+                                                    <span class="badge bg-primary me-2"><?php echo count($skills['data'] ?? 0); ?></span>
+                                                    <strong>
+                                                        <a href="<?php echo htmlspecialchars(generate_url('curriculum')); ?>" class="text-primary">
+                                                            Competenze
+                                                        </a>
+                                                    </strong>
                                                 </div>
-                                            </div>
-                                            <div class="col-4">
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <span class="badge bg-primary me-2"><?php echo htmlspecialchars($totalPartecipanti); ?></span>
-                                                    <strong>Partecipanti</strong>
-                                                </div>
-                                            </div>
-                                            <div class="col-4">
-                                                <div class="d-flex align-items-center mb-2">
-                                                    <div class="progress w-50 position-relative" style="height: 20px;">
-                                                        <div class="progress-bar fw-bold bg-success"
-                                                             style="width: <?php echo htmlspecialchars($_SESSION['affidabilita']); ?>%; height: 100%;">
-                                                        </div>
-                                                        <div class="position-absolute top-50 start-50 translate-middle text-center fw-bold text-black">
-                                                            <?php echo htmlspecialchars($_SESSION['affidabilita']); ?>%
-                                                        </div>
+                                                <?php if ($skills['failed']): ?>
+                                                    <p class="small text-muted">Errore nel recupero delle competenze</p>
+                                                <?php elseif (empty($skills['data'])): ?>
+                                                    <p class="small text-muted">Nessuna competenza registrata</p>
+                                                <?php else: ?>
+                                                    <div class="small text-muted">
+                                                        <?php
+                                                        $skill_list = array_slice(array_column($skills['data'], 'competenza'), 0, 3);
+                                                        echo implode(', ', $skill_list) . (count($skills['data']) > 3 ? '...' : '');
+                                                        ?>
                                                     </div>
-                                                    <strong class="mx-2">Affidabilità</strong>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <!-- CANDIDATURE UTENTE -->
+                                            <div class="col-md-4">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <span class="badge bg-primary me-2"><?php echo count($candidature['data'] ?? 0); ?></span>
+                                                    <strong>
+                                                        <a href="<?php echo htmlspecialchars(generate_url('candidature')); ?>" class="text-primary">
+                                                            Candidature
+                                                        </a>
+                                                    </strong>
                                                 </div>
+                                                <?php if ($candidature['failed']): ?>
+                                                    <p class="small text-muted">Errore nel recupero delle candidature</p>
+                                                <?php elseif (empty($candidature['data'])): ?>
+                                                    <p class="small text-muted">Nessuna candidatura effettuata</p>
+                                                <?php else: ?>
+                                                    <p class="small text-muted">
+                                                        <?php
+                                                        $accettate = count(array_filter($candidature['data'], fn($s) => $s['stato'] === 'accettato'));
+                                                        echo "Accettate: {$accettate}/" . count($candidature['data']);
+                                                        ?>
+                                                    </p>
+                                                <?php endif; ?>
+                                            </div>
+
+                                            <!-- FINANZIAMENTI UTENTE -->
+                                            <div class="col-md-4">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <span class="badge bg-primary me-2"><?php echo count($finanziamenti); ?></span>
+                                                    <strong>
+                                                        <a href="<?php echo htmlspecialchars(generate_url('finanziamenti')); ?>" class="text-primary">
+                                                            Finanziamenti
+                                                        </a>
+                                                    </strong>
+                                                </div>
+                                                <?php if ($finanziamenti['failed']): ?>
+                                                    <p class="small text-muted">Errore nel recupero dei
+                                                        finanziamenti</p>
+                                                <?php elseif (empty($finanziamenti['data'])): ?>
+                                                    <p class="small text-muted">Nessun finanziamento effettuato</p>
+                                                <?php else: ?>
+                                                    <p class="small text-muted">
+                                                        Totale: <?php echo number_format($totale_finanziamenti, 2); ?>
+                                                        €</p>
+                                                <?php endif; ?>
                                             </div>
                                         </div>
-                                    <?php endif; ?>
+
+                                        <!-- LE TUE STATISTICHE (CREATORE) -->
+                                        <?php if ($is_creatore): ?>
+                                            <hr>
+                                            <div class="row">
+                                                <!-- PROGETTI CREATI -->
+                                                <div class="col-4">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <span class="badge bg-primary me-2"><?php echo htmlspecialchars($nr_progetti); ?></span>
+                                                        <strong>Progetti</strong>
+                                                    </div>
+                                                </div>
+                                                <!-- PARTECIPANTI -->
+                                                <div class="col-4">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <span class="badge bg-primary me-2"><?php echo htmlspecialchars($tot_partecipanti); ?></span>
+                                                        <strong>Partecipanti</strong>
+                                                    </div>
+                                                </div>
+                                                <!-- AFFIDABILITÀ -->
+                                                <div class="col-4">
+                                                    <div class="d-flex align-items-center mb-2">
+                                                        <div class="progress w-50 position-relative"
+                                                             style="height: 20px;">
+                                                            <div class="progress-bar fw-bold bg-success"
+                                                                 style="width: <?php echo htmlspecialchars($_SESSION['affidabilita']); ?>%; height: 100%;">
+                                                            </div>
+                                                            <div class="position-absolute top-50 start-50 translate-middle text-center fw-bold text-black">
+                                                                <?php echo htmlspecialchars($affidabilita); ?>%
+                                                            </div>
+                                                        </div>
+                                                        <strong class="mx-2">Affidabilità</strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -214,30 +227,33 @@ try {
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Bottom row -->
-    <div class="row g-4 mt-4">
-        <!-- Card Progetti (solo per creatori) -->
-        <?php if ($_SESSION['is_creatore']): ?>
-            <div class="col-12 col-md-6">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0">I tuoi progetti</h4>
-                        <a href="../public/progetto_crea.php" class="btn btn-sm btn-light">Crea Nuovo</a>
-                    </div>
-                    <div class="card-body">
-                        <?php if (isset($progettiError)): ?>
-                            <p class="text-danger"><?php echo htmlspecialchars($progettiError); ?></p>
-                        <?php else: ?>
-                            <?php if (!empty($progetti)): ?>
+        <!-- BOTTOM ROW -->
+        <div class="row g-4 mt-4">
+            <!-- I TUOI PROGETTI (CREATORE) -->
+            <?php if ($is_creatore): ?>
+                <div class="col-12 col-md-6">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <h4 class="mb-0">I tuoi progetti</h4>
+                            <a href="<?php echo htmlspecialchars(generate_url('progetto_crea')); ?>" class="btn btn-sm btn-light">
+                                Crea Nuovo
+                            </a>
+                        </div>
+                        <div class="card-body">
+                            <?php if ($progetti['failed']): ?>
+                                <p class="text-danger">Errore nel recupero dei progetti.</p>
+                            <?php elseif (empty($progetti['data'])): ?>
+                                <p>Non hai creato nessun progetto.</p>
+                            <?php else: ?>
                                 <div class="list-group">
-                                    <?php foreach ($progetti as $index => $progetto): ?>
-                                        <a href="progetto_dettagli.php?nome=<?php echo urlencode($progetto['nome']); ?>"
+                                    <?php foreach ($progetti['data'] as $index => $progetto): ?>
+                                        <a href="<?php echo htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $progetto['nome']])); ?>"
                                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                             <div>
                                                 <h5 class="mb-1"><?php echo htmlspecialchars($progetto['nome']); ?></h5>
-                                                <p class="mb-1 small text-muted">Budget: <?php echo number_format($progetto['budget'], 2); ?>€</p>
+                                                <p class="mb-1 small text-muted">
+                                                    Budget: <?php echo number_format($progetto['budget'], 2); ?>€</p>
                                             </div>
                                             <span class="badge <?php echo $progetto['stato'] === 'aperto' ? 'bg-success' : 'bg-danger'; ?>">
                                                 <?php echo strtoupper(htmlspecialchars($progetto['stato'])); ?>
@@ -245,43 +261,46 @@ try {
                                         </a>
                                     <?php endforeach; ?>
                                 </div>
-                            <?php else: ?>
-                                <p>Non hai creato nessun progetto.</p>
                             <?php endif; ?>
-                        <?php endif; ?>
+                        </div>
                     </div>
                 </div>
-            </div>
-        <?php endif; ?>
+            <?php endif; ?>
 
-        <!-- Card Finanziamenti (per tutti gli utenti) -->
-        <div class="col-12 <?php echo $_SESSION['is_creatore'] ? 'col-md-6' : 'col-md-12'; ?>">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
-                    <h4 class="mb-0">Finanziamenti recenti</h4>
-                    <a href="../public/finanziamenti.php" class="btn btn-sm btn-light">Visualizza tutti</a>
-                </div>
-                <div class="card-body">
-                    <?php if (isset($finError)): ?>
-                        <p class="text-danger"><?php echo htmlspecialchars($finError); ?></p>
-                    <?php else: ?>
-                        <?php if (!empty($finanziamenti)): ?>
+            <!-- FINANZIAMENTI RECENTI -->
+            <div class="col-12 <?php echo $is_creatore ? 'col-md-6' : 'col-md-12'; ?>">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0">Finanziamenti recenti</h4>
+                        <a href="<?php echo htmlspecialchars(generate_url('finanziamenti')); ?>" class="btn btn-sm btn-light">
+                            Visualizza tutti
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <?php if ($finanziamenti['failed']): ?>
+                            <p class="text-danger">Errore nel recupero dei finanziamenti.</p>
+                        <?php elseif (empty($finanziamenti['data'])): ?>
+                            <p>Nessun finanziamento registrato.</p>
+                            <a href="<?php echo htmlspecialchars(generate_url('progetti')); ?>" class="btn btn-primary">
+                                Esplora progetti da finanziare
+                            </a>
+                        <?php else: ?>
                             <div class="list-group">
                                 <?php
-                                // Mostra solo i primi 5 finanziamenti più recenti
-                                $recent_fin = array_slice($finanziamenti, 0, 5);
+                                // SOLO 5 FINANZIAMENTI PIÙ RECENTI
+                                $recent_fin = array_slice($finanziamenti['data'], 0, 5);
                                 foreach ($recent_fin as $finanziamento):
                                     ?>
                                     <div class="list-group-item">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <h5 class="mb-1">
-                                                <a href="../public/progetto_dettagli.php?nome=<?php echo urlencode($finanziamento['nome_progetto']); ?>">
+                                                <a href="<?php echo htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $finanziamento['nome_progetto']])); ?>">
                                                     <?php echo htmlspecialchars($finanziamento['nome_progetto']); ?>
                                                 </a>
                                             </h5>
                                             <span class="badge bg-success">
-                                                <?php echo htmlspecialchars(number_format($finanziamento['importo'], 2)); ?>€
-                                            </span>
+                                            <?php echo htmlspecialchars(number_format($finanziamento['importo'], 2)); ?>€
+                                        </span>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <p class="mb-0 small text-muted">
@@ -294,21 +313,17 @@ try {
                                     </div>
                                 <?php endforeach; ?>
                             </div>
-                            <?php if (count($finanziamenti) > 5): ?>
+                            <?php if (count($finanziamenti['data']) > 5): ?>
                                 <div class="text-center mt-3">
-                                    <a href="../public/finanziamenti.php" class="btn btn-outline-warning">
-                                        Visualizza tutti i <?php echo count($finanziamenti); ?> finanziamenti
+                                    <a href="<?php echo htmlspecialchars(generate_url('finanziamenti')); ?>" class="btn btn-outline-warning">
+                                        Visualizza tutti i <?php echo count($finanziamenti['data']); ?> finanziamenti
                                     </a>
                                 </div>
                             <?php endif; ?>
-                        <?php else: ?>
-                            <p>Nessun finanziamento registrato.</p>
-                            <a href="../public/progetti.php" class="btn btn-primary">Esplora progetti da finanziare</a>
                         <?php endif; ?>
-                    <?php endif; ?>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 <?php require '../components/footer.php'; ?>

@@ -53,7 +53,7 @@ $context = [
         'p_email_creatore' => $email
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === ACTION ===
 // AGGIORNAMENTO DEL COMPONENTE ESISTENTE

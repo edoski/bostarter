@@ -43,7 +43,7 @@ $context = [
         'p_risposta' => $risposta
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === ACTION ===
 // INSERIMENTO DELLA RISPOSTA AL COMMENTO

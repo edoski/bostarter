@@ -43,7 +43,7 @@ $context = [
         'p_importo' => $importo
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === ACTION ===
 // INSERIMENTO DEL FINANZIAMENTO

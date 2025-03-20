@@ -51,7 +51,7 @@ $context = [
         'p_tipo' => $tipo
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === VALIDATION ===
 // L'UTENTE È UN CREATORE

@@ -43,7 +43,7 @@ $context = [
         'p_email' => $email
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === ACTION ===
 // AGGIORNAMENTO DEL BUDGET

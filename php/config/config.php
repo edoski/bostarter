@@ -11,7 +11,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
  *
  * @throws Exception
  */
-function requireEnv(string $key): string
+function require_env(string $key): string
 {
     $value = getenv($key);
     if ($value === false) {
@@ -22,14 +22,14 @@ function requireEnv(string $key): string
 
 try {
     // MySQL Configuration
-    define("DB_HOST", requireEnv('DB_HOST'));
-    define("DB_NAME", requireEnv('DB_NAME'));
-    define("DB_USER", requireEnv('DB_USER'));
-    define("DB_PASS", requireEnv('DB_PASS'));
+    define("DB_HOST", require_env('DB_HOST'));
+    define("DB_NAME", require_env('DB_NAME'));
+    define("DB_USER", require_env('DB_USER'));
+    define("DB_PASS", require_env('DB_PASS'));
 
     // MongoDB Configuration
-    define("MONGO_URI", requireEnv('MONGO_URI'));
-    define("MONGO_DB", requireEnv('MONGO_DB'));
+    define("MONGO_URI", require_env('MONGO_URI'));
+    define("MONGO_DB", require_env('MONGO_DB'));
 } catch (Exception $e) {
     error_log("Errore di configurazione: " . $e->getMessage());
 }
@@ -54,6 +54,4 @@ try {
 // === FUNCTIONS ===
 // Funzioni per invocare le stored procedure, controlli di sicurezza, logging, ecc.
 // Includo tutti i file nella directory "/functions"
-foreach (glob(__DIR__ . '/../functions/*.php') as $filename) {
-    require_once $filename;
-}
+foreach (glob(__DIR__ . '/../functions/*.php') as $filename) require_once $filename;

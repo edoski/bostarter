@@ -62,7 +62,7 @@ $context = [
         'p_codice_sicurezza' => password_hash($codice_sicurezza, PASSWORD_DEFAULT) // Memorizzo hashed codice_sicurezza, non plaintext
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === VALIDATION ===
 // L'EMAIL È VALIDA

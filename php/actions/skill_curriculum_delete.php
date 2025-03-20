@@ -38,7 +38,7 @@ $context = [
         'p_competenza' => $competenza
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === ACTION ===
 // RIMOZIONE DELLA SKILL DAL CURRICULUM

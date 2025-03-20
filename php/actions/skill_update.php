@@ -26,6 +26,7 @@ check_POST(['vecchia_competenza', 'nuova_competenza']);
 $vecchia_competenza = $_POST['vecchia_competenza'];
 $nuova_competenza = $_POST['nuova_competenza'];
 $email = $_SESSION['email'];
+$is_admin = $_SESSION['is_admin'];
 
 // === CONTEXT ===
 $context = [
@@ -40,12 +41,12 @@ $context = [
         'p_nuova_competenza' => $nuova_competenza
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === VALIDATION ===
 // L'UTENTE È UN AMMINISTRATORE
 $pipeline->check(
-    !isset($_SESSION['is_admin']) || !$_SESSION['is_admin'],
+    !isset($is_admin) || !$is_admin,
     "Non sei autorizzato ad effettuare questa operazione."
 );
 

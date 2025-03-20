@@ -1,70 +1,57 @@
 <?php
-// === CONFIG ===
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === VARIABLES ===
+$email = $_SESSION['email'];
+$is_admin = $_SESSION['is_admin'];
 
-// === DATABASE ===
-// Recupero le skill associate all'utente.
-try {
-    $in = ['p_email' => $_SESSION['email']];
-    $skillUtente = sp_invoke('sp_skill_curriculum_selectAll', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore nel recupero delle skill: " . $ex->errorInfo[2],
-        '../public/home.php'
-    );
-}
+// === CONTEXT ===
+$context = [
+    'collection' => 'SKILL_CURRICULUM',
+    'action' => 'VIEW',
+    'email' => $email,
+    'in' => ['p_email' => $email]
+];
+$pipeline = new EventPipeline($context);
 
-// Recupero tutte le skill globali.
-try {
-    $skillGlobali = sp_invoke('sp_skill_selectAll');
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore nel recupero delle skill globali: " . $ex->errorInfo[2],
-        '../public/home.php'
-    );
-}
+// === DATA ===
+// RECUPERO SKILL ASSOCIATE AL CURRICULUM DELL'UTENTE
+$skill_utente = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
 
-// Recupero le skill disponibili che l'utente non ha ancora associato al proprio profilo.
-try {
-    $in = ['p_email' => $_SESSION['email']];
-    $skillDisponibili = sp_invoke('sp_skill_curriculum_selectDiff', $in);
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore nel recupero delle skill disponibili: " . $ex->errorInfo[2],
-        '../public/home.php'
-    );
-}
+// RECUPERO SKILL GLOBALI
+$skill_globali = $pipeline->fetch_all('sp_skill_selectAll');
+
+// RECUPERO SKILL CHE L'UTENTE NON HA ANCORA ASSOCIATO AL PROPRIO CURRICULUM
+$skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
 ?>
 
+<!-- === PAGE ===-->
 <?php require '../components/header.php'; ?>
     <div class="container my-4">
-        <!-- Messaggio di successo/errore post-azione -->
+        <!-- ALERT -->
         <?php include '../components/error_alert.php'; ?>
         <?php include '../components/success_alert.php'; ?>
 
+        <!-- TITOLO -->
         <h1 class="mb-4">Curriculum</h1>
 
-        <!-- Top row -->
         <div class="row g-4">
-            <!-- My Skills Section -->
+            <!-- SKILL CURRICULUM -->
             <div class="col-12">
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white">
                         <h4 class="mb-0">Le mie Skill</h4>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted fst-italic mb-3">Queste sono le skill attualmente associate al tuo
-                            profilo.</p>
-
-                        <?php if (!empty($skillUtente)): ?>
+                        <p class="text-muted fst-italic mb-3">Queste sono le skill attualmente associate al tuo profilo.</p>
+                        <?php if ($skill_utente['failed']): ?>
+                            <p class="text-center">C'è stato un errore nel recupero delle skill.</p>
+                        <?php elseif (empty($skill_utente['data'])): ?>
+                            <p class="text-center">Non hai ancora aggiunto nessuna skill.</p>
+                        <?php else: ?>
                             <div class="table-responsive">
                                 <table class="table table-striped">
                                     <thead>
@@ -76,8 +63,7 @@ try {
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <?php $rank = 1; ?>
-                                    <?php foreach ($skillUtente as $skill): ?>
+                                    <?php $rank = 1; foreach ($skill_utente['data'] as $skill): ?>
                                         <tr>
                                             <td><?php echo $rank++; ?></td>
                                             <td><?php echo htmlspecialchars($skill['competenza']); ?></td>
@@ -90,7 +76,7 @@ try {
                                                 </div>
                                             </td>
                                             <td class="text-end">
-                                                <a href="../public/curriculum_skill_update.php?competenza=<?php echo urlencode($skill['competenza']); ?>&livello=<?php echo $skill['livello_effettivo']; ?>"
+                                                <a href="<?php echo htmlspecialchars(generate_url('curriculum_skill_update', ['competenza' => $skill['competenza'], 'livello' => $skill['livello_effettivo']])); ?>"
                                                    class="btn btn-sm btn-warning">
                                                     Modifica
                                                 </a>
@@ -109,8 +95,6 @@ try {
                                     </tbody>
                                 </table>
                             </div>
-                        <?php else: ?>
-                            <p class="text-center">Non hai ancora aggiunto nessuna skill.</p>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -132,14 +116,20 @@ try {
                             <div class="row">
                                 <div class="col-md-5 mb-3">
                                     <label for="skill" class="form-label fw-bold">Skill Disponibile</label>
+                                    <?php if ($skill_disponibili['failed']): ?>
+                                        <p class="text-muted">C'è stato un errore nel recupero delle skill.</p>
+                                    <?php elseif (empty($skill_disponibili['data'])): ?>
+                                        <p class="text-muted">Non ci sono altre skill disponibili.</p>
+                                    <?php else: ?>
                                     <select name="competenza" id="skill" class="form-select" required>
                                         <option value="">Seleziona una skill</option>
-                                        <?php foreach ($skillDisponibili as $skill): ?>
+                                        <?php foreach ($skill_disponibili['data'] as $skill): ?>
                                             <option value="<?php echo htmlspecialchars($skill['competenza']); ?>">
                                                 <?php echo htmlspecialchars($skill['competenza']); ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
+                                    <?php endif; ?>
                                 </div>
                                 <div class="col-md-5 mb-3">
                                     <label for="livello" class="form-label fw-bold">Livello (0-5)</label>
@@ -156,7 +146,7 @@ try {
             </div>
         </div>
 
-        <!-- Bottom row - Global Skills Section (Admin Only) -->
+        <!-- GLOBAL SKILL (ADMIN) -->
         <?php if ($_SESSION['is_admin']): ?>
             <div class="row g-4 mt-4">
                 <div class="col-12">
@@ -169,7 +159,6 @@ try {
                                 Aggiungi o modifica le skill disponibili globalmente per tutti gli utenti.
                             </p>
 
-                            <!-- Add Global Skill -->
                             <form action="../actions/skill_insert.php" method="POST" class="mb-4">
                                 <div class="row">
                                     <div class="col-md-9 mb-3">
@@ -198,19 +187,28 @@ try {
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <?php $rank = 1; ?>
-                                    <?php foreach ($skillGlobali as $skill): ?>
+                                    <?php if ($skill_globali['failed']): ?>
+                                        <tr>
+                                            <td colspan="3" class="text-center">C'è stato un errore nel recupero delle skill.</td>
+                                        </tr>
+                                    <?php elseif (empty($skill_globali['data'])): ?>
+                                        <tr>
+                                            <td colspan="3" class="text-center">Non ci sono skill globali.</td>
+                                        </tr>
+                                    <?php else: ?>
+                                    <?php $rank = 1; foreach ($skill_globali['data'] as $skill): ?>
                                         <tr>
                                             <td><?php echo $rank++; ?></td>
                                             <td><?php echo htmlspecialchars($skill['competenza']); ?></td>
                                             <td class="text-end">
-                                                <a href="../public/curriculum_skill_global_update.php?competenza=<?php echo urlencode($skill['competenza']); ?>"
+                                                <a href="<?php echo htmlspecialchars(generate_url('curriculum_skill_global_update', ['competenza' => $skill['competenza']])); ?>"
                                                    class="btn btn-sm btn-warning">
                                                     Modifica
                                                 </a>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
+                                    <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>

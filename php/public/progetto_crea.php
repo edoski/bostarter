@@ -1,22 +1,34 @@
-<?php
-// === CONFIG ===
+3<?php
+// === SETUP ===
 session_start();
 require '../config/config.php';
+check_auth();
 
-// === CHECKS ===
-// 1. L'utente ha effettuato il login
-checkAuth();
+// === CONTEXT ===
+$context = [
+    'collection' => 'PROGETTO_CREA',
+    'action' => 'VIEW',
+    'email' => $_SESSION['email'],
+    'redirect' => generate_url('home')
+];
+$pipeline = new EventPipeline($context);
 
-// 2. L'utente è un creatore
-checkCreatore();
+// === VALIDATION ===
+// L'UTENTE È UN CREATORE
+$pipeline->check(
+    !isset($_SESSION['is_creatore']) || !$_SESSION['is_creatore'],
+    "Non sei autorizzato ad effettuare questa operazione."
+);
 ?>
 
+<!-- === PAGE === -->
 <?php require '../components/header.php'; ?>
 <div class="container my-4">
-    <!-- Messaggio di successo/errore post-azione -->
+    <!-- ALERT -->
     <?php include '../components/error_alert.php'; ?>
     <?php include '../components/success_alert.php'; ?>
 
+    <!-- TITOLO -->
     <h1 class="mb-4">Crea Nuovo Progetto</h1>
 
     <div class="card shadow-sm">

@@ -333,45 +333,45 @@ CALL sp_progetto_insert(
 -- ==================================================
 -- === ProgettoBeta ===
 CALL sp_componente_insert(
-        'Comp1',
+        'Viti',
         'ProgettoBeta',
-        'Viti di alta qualità',
+        'Ut eu ullamco quis voluptate est incididunt duis eiusmod culpa et.',
         100,
         0.50,
         'diana@example.com'
      );
 
 CALL sp_componente_insert(
-        'Comp2',
-        'ProgettoBeta',
         'Circuiti stampati',
+        'ProgettoBeta',
+        'Tempor veniam ut culpa commodo ipsum do laboris laborum minim elit.',
         10,
         150.00,
         'diana@example.com'
      );
 
 CALL sp_componente_insert(
-        'Comp3',
-        'ProgettoBeta',
         'LED RGB',
+        'ProgettoBeta',
+        'Fugiat et quis labore occaecat qui id do pariatur culpa.',
         50,
         1.00,
         'diana@example.com'
      );
 
 CALL sp_componente_insert(
-        'Comp4',
-        'ProgettoBeta',
         'Metallo lavorato',
+        'ProgettoBeta',
+        'Cupidatat excepteur ea aute commodo amet qui.',
         30,
         200.00,
         'diana@example.com'
      );
 
 CALL sp_componente_insert(
-        'Comp5',
-        'ProgettoBeta',
         'Sensori di movimento',
+        'ProgettoBeta',
+        'Ullamco dolore nisi dolor pariatur tempor pariatur esse quis.',
         15,
         350.00,
         'diana@example.com'

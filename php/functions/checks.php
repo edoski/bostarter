@@ -48,27 +48,6 @@ function is_progetto_owner(string $email, string $nome_progetto): bool
 }
 
 /**
- * Controlla se il progetto è aperto. Se non lo è, lancia un errore e reindirizza alla pagina del progetto.
- *
- * @param string $nome_progetto Il nome del progetto da controllare.
- *
- * @throws PDOException Se il progetto è chiuso.
- */
-function check_progetto_aperto(string $nome_progetto): void
-{
-    try {
-        $in = ['p_nome_progetto' => $nome_progetto];
-        sp_invoke('sp_util_progetto_is_aperto', $in);
-    } catch (PDOException) {
-        redirect(
-            false,
-            "Il progetto è chiuso.",
-            "../public/progetto_dettagli.php?nome=" . urlencode($nome_progetto)
-        );
-    }
-}
-
-/**
  * Verifica che tutte le variabili specificate siano impostate in $_POST.
  * Se una variabile non è impostata, reindirizza (default a home.php) con un messaggio di errore.
  *
@@ -81,6 +60,25 @@ function check_POST(array $post): void
             redirect(
                 false,
                 "Errore nel passaggio di variabili POST (Parametro mancante: '$var')",
+                "../public/home.php"
+            );
+        }
+    }
+}
+
+/**
+ * Verifica che tutte le variabili specificate siano impostate in $_GET.
+ * Se una variabile non è impostata, reindirizza (default a home.php) con un messaggio di errore.
+ *
+ * @param array $get Array di nomi delle variabili da controllare in $_GET.
+ */
+function check_GET(array $get): void
+{
+    foreach ($get as $var) {
+        if (!isset($_GET[$var])) {
+            redirect(
+                false,
+                "Errore nel passaggio di variabili GET (Parametro mancante: '$var')",
                 "../public/home.php"
             );
         }

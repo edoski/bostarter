@@ -43,7 +43,7 @@ $context = [
         'p_email_creatore' => $email
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === ACTION ===
 // RIMOZIONE DELLA COMPETENZA DAL PROFILO

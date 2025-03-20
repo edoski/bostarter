@@ -40,7 +40,7 @@ $context = [
         'p_commento' => $commento
     ]
 ];
-$pipeline = new ActionPipeline($context);
+$pipeline = new EventPipeline($context);
 
 // === VALIDATION ===
 // IL COMMENTO NON PUÒ ESSERE VUOTO
