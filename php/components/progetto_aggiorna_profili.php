@@ -1,69 +1,53 @@
 <?php
-// === DATABASE ===
-try {
-    // Recupero tutti i profili del progetto
-    $in = ['p_nome_progetto' => $_GET['nome']];
-    $result = sp_invoke('sp_profilo_selectAllByProgetto', $in);
+// === VARIABLES ===
+$profilo_selezionato = $_GET['profilo'] ?? '';
+$competenza_selezionata = $_GET['competenza'] ?? '';
+$livello_selezionato = $_GET['livello'] ?? 0;
+$competenze_selezionate = [];
+$competenze_disponibili = [];
 
-    // Organizzo i risultati per profilo
-    foreach ($result as $row) {
-        $profili[$row['nome_profilo']][] = [
-            'competenza' => $row['competenza'] ?? '',
-            'livello' => $row['livello_richiesto'] ?? ''
+// === DATA ===
+// PROFILI E RELATIVE COMPETENZE
+$profili = $pipeline->fetch_all('sp_profilo_selectAllByProgetto', ['p_nome_progetto' => $_GET['nome']]);
+
+// ORGANIZZAZIONE DATI PER PROFILO
+$profilo_data = [];
+foreach ($profili['data'] as $row) {
+    $nome = $row['nome_profilo'];
+    if (!isset($profilo_data[$nome])) {
+        $profilo_data[$nome] = [];
+    }
+
+    if (!empty($row['competenza'])) {
+        $profilo_data[$nome][] = [
+            'competenza' => $row['competenza'],
+            'livello' => $row['livello_richiesto']
         ];
     }
-
-    // Rimuovo le entry vuote (accade quando viene appena creato un profilo, prima di aggiungere competenze)
-    foreach ($profili as $profiloName => &$competenze) {
-        $competenze = array_filter($competenze, function($item) {
-            return !empty($item['competenza']);
-        });
-    }
-    unset($competenze); // Important: unset reference per evitare side effects
-
-    // Recupero tutte le competenze disponibili
-    $competenzeGlobali = sp_invoke('sp_skill_selectAll');
-} catch (PDOException $ex) {
-    redirect(
-        false,
-        "Errore durante il recupero dei profili: " . $ex->errorInfo[2],
-        "../public/progetto_dettagli.php?nome=" . urlencode($_GET['nome'])
-    );
 }
+$profili = $profilo_data;
 
-// Controlla se stiamo modificando un profilo specifico o una competenza
-$profiloSelezionato = $_GET['profilo'] ?? '';
-$competenzaSelezionata = $_GET['competenza'] ?? '';
-$livelloSelezionato = $_GET['livello'] ?? 0;
-$competenzeSelezionate = [];
-$competenzeDisponibili = [];
+// COMPETENZE GLOBALI
+$competenze_globali = $pipeline->fetch_all('sp_skill_selectAll');
 
 // Se stiamo modificando un profilo specifico
-if (!empty($profiloSelezionato)) {
-    if (isset($profili[$profiloSelezionato])) {
+if (!empty($profilo_selezionato)) {
+    if (isset($profili[$profilo_selezionato])) {
         // Filtra le competenze per rimuovere elementi vuoti
-        $competenzeSelezionate = array_filter($profili[$profiloSelezionato], function($item) {
+        $competenze_selezionate = array_filter($profili[$profilo_selezionato], function ($item) {
             return !empty($item['competenza']);
         });
 
         // Ottieni le competenze non ancora associate a questo profilo
-        try {
             $in = [
-                'p_nome_profilo' => $profiloSelezionato,
+                'p_nome_profilo' => $profilo_selezionato,
                 'p_nome_progetto' => $_GET['nome']
             ];
-            $competenzeDisponibili = sp_invoke('sp_skill_profilo_selectDiff', $in);
-        } catch (PDOException $ex) {
-            redirect(
-                false,
-                "Errore durante il recupero delle competenze disponibili: " . $ex->errorInfo[2],
-                "../public/progetto_aggiorna.php?attr=profili&nome=" . urlencode($_GET['nome'])
-            );
-        }
+            $competenze_disponibili = $pipeline->fetch_all('sp_skill_profilo_selectDiff', $in)['data'];
     }
 } else {
     // Se stiamo creando un nuovo profilo, tutte le competenze sono disponibili
-    $competenzeDisponibili = $competenzeGlobali;
+    $competenze_disponibili = $competenze_globali;
 }
 ?>
 

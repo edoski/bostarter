@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Classe per la gestione di eventi e interazioni con il database.
  * - Permette di eseguire una serie di controlli in sequenza e, se uno di essi fallisce, lancia un errore.
@@ -67,7 +68,7 @@ class EventPipeline
             $data = !empty($result) ? $result[0] : [];
             return $pass_through ? ['data' => $data, 'failed' => false] : $data;
         } catch (PDOException $ex) {
-            return $this->extracted($ex, $pass_through, $collection, $action, $procedure, $email, $params, $redirect);
+            return $this->handle_fetch_ex($ex, $pass_through, $collection, $action, $procedure, $email, $params, $redirect);
         }
     }
 
@@ -99,7 +100,7 @@ class EventPipeline
             $data = sp_invoke($procedure, $params);
             return $pass_through ? ['data' => $data, 'failed' => false] : $data;
         } catch (PDOException $ex) {
-            return $this->extracted($ex, $pass_through, $collection, $action, $procedure, $email, $params, $redirect);
+            return $this->handle_fetch_ex($ex, $pass_through, $collection, $action, $procedure, $email, $params, $redirect);
         }
     }
 
@@ -155,17 +156,21 @@ class EventPipeline
     }
 
     /**
-     * @param PDOException|Exception $ex
-     * @param bool $pass_through
-     * @param mixed $collection
-     * @param mixed $action
-     * @param mixed $procedure
-     * @param mixed $email
-     * @param mixed $params
-     * @param mixed $redirect
-     * @return array
+     * Gestisce le eccezioni durante le operazioni di database.
+     * Registra l'errore e, in base al parametro pass_through, restituisce uno stato di fallimento o reindirizza l'utente.
+     *
+     * @param PDOException|Exception $ex L'eccezione lanciata durante l'operazione di database
+     * @param bool $pass_through Se true, l'errore viene registrato e viene restituito uno stato di fallimento senza reindirizzamento; se false, l'errore viene registrato e l'utente viene reindirizzato
+     * @param string $collection Il nome della collezione/tabella associata all'operazione
+     * @param string $action L'azione in corso (es. VIEW, UPDATE, INSERT)
+     * @param string $procedure La stored procedure che era in esecuzione
+     * @param string $email L'email dell'utente che esegue l'azione
+     * @param array $params I parametri passati alla stored procedure
+     * @param string $redirect L'URL a cui reindirizzare in caso di errore quando pass_through è false
+     *
+     * @return array Quando pass_through è true, restituisce un array con chiavi 'data', 'failed' e 'error'; quando pass_through è false, restituisce un array vuoto (non utilizzato perché l'utente viene reindirizzato)
      */
-    private function extracted(PDOException|Exception $ex, bool $pass_through, mixed $collection, mixed $action, mixed $procedure, mixed $email, mixed $params, mixed $redirect): array
+    private function handle_fetch_ex(PDOException|Exception $ex, bool $pass_through, string $collection, string $action, string $procedure, string $email, array $params, string $redirect): array
     {
         $error_message = "Errore durante l'operazione: " . $ex->errorInfo[2];
 

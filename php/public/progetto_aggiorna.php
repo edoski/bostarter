@@ -14,7 +14,7 @@ $attr = $_GET['attr'];
 
 // === CONTEXT ===
 $context = [
-    'collection' => 'PROGETTO',
+    'collection' => 'PROGETTO_AGGIORNA',
     'action' => 'VIEW',
     'email' => $email,
     'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto])
@@ -48,7 +48,7 @@ $progetto['tipo'] = $pipeline->fetch('sp_util_progetto_type', $in)['tipo_progett
     <!-- TORNA INDIETRO -->
     <div class="d-flex justify-content-start">
         <button class="btn btn-warning mb-3">
-            <a href="<?php echo htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $nome_progetto])); ?>"
+            <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $nome_progetto])); ?>"
                class="text-black text-decoration-none">Torna al Progetto</a>
         </button>
     </div>

@@ -78,7 +78,7 @@ if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url(
                             id="anno_nascita"
                             name="anno_nascita"
                             placeholder="Inserisci il tuo anno di nascita"
-                            max="<?php echo date('Y') - 18; ?>"
+                            max="<?= date('Y') - 18; ?>"
                             required>
                 </div>
 
@@ -159,7 +159,7 @@ if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url(
 
             <!-- LOGIN -->
             <p class="text-center mt-3">
-                Hai già un account? <a href="<?php echo htmlspecialchars(generate_url('login')); ?>">Accedi</a>
+                Hai già un account? <a href="<?= htmlspecialchars(generate_url('login')); ?>">Accedi</a>
             </p>
         </div>
     </div>

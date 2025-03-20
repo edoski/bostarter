@@ -90,15 +90,15 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-6">
-                                                <p><strong>Nome:</strong> <?php echo htmlspecialchars($nome); ?></p>
-                                                <p><strong>Email:</strong> <?php echo htmlspecialchars($email); ?></p>
-                                                <p><strong>Anno di nascita:</strong> <?php echo htmlspecialchars($anno_nascita); ?>
+                                                <p><strong>Nome:</strong> <?= htmlspecialchars($nome); ?></p>
+                                                <p><strong>Email:</strong> <?= htmlspecialchars($email); ?></p>
+                                                <p><strong>Anno di nascita:</strong> <?= htmlspecialchars($anno_nascita); ?>
                                                 </p>
                                             </div>
                                             <div class="col-6">
-                                                <p><strong>Cognome:</strong> <?php echo htmlspecialchars($cognome); ?></p>
-                                                <p><strong>Nickname:</strong> <?php echo htmlspecialchars($nickname); ?></p>
-                                                <p><strong>Luogo di nascita:</strong> <?php echo htmlspecialchars($luogo_nascita); ?></p>
+                                                <p><strong>Cognome:</strong> <?= htmlspecialchars($cognome); ?></p>
+                                                <p><strong>Nickname:</strong> <?= htmlspecialchars($nickname); ?></p>
+                                                <p><strong>Luogo di nascita:</strong> <?= htmlspecialchars($luogo_nascita); ?></p>
                                             </div>
                                         </div>
                                     </div>
@@ -116,9 +116,9 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                                             <!-- SKILL UTENTE -->
                                             <div class="col-md-4">
                                                 <div class="d-flex align-items-center mb-2">
-                                                    <span class="badge bg-primary me-2"><?php echo count($skills['data'] ?? 0); ?></span>
+                                                    <span class="badge bg-primary me-2"><?= count($skills['data'] ?? 0); ?></span>
                                                     <strong>
-                                                        <a href="<?php echo htmlspecialchars(generate_url('curriculum')); ?>" class="text-primary">
+                                                        <a href="<?= htmlspecialchars(generate_url('curriculum')); ?>" class="text-primary">
                                                             Competenze
                                                         </a>
                                                     </strong>
@@ -140,9 +140,9 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                                             <!-- CANDIDATURE UTENTE -->
                                             <div class="col-md-4">
                                                 <div class="d-flex align-items-center mb-2">
-                                                    <span class="badge bg-primary me-2"><?php echo count($candidature['data'] ?? 0); ?></span>
+                                                    <span class="badge bg-primary me-2"><?= count($candidature['data'] ?? 0); ?></span>
                                                     <strong>
-                                                        <a href="<?php echo htmlspecialchars(generate_url('candidature')); ?>" class="text-primary">
+                                                        <a href="<?= htmlspecialchars(generate_url('candidature')); ?>" class="text-primary">
                                                             Candidature
                                                         </a>
                                                     </strong>
@@ -164,9 +164,9 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                                             <!-- FINANZIAMENTI UTENTE -->
                                             <div class="col-md-4">
                                                 <div class="d-flex align-items-center mb-2">
-                                                    <span class="badge bg-primary me-2"><?php echo count($finanziamenti); ?></span>
+                                                    <span class="badge bg-primary me-2"><?= count($finanziamenti); ?></span>
                                                     <strong>
-                                                        <a href="<?php echo htmlspecialchars(generate_url('finanziamenti')); ?>" class="text-primary">
+                                                        <a href="<?= htmlspecialchars(generate_url('finanziamenti')); ?>" class="text-primary">
                                                             Finanziamenti
                                                         </a>
                                                     </strong>
@@ -178,7 +178,7 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                                                     <p class="small text-muted">Nessun finanziamento effettuato</p>
                                                 <?php else: ?>
                                                     <p class="small text-muted">
-                                                        Totale: <?php echo number_format($totale_finanziamenti, 2); ?>
+                                                        Totale: <?= number_format($totale_finanziamenti, 2); ?>
                                                         €</p>
                                                 <?php endif; ?>
                                             </div>
@@ -191,14 +191,14 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                                                 <!-- PROGETTI CREATI -->
                                                 <div class="col-4">
                                                     <div class="d-flex align-items-center mb-2">
-                                                        <span class="badge bg-primary me-2"><?php echo htmlspecialchars($nr_progetti); ?></span>
+                                                        <span class="badge bg-primary me-2"><?= htmlspecialchars($nr_progetti); ?></span>
                                                         <strong>Progetti</strong>
                                                     </div>
                                                 </div>
                                                 <!-- PARTECIPANTI -->
                                                 <div class="col-4">
                                                     <div class="d-flex align-items-center mb-2">
-                                                        <span class="badge bg-primary me-2"><?php echo htmlspecialchars($tot_partecipanti); ?></span>
+                                                        <span class="badge bg-primary me-2"><?= htmlspecialchars($tot_partecipanti); ?></span>
                                                         <strong>Partecipanti</strong>
                                                     </div>
                                                 </div>
@@ -208,10 +208,10 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                                                         <div class="progress w-50 position-relative"
                                                              style="height: 20px;">
                                                             <div class="progress-bar fw-bold bg-success"
-                                                                 style="width: <?php echo htmlspecialchars($_SESSION['affidabilita']); ?>%; height: 100%;">
+                                                                 style="width: <?= htmlspecialchars($_SESSION['affidabilita']); ?>%; height: 100%;">
                                                             </div>
                                                             <div class="position-absolute top-50 start-50 translate-middle text-center fw-bold text-black">
-                                                                <?php echo htmlspecialchars($affidabilita); ?>%
+                                                                <?= htmlspecialchars($affidabilita); ?>%
                                                             </div>
                                                         </div>
                                                         <strong class="mx-2">Affidabilità</strong>
@@ -236,7 +236,7 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                     <div class="card shadow-sm h-100">
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <h4 class="mb-0">I tuoi progetti</h4>
-                            <a href="<?php echo htmlspecialchars(generate_url('progetto_crea')); ?>" class="btn btn-sm btn-light">
+                            <a href="<?= htmlspecialchars(generate_url('progetto_crea')); ?>" class="btn btn-sm btn-light">
                                 Crea Nuovo
                             </a>
                         </div>
@@ -248,15 +248,15 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                             <?php else: ?>
                                 <div class="list-group">
                                     <?php foreach ($progetti['data'] as $index => $progetto): ?>
-                                        <a href="<?php echo htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $progetto['nome']])); ?>"
+                                        <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $progetto['nome']])); ?>"
                                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                                             <div>
-                                                <h5 class="mb-1"><?php echo htmlspecialchars($progetto['nome']); ?></h5>
+                                                <h5 class="mb-1"><?= htmlspecialchars($progetto['nome']); ?></h5>
                                                 <p class="mb-1 small text-muted">
-                                                    Budget: <?php echo number_format($progetto['budget'], 2); ?>€</p>
+                                                    Budget: <?= number_format($progetto['budget'], 2); ?>€</p>
                                             </div>
-                                            <span class="badge <?php echo $progetto['stato'] === 'aperto' ? 'bg-success' : 'bg-danger'; ?>">
-                                                <?php echo strtoupper(htmlspecialchars($progetto['stato'])); ?>
+                                            <span class="badge <?= $progetto['stato'] === 'aperto' ? 'bg-success' : 'bg-danger'; ?>">
+                                                <?= strtoupper(htmlspecialchars($progetto['stato'])); ?>
                                             </span>
                                         </a>
                                     <?php endforeach; ?>
@@ -268,11 +268,11 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
             <?php endif; ?>
 
             <!-- FINANZIAMENTI RECENTI -->
-            <div class="col-12 <?php echo $is_creatore ? 'col-md-6' : 'col-md-12'; ?>">
+            <div class="col-12 <?= $is_creatore ? 'col-md-6' : 'col-md-12'; ?>">
                 <div class="card shadow-sm h-100">
                     <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
                         <h4 class="mb-0">Finanziamenti recenti</h4>
-                        <a href="<?php echo htmlspecialchars(generate_url('finanziamenti')); ?>" class="btn btn-sm btn-light">
+                        <a href="<?= htmlspecialchars(generate_url('finanziamenti')); ?>" class="btn btn-sm btn-light">
                             Visualizza tutti
                         </a>
                     </div>
@@ -281,7 +281,7 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                             <p class="text-danger">Errore nel recupero dei finanziamenti.</p>
                         <?php elseif (empty($finanziamenti['data'])): ?>
                             <p>Nessun finanziamento registrato.</p>
-                            <a href="<?php echo htmlspecialchars(generate_url('progetti')); ?>" class="btn btn-primary">
+                            <a href="<?= htmlspecialchars(generate_url('progetti')); ?>" class="btn btn-primary">
                                 Esplora progetti da finanziare
                             </a>
                         <?php else: ?>
@@ -294,20 +294,20 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                                     <div class="list-group-item">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <h5 class="mb-1">
-                                                <a href="<?php echo htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $finanziamento['nome_progetto']])); ?>">
-                                                    <?php echo htmlspecialchars($finanziamento['nome_progetto']); ?>
+                                                <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $finanziamento['nome_progetto']])); ?>">
+                                                    <?= htmlspecialchars($finanziamento['nome_progetto']); ?>
                                                 </a>
                                             </h5>
                                             <span class="badge bg-success">
-                                            <?php echo htmlspecialchars(number_format($finanziamento['importo'], 2)); ?>€
+                                            <?= htmlspecialchars(number_format($finanziamento['importo'], 2)); ?>€
                                         </span>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center">
                                             <p class="mb-0 small text-muted">
-                                                Reward: <?php echo htmlspecialchars($finanziamento['codice_reward']); ?>
+                                                Reward: <?= htmlspecialchars($finanziamento['codice_reward']); ?>
                                             </p>
                                             <small>
-                                                <?php echo htmlspecialchars($finanziamento['data']); ?>
+                                                <?= htmlspecialchars($finanziamento['data']); ?>
                                             </small>
                                         </div>
                                     </div>
@@ -315,8 +315,8 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                             </div>
                             <?php if (count($finanziamenti['data']) > 5): ?>
                                 <div class="text-center mt-3">
-                                    <a href="<?php echo htmlspecialchars(generate_url('finanziamenti')); ?>" class="btn btn-outline-warning">
-                                        Visualizza tutti i <?php echo count($finanziamenti['data']); ?> finanziamenti
+                                    <a href="<?= htmlspecialchars(generate_url('finanziamenti')); ?>" class="btn btn-outline-warning">
+                                        Visualizza tutti i <?= count($finanziamenti['data']); ?> finanziamenti
                                     </a>
                                 </div>
                             <?php endif; ?>

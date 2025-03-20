@@ -1,5 +1,5 @@
 <?php
-// === DATABASE ===
+// === DATA ===
 try {
     // Recupero tutti i componenti del progetto
     $in = ['p_nome_progetto' => $_GET['nome']];
@@ -13,8 +13,8 @@ try {
 }
 
 // Controlla se stiamo modificando un componente specifico
-$componenteSelezionato = $_GET['componente'] ?? '';
-$nuovo_componente = empty($componenteSelezionato);
+$componente_selezionato = $_GET['componente'] ?? '';
+$nuovo_componente = empty($componente_selezionato);
 
 // Recupera il budget attuale del progetto
 try {
@@ -33,7 +33,7 @@ try {
 if (!$nuovo_componente) {
     try {
         foreach ($componenti as $componente) {
-            if ($componente['nome_componente'] == $componenteSelezionato) {
+            if ($componente['nome_componente'] == $componente_selezionato) {
                 $componenteCorrente = $componente;
                 break;
             }

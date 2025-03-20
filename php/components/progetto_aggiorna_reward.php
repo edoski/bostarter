@@ -25,18 +25,18 @@ try {
                     <div class="flex-shrink-0 w-25 p-2">
                         <div class="card shadow-sm">
                             <div class="card-header">
-                                <p class="fw-bold"><?php echo htmlspecialchars($reward['codice']); ?></p>
+                                <p class="fw-bold"><?= htmlspecialchars($reward['codice']); ?></p>
                             </div>
                             <div class="card-body">
                                 <p class="fw-bold">
                                     Importo minimo:
-                                    <?php echo htmlspecialchars(number_format($reward['min_importo'], 2)); ?>€
+                                    <?= htmlspecialchars(number_format($reward['min_importo'], 2)); ?>€
                                 </p>
-                                <p><?php echo htmlspecialchars($reward['descrizione']); ?></p>
+                                <p><?= htmlspecialchars($reward['descrizione']); ?></p>
                                 <!-- Foto della reward -->
                                 <div class="d-flex justify-content-center">
                                     <?php $base64 = base64_encode($reward['foto']); ?>
-                                    <img src="data:image/jpeg;base64,<?php echo $base64; ?>"
+                                    <img src="data:image/jpeg;base64,<?= $base64; ?>"
                                          class="img-fluid rounded"
                                          alt="Foto reward">
                                 </div>
@@ -54,7 +54,7 @@ try {
         <!-- Form per inserire una nuova reward -->
         <h4 class="mb-3">Aggiungi Nuova Reward</h4>
         <form action="../actions/reward_insert.php" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="nome" value="<?php echo htmlspecialchars($_GET['nome']); ?>">
+            <input type="hidden" name="nome" value="<?= htmlspecialchars($_GET['nome']); ?>">
 
             <div class="row mb-3">
                 <div class="col-md-6">

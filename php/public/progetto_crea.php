@@ -1,4 +1,4 @@
-3<?php
+<?php
 // === SETUP ===
 session_start();
 require '../config/config.php';
@@ -58,7 +58,7 @@ $pipeline->check(
                 <div class="mb-3">
                     <label for="data_limite" class="form-label fw-bold">Data Limite</label>
                     <?php $tomorrow = date('Y-m-d', strtotime('+1 day')); ?>
-                    <input type="date" class="form-control" id="data_limite" name="data_limite" min="<?php echo $tomorrow; ?>" value="<?php echo $tomorrow; ?>" required>
+                    <input type="date" class="form-control" id="data_limite" name="data_limite" min="<?= $tomorrow; ?>" value="<?= $tomorrow; ?>" required>
                     <small class="form-text text-muted">La data limite per il progetto. Deve essere futura ad oggi.</small>
                 </div>
 

@@ -100,7 +100,7 @@ if ($is_creatore) {
             <div class="card-header bg-primary text-white">
                 <div class="d-flex justify-content-between align-items-center">
                     <h4 class="mb-0">Finanziamenti Ricevuti</h4>
-                    <h5 class="mb-0"><span class="badge bg-success">Totale: <?php echo number_format($totale_finanziamenti_ricevuti, 2); ?>€</span></h5>
+                    <h5 class="mb-0"><span class="badge bg-success">Totale: <?= number_format($totale_finanziamenti_ricevuti, 2); ?>€</span></h5>
                 </div>
             </div>
             <div class="card-body">
@@ -123,34 +123,34 @@ if ($is_creatore) {
                             <tbody>
                             <?php foreach ($finanziamenti_ricevuti['data'] as $finanziamento): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($finanziamento['data']); ?></td>
+                                    <td><?= htmlspecialchars($finanziamento['data']); ?></td>
                                     <td>
-                                        <a href="<?php echo htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $finanziamento['nome_progetto']])); ?>">
-                                            <?php echo htmlspecialchars($finanziamento['nome_progetto']); ?>
+                                        <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $finanziamento['nome_progetto']])); ?>">
+                                            <?= htmlspecialchars($finanziamento['nome_progetto']); ?>
                                         </a>
                                     </td>
                                     <td>
-                                        <?php echo htmlspecialchars($finanziamento['finanziatore_nickname'] ?? 'N/A'); ?>
-                                        <small class="text-muted d-block"><?php echo htmlspecialchars($finanziamento['email_utente']); ?></small>
+                                        <?= htmlspecialchars($finanziamento['finanziatore_nickname'] ?? 'N/A'); ?>
+                                        <small class="text-muted d-block"><?= htmlspecialchars($finanziamento['email_utente']); ?></small>
                                     </td>
-                                    <td class="fw-bold"><?php echo htmlspecialchars(number_format($finanziamento['importo'], 2)); ?>€</td>
+                                    <td class="fw-bold"><?= htmlspecialchars(number_format($finanziamento['importo'], 2)); ?>€</td>
                                     <td>
                                         <?php if (isset($finanziamento['reward_foto'])): ?>
                                             <?php $base64 = base64_encode($finanziamento['reward_foto']); ?>
                                             <div class="d-flex align-items-center">
-                                                <img src="data:image/jpeg;base64,<?php echo $base64; ?>"
+                                                <img src="data:image/jpeg;base64,<?= $base64; ?>"
                                                      class="img-thumbnail me-2"
                                                      alt="Reward"
                                                      style="width: 60px; height: 60px; object-fit: cover;">
                                                 <div>
-                                                    <strong><?php echo htmlspecialchars($finanziamento['codice_reward']); ?></strong>
+                                                    <strong><?= htmlspecialchars($finanziamento['codice_reward']); ?></strong>
                                                     <?php if (isset($finanziamento['reward_descrizione'])): ?>
-                                                        <small class="d-block"><?php echo htmlspecialchars($finanziamento['reward_descrizione']); ?></small>
+                                                        <small class="d-block"><?= htmlspecialchars($finanziamento['reward_descrizione']); ?></small>
                                                     <?php endif; ?>
                                                 </div>
                                             </div>
                                         <?php else: ?>
-                                            <strong><?php echo htmlspecialchars($finanziamento['codice_reward']); ?></strong>
+                                            <strong><?= htmlspecialchars($finanziamento['codice_reward']); ?></strong>
                                         <?php endif; ?>
                                     </td>
                                 </tr>
@@ -168,7 +168,7 @@ if ($is_creatore) {
         <div class="card-header bg-warning text-white">
             <div class="d-flex justify-content-between align-items-center">
                 <h4 class="mb-0">Finanziamenti Effettuati</h4>
-                <h5 class="mb-0"><span class="badge bg-success">Totale: <?php echo number_format($totale_finanziamenti_effettuati, 2); ?>€</span></h5>
+                <h5 class="mb-0"><span class="badge bg-success">Totale: <?= number_format($totale_finanziamenti_effettuati, 2); ?>€</span></h5>
             </div>
         </div>
         <div class="card-body">
@@ -190,30 +190,30 @@ if ($is_creatore) {
                         <tbody>
                         <?php foreach ($finanziamenti_effettuati['data'] as $finanziamento): ?>
                             <tr>
-                                <td><?php echo htmlspecialchars($finanziamento['data']); ?></td>
+                                <td><?= htmlspecialchars($finanziamento['data']); ?></td>
                                 <td>
-                                    <a href="<?php echo htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $finanziamento['nome_progetto']])); ?>">
-                                        <?php echo htmlspecialchars($finanziamento['nome_progetto']); ?>
+                                    <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $finanziamento['nome_progetto']])); ?>">
+                                        <?= htmlspecialchars($finanziamento['nome_progetto']); ?>
                                     </a>
                                 </td>
-                                <td class="fw-bold"><?php echo htmlspecialchars(number_format($finanziamento['importo'], 2)); ?>€</td>
+                                <td class="fw-bold"><?= htmlspecialchars(number_format($finanziamento['importo'], 2)); ?>€</td>
                                 <td>
                                     <?php if (isset($finanziamento['reward_foto'])): ?>
                                         <?php $base64 = base64_encode($finanziamento['reward_foto']); ?>
                                         <div class="d-flex align-items-center">
-                                            <img src="data:image/jpeg;base64,<?php echo $base64; ?>"
+                                            <img src="data:image/jpeg;base64,<?= $base64; ?>"
                                                  class="img-thumbnail me-2"
                                                  alt="Reward"
                                                  style="width: 60px; height: 60px; object-fit: cover;">
                                             <div>
-                                                <strong><?php echo htmlspecialchars($finanziamento['codice_reward']); ?></strong>
+                                                <strong><?= htmlspecialchars($finanziamento['codice_reward']); ?></strong>
                                                 <?php if (isset($finanziamento['reward_descrizione'])): ?>
-                                                    <small class="d-block"><?php echo htmlspecialchars($finanziamento['reward_descrizione']); ?></small>
+                                                    <small class="d-block"><?= htmlspecialchars($finanziamento['reward_descrizione']); ?></small>
                                                 <?php endif; ?>
                                             </div>
                                         </div>
                                     <?php else: ?>
-                                        <strong><?php echo htmlspecialchars($finanziamento['codice_reward']); ?></strong>
+                                        <strong><?= htmlspecialchars($finanziamento['codice_reward']); ?></strong>
                                     <?php endif; ?>
                                 </td>
                             </tr>

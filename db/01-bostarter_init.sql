@@ -796,7 +796,7 @@ CREATE PROCEDURE sp_util_progetto_componenti_costo(
 )
 BEGIN
 	START TRANSACTION;
-	SELECT SUM(prezzo * quantita) AS costo_totale
+	SELECT IFNULL(SUM(prezzo * quantita), 0) AS costo_totale
 	FROM COMPONENTE
 	WHERE nome_progetto = p_nome_progetto;
 	COMMIT;

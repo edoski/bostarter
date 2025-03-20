@@ -38,9 +38,9 @@ $context = [
     'redirect' => generate_url('progetto_dettagli', ['nome' => $nome_progetto]),
     'procedure' => 'sp_progetto_budget_update',
     'in' => [
-        'p_nome_progetto' => $nome_progetto,
-        'p_budget' => $budget,
-        'p_email' => $email
+        'p_nome' => $nome_progetto,
+        'p_email_creatore' => $email,
+        'p_budget' => $budget
     ]
 ];
 $pipeline = new EventPipeline($context);

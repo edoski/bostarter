@@ -11,6 +11,7 @@ try {
     );
 }
 ?>
+
 <!-- Form per la descrizione -->
 <div class="card">
     <div class="card-header bg-primary text-white">
@@ -18,18 +19,19 @@ try {
     </div>
     <div class="card-body">
         <form action="../actions/progetto_descrizione_update.php" method="post">
-            <input type="hidden" name="nome" value="<?php echo htmlspecialchars($_GET['nome']); ?>">
-            <input type="hidden" name="attr" value="descrizione">
+            <input type="hidden" name="nome" value="<?= htmlspecialchars($_GET['nome']); ?>">
             <div class="form-group">
                 <label for="descrizione" class="fw-bold fs-5">Nuova Descrizione</label>
                 <textarea class="form-control my-3" id="descrizione" name="descrizione" rows="5"
-                          required><?php echo htmlspecialchars($progetto['descrizione']); ?></textarea>
+                          required><?= htmlspecialchars($progetto['descrizione']); ?></textarea>
             </div>
             <button type="submit" class="btn btn-primary">Aggiorna</button>
         </form>
     </div>
 </div>
+
 <hr>
+
 <!-- Form per le foto -->
 <div class="card mt-3">
     <div class="card-header bg-primary text-white">
@@ -43,11 +45,11 @@ try {
                         <div class="flex-shrink-0 w-25 px-2">
                             <?php $base64 = base64_encode($photo['foto']); ?>
                             <form action="../actions/foto_delete.php" method="post">
-                                <input type="hidden" name="nome" value="<?php echo $progetto['nome']; ?>">
-                                <input type="hidden" name="id" value="<?php echo $photo['id']; ?>">
+                                <input type="hidden" name="nome" value="<?= $progetto['nome']; ?>">
+                                <input type="hidden" name="id" value="<?= $photo['id']; ?>">
                                 <button type="submit" class="btn btn-danger btn-sm mb-2">Elimina</button>
                             </form>
-                            <img src="data:image/jpeg;base64,<?php echo $base64; ?>"
+                            <img src="data:image/jpeg;base64,<?= $base64; ?>"
                                  class="img-fluid rounded"
                                  alt="Foto progetto">
                         </div>
@@ -56,9 +58,8 @@ try {
             </div>
         <?php endif; ?>
         <hr>
-        <form action="../actions/progetto_descrizione_update.php" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="nome" value="<?php echo htmlspecialchars($_GET['nome']); ?>">
-            <input type="hidden" name="attr" value="foto">
+        <form action="../actions/foto_insert.php" method="post" enctype="multipart/form-data">
+            <input type="hidden" name="nome" value="<?= htmlspecialchars($_GET['nome']); ?>">
             <div class="form-group">
                 <label for="foto" class="fw-bold fs-5">Seleziona Foto (Max 4MB)</label>
                 <p class="small text-muted">Insersci una foto per il progetto.</p>

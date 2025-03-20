@@ -32,7 +32,7 @@
                 <?php if (isset($_SESSION['email'])): ?>
                     <li class="nav-item px-2">
                         <a class="nav-link"
-                           href="../actions/logout.php">Logout <?php echo "(" . htmlspecialchars($_SESSION['email']) . ")"; ?>
+                           href="../actions/logout.php">Logout <?= "(" . htmlspecialchars($_SESSION['email']) . ")"; ?>
                         </a>
                     </li>
                 <?php else: ?>

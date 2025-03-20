@@ -136,14 +136,14 @@ try {
                             <tbody>
                             <?php foreach ($recentLogs as $log): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($log['timestamp_str']); ?></td>
+                                    <td><?= htmlspecialchars($log['timestamp_str']); ?></td>
                                     <td>
-                                        <a href="?collection=<?php echo urlencode($log['collection']); ?>">
-                                            <?php echo htmlspecialchars($log['collection']); ?>
+                                        <a href="?collection=<?= urlencode($log['collection']); ?>">
+                                            <?= htmlspecialchars($log['collection']); ?>
                                         </a>
                                     </td>
-                                    <td><?php echo htmlspecialchars($log['action']); ?></td>
-                                    <td><?php echo htmlspecialchars($log['user']); ?></td>
+                                    <td><?= htmlspecialchars($log['action']); ?></td>
+                                    <td><?= htmlspecialchars($log['user']); ?></td>
 <!--                                    <td>--><?php //echo htmlspecialchars($log['source']); ?><!--</td>-->
 <!--                                    <td>--><?php //echo htmlspecialchars($log['procedure']); ?><!--</td>-->
 <!--                                    <td>--><?php //echo htmlspecialchars(substr($log['message'], 0, 50)) . (strlen($log['message']) > 50 ? '...' : ''); ?><!--</td>-->
@@ -170,9 +170,9 @@ try {
                 <div class="row">
                     <?php foreach ($collection_list as $coll): ?>
                         <div class="col-md-3 mb-2">
-                            <a href="?collection=<?php echo urlencode($coll); ?>"
-                               class="btn btn-<?php echo ($selectedCollection == $coll) ? 'primary' : 'outline-primary'; ?> w-100">
-                                <?php echo htmlspecialchars($coll); ?>
+                            <a href="?collection=<?= urlencode($coll); ?>"
+                               class="btn btn-<?= ($selectedCollection == $coll) ? 'primary' : 'outline-primary'; ?> w-100">
+                                <?= htmlspecialchars($coll); ?>
                             </a>
                         </div>
                     <?php endforeach; ?>
@@ -201,16 +201,16 @@ try {
                     <tbody>
                     <?php foreach ($logs as $log): ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($log['timestamp']); ?></td>
-                            <td><?php echo htmlspecialchars($log['action']); ?></td>
-                            <td><?php echo htmlspecialchars($log['user']); ?></td>
-                            <td><?php echo htmlspecialchars($log['source']); ?></td>
-                            <td><?php echo htmlspecialchars($log['procedure']); ?></td>
-                            <td><?php echo htmlspecialchars($log['message']); ?></td>
-                            <td><?php echo $log['success'] ? '<span class="badge bg-success">Success</span>' : '<span class="badge bg-danger">Error</span>'; ?></td>
+                            <td><?= htmlspecialchars($log['timestamp']); ?></td>
+                            <td><?= htmlspecialchars($log['action']); ?></td>
+                            <td><?= htmlspecialchars($log['user']); ?></td>
+                            <td><?= htmlspecialchars($log['source']); ?></td>
+                            <td><?= htmlspecialchars($log['procedure']); ?></td>
+                            <td><?= htmlspecialchars($log['message']); ?></td>
+                            <td><?= $log['success'] ? '<span class="badge bg-success">Success</span>' : '<span class="badge bg-danger">Error</span>'; ?></td>
                             <td>
                                 <button class="btn btn-sm btn-primary" data-bs-toggle="modal"
-                                        data-bs-target="#logModal<?php echo md5($log['timestamp'] . $log['action']); ?>">
+                                        data-bs-target="#logModal<?= md5($log['timestamp'] . $log['action']); ?>">
                                     Dettagli
                                 </button>
                             </td>
@@ -221,7 +221,7 @@ try {
 
                 <!-- Modals for log details -->
                 <?php foreach ($logs as $log): ?>
-                    <div class="modal fade" id="logModal<?php echo md5($log['timestamp'] . $log['action']); ?>"
+                    <div class="modal fade" id="logModal<?= md5($log['timestamp'] . $log['action']); ?>"
                          tabindex="-1">
                         <div class="modal-dialog modal-lg">
                             <div class="modal-content">
@@ -234,31 +234,31 @@ try {
                                         <tbody>
                                         <tr>
                                             <th>Timestamp</th>
-                                            <td><?php echo htmlspecialchars($log['timestamp']); ?></td>
+                                            <td><?= htmlspecialchars($log['timestamp']); ?></td>
                                         </tr>
                                         <tr>
                                             <th>Tabella</th>
-                                            <td><?php echo htmlspecialchars($log['collection']); ?></td>
+                                            <td><?= htmlspecialchars($log['collection']); ?></td>
                                         </tr>
                                         <tr>
                                             <th>Azione</th>
-                                            <td><?php echo htmlspecialchars($log['action']); ?></td>
+                                            <td><?= htmlspecialchars($log['action']); ?></td>
                                         </tr>
                                         <tr>
                                             <th>Utente</th>
-                                            <td><?php echo htmlspecialchars($log['user']); ?></td>
+                                            <td><?= htmlspecialchars($log['user']); ?></td>
                                         </tr>
                                         <tr>
                                             <th>Fonte</th>
-                                            <td><?php echo htmlspecialchars($log['source']); ?></td>
+                                            <td><?= htmlspecialchars($log['source']); ?></td>
                                         </tr>
                                         <tr>
                                             <th>Procedura</th>
-                                            <td><?php echo htmlspecialchars($log['procedure']); ?></td>
+                                            <td><?= htmlspecialchars($log['procedure']); ?></td>
                                         </tr>
                                         <tr>
                                             <th>Messaggio</th>
-                                            <td><?php echo htmlspecialchars($log['message']); ?></td>
+                                            <td><?= htmlspecialchars($log['message']); ?></td>
                                         </tr>
                                         <tr>
                                             <th>Stato</th>
@@ -276,7 +276,7 @@ try {
                                     <hr>
 
                                     <h6 class="fw-bold">Data</h6>
-                                    <pre class="bg-light p-2 border rounded"><?php echo htmlspecialchars($log['data']); ?></pre>
+                                    <pre class="bg-light p-2 border rounded"><?= htmlspecialchars($log['data']); ?></pre>
                                 </div>
                             </div>
                         </div>

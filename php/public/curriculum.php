@@ -22,7 +22,7 @@ $pipeline = new EventPipeline($context);
 $skill_utente = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
 
 // RECUPERO SKILL GLOBALI
-$skill_globali = $pipeline->fetch_all('sp_skill_selectAll');
+$skill_globali = $pipeline->fetch_all('sp_skill_selectAll', []);
 
 // RECUPERO SKILL CHE L'UTENTE NON HA ANCORA ASSOCIATO AL PROPRIO CURRICULUM
 $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
@@ -65,25 +65,25 @@ $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
                                     <tbody>
                                     <?php $rank = 1; foreach ($skill_utente['data'] as $skill): ?>
                                         <tr>
-                                            <td><?php echo $rank++; ?></td>
-                                            <td><?php echo htmlspecialchars($skill['competenza']); ?></td>
+                                            <td><?= $rank++; ?></td>
+                                            <td><?= htmlspecialchars($skill['competenza']); ?></td>
                                             <td>
                                                 <div class="progress" style="height: 20px;">
                                                     <div class="progress-bar bg-success" role="progressbar"
-                                                         style="width: <?php echo(htmlspecialchars($skill['livello_effettivo']) * 20); ?>%">
-                                                        <?php echo htmlspecialchars($skill['livello_effettivo']); ?>/5
+                                                         style="width: <?=(htmlspecialchars($skill['livello_effettivo']) * 20); ?>%">
+                                                        <?= htmlspecialchars($skill['livello_effettivo']); ?>/5
                                                     </div>
                                                 </div>
                                             </td>
                                             <td class="text-end">
-                                                <a href="<?php echo htmlspecialchars(generate_url('curriculum_skill_update', ['competenza' => $skill['competenza'], 'livello' => $skill['livello_effettivo']])); ?>"
+                                                <a href="<?= htmlspecialchars(generate_url('curriculum_skill_update', ['competenza' => $skill['competenza'], 'livello' => $skill['livello_effettivo']])); ?>"
                                                    class="btn btn-sm btn-warning">
                                                     Modifica
                                                 </a>
                                                 <form action="../actions/skill_curriculum_delete.php" method="POST"
                                                       class="d-inline">
                                                     <input type="hidden" name="competenza"
-                                                           value="<?php echo htmlspecialchars($skill['competenza']); ?>">
+                                                           value="<?= htmlspecialchars($skill['competenza']); ?>">
                                                     <button type="submit" class="btn btn-sm btn-danger"
                                                             onclick="return confirm('Sei sicuro di voler rimuovere questa skill? Candidature che dipendono da essa verranno annullate.')">
                                                         Rimuovi
@@ -124,8 +124,8 @@ $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
                                     <select name="competenza" id="skill" class="form-select" required>
                                         <option value="">Seleziona una skill</option>
                                         <?php foreach ($skill_disponibili['data'] as $skill): ?>
-                                            <option value="<?php echo htmlspecialchars($skill['competenza']); ?>">
-                                                <?php echo htmlspecialchars($skill['competenza']); ?>
+                                            <option value="<?= htmlspecialchars($skill['competenza']); ?>">
+                                                <?= htmlspecialchars($skill['competenza']); ?>
                                             </option>
                                         <?php endforeach; ?>
                                     </select>
@@ -189,7 +189,7 @@ $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
                                     <tbody>
                                     <?php if ($skill_globali['failed']): ?>
                                         <tr>
-                                            <td colspan="3" class="text-center">C'è stato un errore nel recupero delle skill.</td>
+                                            <td colspan="3" class="text-center text-danger">C'è stato un errore nel recupero delle skill.</td>
                                         </tr>
                                     <?php elseif (empty($skill_globali['data'])): ?>
                                         <tr>
@@ -198,10 +198,10 @@ $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
                                     <?php else: ?>
                                     <?php $rank = 1; foreach ($skill_globali['data'] as $skill): ?>
                                         <tr>
-                                            <td><?php echo $rank++; ?></td>
-                                            <td><?php echo htmlspecialchars($skill['competenza']); ?></td>
+                                            <td><?= $rank++; ?></td>
+                                            <td><?= htmlspecialchars($skill['competenza']); ?></td>
                                             <td class="text-end">
-                                                <a href="<?php echo htmlspecialchars(generate_url('curriculum_skill_global_update', ['competenza' => $skill['competenza']])); ?>"
+                                                <a href="<?= htmlspecialchars(generate_url('curriculum_skill_global_update', ['competenza' => $skill['competenza']])); ?>"
                                                    class="btn btn-sm btn-warning">
                                                     Modifica
                                                 </a>
