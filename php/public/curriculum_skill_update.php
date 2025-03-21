@@ -5,8 +5,9 @@ require '../config/config.php';
 check_auth();
 
 // === VARIABLES ===
-$competenza = $_GET['competenza'] ?? '';
-$livello = $_GET['livello'] ?? 3;
+check_GET(['competenza', 'livello']);
+$competenza = $_GET['competenza'];
+$livello = $_GET['livello'];
 $email = $_SESSION['email'];
 ?>
 
@@ -34,7 +35,10 @@ $email = $_SESSION['email'];
                 <div class="d-flex justify-content-between">
                     <a href="<?= htmlspecialchars(generate_url('curriculum')); ?>"
                        class="btn btn-secondary">Annulla</a>
-                    <button type="submit" class="btn btn-warning">Aggiorna</button>
+                    <button type="submit" class="btn btn-warning"
+                            onclick="return confirm('Sei sicuro di voler aggiornare il livello della competenza? Candidature esistenti potrebbero essere rimosse.')">
+                        Aggiorna
+                    </button>
                 </div>
             </form>
         </div>

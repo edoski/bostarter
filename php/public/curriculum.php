@@ -101,7 +101,7 @@ $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
             </div>
         </div>
 
-        <!-- Middle row - Add Skill Section -->
+        <!-- AGGIUNGI SKILL CURRICULUM -->
         <div class="row g-4 mt-4">
             <div class="col-12">
                 <div class="card shadow-sm">
@@ -146,8 +146,8 @@ $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
             </div>
         </div>
 
-        <!-- GLOBAL SKILL (ADMIN) -->
         <?php if ($_SESSION['is_admin']): ?>
+        <!-- GLOBAL SKILL (ADMIN) -->
             <div class="row g-4 mt-4">
                 <div class="col-12">
                     <div class="card shadow-sm">
@@ -175,7 +175,7 @@ $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
 
                             <hr>
 
-                            <!-- Global Skills List -->
+                            <!-- LISTA SKILL GLOBALI -->
                             <h5 class="fw-bold mb-3">Skill Globali</h5>
                             <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
                                 <table class="table table-striped">

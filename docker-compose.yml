@@ -8,8 +8,6 @@ services:
             - ./php/img:/var/www/html/img
         env_file:
             - ./.env
-        environment:
-            - APP_ENV=${APP_ENV}
         depends_on:
             db:
                 condition: service_healthy

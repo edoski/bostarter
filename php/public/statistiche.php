@@ -29,15 +29,14 @@ $finanziatori = $pipeline->fetch_all('view_classifica_utenti_finanziamento');
  * @param string $titolo Titolo della statistica
  * @param string $descrizione Descrizione della statistica
  * @param array $dati Dati della statistica
- * @param string $bg_color Colore di sfondo della card
  * @return string HTML della card
  */
-function render_statistica_card(string $titolo, string $descrizione, array $dati, string $bg_color = "bg-primary"): string
+function render_statistica_card(string $titolo, string $descrizione, array $dati): string
 {
     ob_start();
     ?>
     <div class="card rounded shadow-sm">
-        <div class="card-header <?= $bg_color; ?> text-white text-center fw-bolder">
+        <div class="card-header bg-primary text-white text-center fw-bolder">
             <?= htmlspecialchars($titolo); ?>
         </div>
         <div class="card-body">
@@ -79,7 +78,7 @@ function render_statistica_card(string $titolo, string $descrizione, array $dati
 
                                     <?php if (isset($item['tot_finanziamenti']) && isset($item['budget'])): ?>
                                         <div class="d-flex align-items-center">
-                                            <span class="badge <?= $bg_color; ?>">
+                                            <span class="badge bg-primary">
                                                 <?= htmlspecialchars(number_format(($item['tot_finanziamenti'] / $item['budget']) * 100, 2)) . "%"; ?>
                                             </span>
                                         </div>

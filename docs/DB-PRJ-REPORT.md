@@ -15,6 +15,20 @@
 
 
 
+# email prof ask if OK that when creatore updates profile's skill if existing ACCEPTED partecipanti should be rifiutato (as is currently, and thus barred from re-applying) or if should just delete the candidatura (and thus allow them to reapply)
+
+
+
+
+
+# ask claude if can split componente_modifica and profilo_modifica each into two separate php files, one for adding new profilo/componente and the other for modifying existing profilo/componente
+
+
+
+
+# ensure generate_url() is being used EVERYWHERE IN ALL PUBLIC AND COMPONENTS
+
+
 # when done refactoring /public w ActionPipeline, push and ask claude to generate multiline header comments same as /actions but like this:
 ```php
 /**
@@ -752,6 +766,40 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 # **6. FUNZIONALITÀ**
 ---
+## **PREREQUISITI**
+
+#### **Requisiti Software**
+- **Docker** e **Docker Compose**: Per la containerizzazione e l'orchestrazione
+- **MySQL 8.0+**: Database per i dati principali dell'applicazione
+- **MongoDB**: Database secondario per la funzionalità di logging
+- **PHP 8.2** con estensioni:
+    - `pdo_mysql`: Per la connettività MySQL
+    - `mongodb`: Per la connettività MongoDB
+- **Apache Web Server**: Per servire l'applicazione PHP
+
+#### **Configurazione Ambiente**
+- File `.env` con variabili correttamente configurate:
+    - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
+    - `MONGO_URI`, `MONGO_DB`
+
+```
+# MySQL Configuration
+DB_HOST=db
+DB_NAME=BOSTARTER
+DB_USER=root
+DB_PASS=<YOUR_PASSWORD>
+
+# MongoDB Configuration
+MONGO_URI=mongodb://mongodb:27017
+MONGO_DB=BOSTARTER_LOG
+```
+
+Basta rimpiazzare `<YOUR_PASSWORD>` con la propria password per accedere a MySQL.
+
+#### **Requisiti di Sistema**
+- Porta `8080` disponibile per l'accesso web
+- Porte `3307` e `27017` disponibili per l'accesso ai database
+
 ## **6.1. BACKEND (MySQL)**
 ### **INIZIALIZZAZIONE**
 

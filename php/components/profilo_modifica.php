@@ -6,7 +6,7 @@
             </h3>
         </div>
         <div class="card-body">
-            <!-- Form per modificare una competenza specifica -->
+            <!-- MODIFICA LIVELLO COMPETENZA -->
             <?php if (!empty($competenza_selezionata)): ?>
                 <div class="card mb-3">
                     <div class="card-header bg-warning">
@@ -44,7 +44,7 @@
                     </div>
                 </div>
 
-            <!-- Form per creare un nuovo profilo -->
+            <!-- CREA NUOVO PROFILO -->
             <?php elseif (empty($profilo_selezionato)): ?>
                 <form action="../actions/profilo_insert.php" method="post">
                     <input type="hidden" name="nome_progetto"
@@ -96,7 +96,6 @@
                                     <td><?= htmlspecialchars($competenza['livello']); ?></td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <!-- Link per la modifica -->
                                             <a href="?attr=profili&nome=<?= urlencode($_GET['nome']); ?>&profilo=<?= urlencode($profilo_selezionato); ?>&competenza=<?= urlencode($competenza['competenza']); ?>&livello=<?= urlencode($competenza['livello']); ?>"
                                                class="btn btn-sm btn-warning">
                                                 Modifica
@@ -126,7 +125,7 @@
 
                 <hr>
 
-                <!-- Form per aggiungere nuove competenze al profilo -->
+                <!-- AGGIUNGI COMPETENZA AL PROFILO -->
                 <h5 class="mb-3">Aggiungi una competenza</h5>
                 <form action="../actions/skill_profilo_insert.php" method="post">
                     <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($_GET['nome']); ?>">

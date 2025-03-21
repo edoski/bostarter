@@ -7,25 +7,25 @@
         </div>
         <div class="card-body">
             <?php
-            // Calcola il costo attuale del componente (se in modifica)
+            // CALCOLO COSTO ATTUALE DEL COMPONENTE (SE IN MODIFICA)
             $costo_attuale = 0;
             if (!$nuovo_componente) {
-                $costo_attuale = $componenteCorrente['prezzo'] * $componenteCorrente['quantita'];
+                $costo_attuale = $componente_corrente['prezzo'] * $componente_corrente['quantita'];
             }
 
-            // Calcola il costo totale attuale di tutti i componenti
+            // CALCOLO COSTO TOTALE DEI COMPONENTI
             $costo_totale = 0;
             foreach ($componenti['data'] as $comp) {
                 $costo_totale += $comp['prezzo'] * $comp['quantita'];
             }
 
-            // Se stiamo modificando, sottraiamo il costo attuale del componente che stiamo modificando
+            // SE IN MODIFICA, SOTTRAGGO IL COSTO ATTUALE DEL COMPONENTE DAL COSTO TOTALE
             if (!$nuovo_componente) {
                 $costo_totale -= $costo_attuale;
             }
             ?>
 
-            <!-- Avviso Budget -->
+            <!-- ALERT BUDGET -->
             <div class="alert alert-info mb-4">
                 <h5 class="alert-heading">Informazioni Budget</h5>
                 <p>Budget attuale del progetto: <strong><?= number_format($progetto['budget'], 2); ?>€</strong></p>
@@ -43,7 +43,7 @@
             </div>
 
             <?php if ($nuovo_componente): ?>
-                <!-- Form per creare un nuovo componente -->
+                <!-- CREA NUOVO COMPONENTE -->
                 <form action="../public/componente_conferma_insert.php" method="post">
                     <input type="hidden" name="nome_progetto"
                            value="<?= htmlspecialchars($_GET['nome']); ?>">
@@ -72,13 +72,12 @@
                                    placeholder="Es. 25.99">
                         </div>
                     </div>
-
                     <div class="d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">Crea Componente</button>
                     </div>
                 </form>
             <?php else: ?>
-                <!-- Form per aggiornare un componente esistente -->
+                <!-- AGGIORNA COMPONENTE ESISTENTE -->
                 <form action="../public/componente_conferma_update.php" method="post">
                     <input type="hidden" name="nome_progetto"
                            value="<?= htmlspecialchars($_GET['nome']); ?>">
@@ -93,19 +92,19 @@
 
                     <div class="mb-3">
                         <label for="descrizione" class="form-label fw-bold">Descrizione</label>
-                        <textarea class="form-control" id="descrizione" name="descrizione" rows="3" required><?= htmlspecialchars($componenteCorrente['descrizione']); ?></textarea>
+                        <textarea class="form-control" id="descrizione" name="descrizione" rows="3" required><?= htmlspecialchars($componente_corrente['descrizione']); ?></textarea>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="quantita" class="form-label fw-bold">Quantità</label>
                             <input type="number" class="form-control" id="quantita" name="quantita" required min="1"
-                                   value="<?= htmlspecialchars($componenteCorrente['quantita']); ?>">
+                                   value="<?= htmlspecialchars($componente_corrente['quantita']); ?>">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="prezzo" class="form-label fw-bold">Prezzo Unitario (€)</label>
                             <input type="number" class="form-control" id="prezzo" name="prezzo" required step="0.01" min="0.01"
-                                   value="<?= htmlspecialchars($componenteCorrente['prezzo']); ?>">
+                                   value="<?= htmlspecialchars($componente_corrente['prezzo']); ?>">
                         </div>
                     </div>
 

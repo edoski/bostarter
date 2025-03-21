@@ -4,8 +4,6 @@ session_start();
 require_once '../config/config.php';
 check_auth();
 
-// TODO: CONVERT ATTR FROM GET TO POST
-
 // === VARIABLES ===
 check_GET(['nome', 'attr']);
 $email = $_SESSION['email'];

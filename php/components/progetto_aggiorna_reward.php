@@ -1,6 +1,11 @@
 <?php
-// Recupero le reward esistenti del progetto
-$in = ['p_nome_progetto' => $_GET['nome']];
+// === VARIABLES ===
+check_GET(['nome']);
+$nome_progetto = $_GET['nome'];
+
+// === DATA ===
+// RECUPERO REWARD DEL PROGETTO
+$in = ['p_nome_progetto' => $nome_progetto];
 $rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto', $in);
 ?>
 
@@ -9,7 +14,7 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto', $in);
         <h3>Gestione Reward</h3>
     </div>
     <div class="card-body">
-        <!-- Lista reward esistenti -->
+        <!-- LISTA REWARD -->
         <h4 class="mb-3">Reward Esistenti</h4>
         <?php if ($rewards['failed']): ?>
             <p class="alert alert-danger">Errore durante il recupero delle reward.</p>
@@ -29,7 +34,6 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto', $in);
                                     <?= htmlspecialchars(number_format($reward['min_importo'], 2)); ?>€
                                 </p>
                                 <p><?= htmlspecialchars($reward['descrizione']); ?></p>
-                                <!-- Foto della reward -->
                                 <div class="d-flex justify-content-center">
                                     <?php $base64 = base64_encode($reward['foto']); ?>
                                     <img src="data:image/jpeg;base64,<?= $base64; ?>"
@@ -45,11 +49,12 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto', $in);
 
         <hr>
 
-        <!-- Form per inserire una nuova reward -->
+        <!-- INSERIMENTO NUOVO REWARD -->
         <h4 class="mb-3">Aggiungi Nuova Reward</h4>
         <form action="../actions/reward_insert.php" method="post" enctype="multipart/form-data">
-            <input type="hidden" name="nome" value="<?= htmlspecialchars($_GET['nome']); ?>">
+            <input type="hidden" name="nome" value="<?= htmlspecialchars($nome_progetto); ?>">
 
+            <!-- CODICE REWARD E IMPORTO MINIMO -->
             <div class="row mb-3">
                 <div class="col-md-6">
                     <label for="codice" class="form-label fw-bold">Codice Reward</label>
@@ -65,6 +70,7 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto', $in);
                 </div>
             </div>
 
+            <!-- DESCRIZIONE -->
             <div class="mb-3">
                 <label for="descrizione" class="form-label fw-bold">Descrizione Reward</label>
                 <p class="small text-muted">Descrivi cosa riceverà l'utente con questa reward.</p>
@@ -72,12 +78,14 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto', $in);
                           placeholder="Descrizione della reward..."></textarea>
             </div>
 
+            <!-- FOTO REWARD -->
             <div class="mb-3">
                 <label for="foto" class="form-label fw-bold">Foto Reward</label>
                 <p class="small text-muted">Carica un'immagine per rappresentare questa reward (Max 4MB).</p>
                 <input type="file" class="form-control" id="foto" name="foto" accept="image/*" required>
             </div>
 
+            <!-- SUBMIT -->
             <button type="submit" class="btn btn-primary">Inserisci Reward</button>
         </form>
     </div>

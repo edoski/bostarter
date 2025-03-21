@@ -5,7 +5,8 @@ require '../config/config.php';
 check_auth();
 
 // === VARIABLES ===
-$vecchia_competenza = $_GET['competenza'] ?? '';
+check_GET(['competenza']);
+$vecchia_competenza = $_GET['competenza'];
 $email = $_SESSION['email'];
 $is_admin = $_SESSION['is_admin'];
 

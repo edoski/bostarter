@@ -8,6 +8,7 @@ require '../config/config.php';
 if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url('home'));
 ?>
 
+<!-- === PAGE === -->
 <?php require '../components/header.php'; ?>
 <div class="container flex-grow-1 d-flex align-items-center justify-content-center">
     <div class="row justify-content-center w-100 mb-5">

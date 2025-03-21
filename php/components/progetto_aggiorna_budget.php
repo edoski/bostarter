@@ -3,10 +3,10 @@
 $in = ['p_nome_progetto' => $_GET['nome']];
 $is_hardware = $progetto['tipo'] === 'HARDWARE';
 
-// Se il progetto è di tipo HARDWARE, recupero il costo delle componenti
+// SE HARDWARE, RECUPERO IL COSTO DEI COMPONENTI
 if ($is_hardware) $costo_componenti = $pipeline->fetch('sp_util_progetto_componenti_costo', $in)['costo_totale'];
 
-// Recupero il totale dei finanziamenti e calcolo la percentuale
+// RECUPERO SOMMA FINANZIAMENTI E CALCOLO PERCENTUALE
 $progetto['tot_finanziamento'] = $pipeline->fetch('sp_finanziamento_selectSumByProgetto', $in)['totale_finanziamenti'];
 $progetto['percentuale'] = ($progetto['tot_finanziamento'] / $progetto['budget']) * 100;
 ?>
@@ -17,7 +17,6 @@ $progetto['percentuale'] = ($progetto['tot_finanziamento'] / $progetto['budget']
         <h3>Aggiorna Budget</h3>
     </div>
     <div class="card-body">
-        <!-- Dettagli Finanziamenti -->
         <div class="bg-secondary-subtle p-1 rounded text-center mb-3">
             <p class="fs-4">
                 <strong>Budget Attuale:</strong> <?= htmlspecialchars(number_format($progetto['budget'], 2)); ?>€
@@ -40,7 +39,7 @@ $progetto['percentuale'] = ($progetto['tot_finanziamento'] / $progetto['budget']
                 / <?= htmlspecialchars(number_format($progetto['budget'], 2)); ?>€
             </div>
         </div>
-        <!-- Form per aggiornare il budget -->
+        <!-- AGGIORNA BUDGET -->
         <form action="../actions/progetto_budget_update.php" method="post">
             <input type="hidden" name="nome" value="<?= htmlspecialchars($_GET['nome']); ?>">
             <input type="hidden" name="tipo" value="<?= htmlspecialchars($progetto['tipo']); ?>">

@@ -4,7 +4,7 @@ $in = ['p_nome_progetto' => $_GET['nome']];
 $photos = $pipeline->fetch_all('sp_foto_selectAll', $in);
 ?>
 
-<!-- Form per la descrizione -->
+<!-- AGGIORNA DESCRIZIONE -->
 <div class="card">
     <div class="card-header bg-primary text-white">
         <h3>Aggiorna Descrizione</h3>
@@ -24,7 +24,7 @@ $photos = $pipeline->fetch_all('sp_foto_selectAll', $in);
 
 <hr>
 
-<!-- Form per le foto -->
+<!-- INSERISCI/ELIMINA FOTO -->
 <div class="card mt-3">
     <div class="card-header bg-primary text-white">
         <h3>Inserisci/Elimina Foto</h3>
@@ -58,6 +58,7 @@ $photos = $pipeline->fetch_all('sp_foto_selectAll', $in);
             </div>
         <?php endif; ?>
         <hr>
+        <!-- INSERIMENTO FOTO -->
         <form action="../actions/foto_insert.php" method="post" enctype="multipart/form-data">
             <input type="hidden" name="nome" value="<?= htmlspecialchars($_GET['nome']); ?>">
             <div class="form-group">

@@ -97,7 +97,9 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByFinanziamentoImporto', ['p
                         <?php endforeach; ?>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary mt-3">Conferma Finanziamento</button>
+                <button type="submit" class="btn btn-primary mt-3"
+                        onclick="return confirm('Sei sicuro di voler procedere con il finanziamento?');">
+                    Conferma Finanziamento</button>
             </form>
         <?php endif; ?>
     </div>

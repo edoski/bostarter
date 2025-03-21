@@ -1,10 +1,9 @@
 <?php
 // === VARIABLES ===
-$profilo_selezionato = $_GET['profilo'] ?? '';
-$competenza_selezionata = $_GET['competenza'] ?? '';
-$livello_selezionato = $_GET['livello'] ?? 0;
-$competenze_selezionate = [];
-$competenze_disponibili = [];
+check_GET(['profilo', 'competenza', 'livello']);
+$profilo_selezionato = $_GET['profilo'];
+$competenza_selezionata = $_GET['competenza'];
+$livello_selezionato = $_GET['livello'];
 
 // === DATA ===
 // PROFILI E RELATIVE COMPETENZE
@@ -30,7 +29,7 @@ $profili = $profilo_data;
 // COMPETENZE GLOBALI
 $competenze_globali = $pipeline->fetch_all('sp_skill_selectAll');
 
-// Se stiamo modificando un profilo specifico
+// SE MODIFICA, RECUPERO COMPETENZA SELEZIONATA
 if (!empty($profilo_selezionato)) {
     if (isset($profili[$profilo_selezionato])) {
         // Filtra le competenze per rimuovere elementi vuoti
@@ -38,23 +37,22 @@ if (!empty($profilo_selezionato)) {
             return !empty($item['competenza']);
         });
 
-        // Ottieni le competenze non ancora associate a questo profilo
-            $in = [
-                'p_nome_profilo' => $profilo_selezionato,
-                'p_nome_progetto' => $_GET['nome']
-            ];
-            $competenze_disponibili = $pipeline->fetch_all('sp_skill_profilo_selectDiff', $in)['data'];
+        // COMPETENZE NON ANCORA ASSEGNATE AL PROFILO
+        $in = [
+            'p_nome_profilo' => $profilo_selezionato,
+            'p_nome_progetto' => $_GET['nome']
+        ];
+        $competenze_disponibili = $pipeline->fetch_all('sp_skill_profilo_selectDiff', $in)['data'];
     }
 } else {
-    // Se stiamo creando un nuovo profilo, tutte le competenze sono disponibili
+    // SE NUOVO PROFILO, TUTTE LE COMPETENZE SONO DISPONIBILI
     $competenze_disponibili = $competenze_globali;
 }
 ?>
 
 <div class="row">
-    <!-- Colonna sinistra: Lista profili esistenti -->
+    <!-- COLONNA SINISTRA -->
     <?php require '../components/profili_esistenti.php'; ?>
-
-    <!-- Colonna destra: Area di modifica o creazione -->
+    <!-- COLONNA DESTRA -->
     <?php require '../components/profilo_modifica.php'; ?>
 </div>

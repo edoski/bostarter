@@ -7,22 +7,6 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
-# Entro in /php per installare le dipendenze PHP e Node.js
-cd php
-
-# Install PHP dependencies if composer.json exists
-if [ -f composer.json ]; then
-  composer install --no-interaction --prefer-dist
-fi
-
-# Install Node.js dependencies if package.json exists
-if [ -f package.json ]; then
-  npm install
-fi
-
-# Torno alla root del progetto
-cd ..
-
 # Faccio il build dei container
 docker-compose down -v
 export COMPOSE_BAKE=true

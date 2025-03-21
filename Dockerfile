@@ -1,21 +1,18 @@
-# Utilizzo di PHP 8.2 con Apache
+# PHP 8.2 con Apache
 FROM php:8.2-apache
 
-# Installo le dipendenze necessarie per l'estensione PDO MySQL
+# Dipendenze necessarie per l'estensione PDO MySQL
 RUN apt-get update && apt-get install -y \
     libssl-dev \
     libcurl4-openssl-dev \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Installo l'estensione PDO MySQL
+# Installo PDO MySQL
 RUN docker-php-ext-install pdo_mysql
 
-# Installo l'estensione mongodb via PECL e la abilito
+# Installo mongodb via PECL e la abilito
 RUN pecl install mongodb && docker-php-ext-enable mongodb
-
-# Abilito il modulo rewrite di Apache (non necessario ma utile)
-RUN a2enmod rewrite
 
 # Per risolvere i messaggi di avviso di Apache
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
@@ -31,5 +28,5 @@ exec apache2-foreground' > /usr/local/bin/startup.sh && \
 
 CMD ["/usr/local/bin/startup.sh"]
 
-# Expose port 80 per l'accesso al server web
+# Expose port 80 per l'accesso al web server
 EXPOSE 80
