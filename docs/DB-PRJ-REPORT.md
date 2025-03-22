@@ -1,13 +1,9 @@
 # TODO
 ---
-- [ ] check for any leftover TODO's in project
-- [ ] check for any blatant gpt english comments
 - [ ] PASTE FULL SQL INIT FILE TO [[#**7.1. Inizializzazione DB**]]
-	- [ ] read regole if should paste also init and demo
 - [ ] review entire report and ensure consistent tables, attributes etc
 	- [ ] update LISTA DELLE OPERAZIONI MAYBE!!!!!
 - [ ] create README.md for repo to explain how to setup and run project
-- [ ] redo screenshots of funzionalità section once website complete
 - [ ] export to pdf using pandoc
 	- [ ] potentially need to fix mismatching links text for correct rendering
 	- [ ] ensure clickable links for ToC
@@ -32,96 +28,8 @@ Cordiali saluti,
 Edoardo Galli
 
 
-# use ide problem inspector to identify code duplications and ask claude to see if can abstract them
-
-
-
 ## ask claude to form presentation slides summarising sec. 5 riflessioni + explaining overall project
 
-
-```
-bostarter/
-├── actions/
-│   ├── candidatura_insert.php
-│   ├── candidatura_update.php
-│   ├── commento_delete.php
-│   ├── commento_insert.php
-│   ├── commento_risposta_delete.php
-│   ├── commento_risposta_insert.php
-│   ├── componente_delete.php
-│   ├── componente_insert.php
-│   ├── componente_update.php
-│   ├── finanziamento_insert.php
-│   ├── foto_delete.php
-│   ├── foto_insert.php
-│   ├── login_handler.php
-│   ├── logout.php
-│   ├── profilo_delete.php
-│   ├── profilo_insert.php
-│   ├── profilo_nome_update.php
-│   ├── progetto_budget_update.php
-│   ├── progetto_descrizione_update.php
-│   ├── progetto_insert.php
-│   ├── register_handler.php
-│   ├── reward_insert.php
-│   ├── skill_curriculum_delete.php
-│   ├── skill_curriculum_insert.php
-│   ├── skill_curriculum_update.php
-│   ├── skill_insert.php
-│   ├── skill_profilo_delete.php
-│   ├── skill_profilo_insert.php
-│   ├── skill_profilo_update.php
-│   ├── skill_update.php
-│   └── utente_convert_creatore.php
-├── components/
-│   ├── componente_modifica.php
-│   ├── componente_nuovo.php
-│   ├── componenti_esistenti.php
-│   ├── error_alert.php
-│   ├── footer.php
-│   ├── header.php
-│   ├── profili_esistenti.php
-│   ├── profilo_modifica.php
-│   ├── profilo_nuovo.php
-│   ├── profilo_skill_modifica.php
-│   ├── progetto_aggiorna_budget.php
-│   ├── progetto_aggiorna_componenti.php
-│   ├── progetto_aggiorna_descrizione.php
-│   ├── progetto_aggiorna_profili.php
-│   ├── progetto_aggiorna_reward.php
-│   └── success_alert.php
-├── config/
-│   ├── config.php
-│   └── seed_data.php
-├── functions/
-│   ├── checks.php
-│   ├── EventPipeline.php
-│   ├── helpers.php
-│   ├── log.php
-│   ├── redirect.php
-│   ├── sp_invoke.php
-│   └── url.php
-├── public/
-│   ├── libs/
-│   ├── candidature.php
-│   ├── componente_conferma_insert.php
-│   ├── componente_conferma_update.php
-│   ├── curriculum.php
-│   ├── curriculum_skill_global_update.php
-│   ├── curriculum_skill_update.php
-│   ├── finanziamenti.php
-│   ├── finanziamento_conferma.php
-│   ├── home.php
-│   ├── index.php
-│   ├── login.php
-│   ├── logs.php
-│   ├── progetti.php
-│   ├── progetto_aggiorna.php
-│   ├── progetto_crea.php
-│   ├── progetto_dettagli.php
-│   ├── register.php
-│   └── statistiche.php
-```
 
 # INDICE
 ---
@@ -147,14 +55,12 @@ bostarter/
 - **6.2. [[#**6.2. FRONTEND (PHP)**|FRONTEND (PHP)]]**
 - **6.3. [[#**6.3. LOGGING (MongoDB)**|LOGGING (MongoDB)]]**
 ### **7. [[#7. APPENDICE|Appendice]]**
-- **7.1. [[#7.1. Inizializzazione DB|Inizializzazione DB]]**
-- **7.2. [[#7.2. Popolamento DB|Popolamento DB]]**
-- **7.3. [[#7.3. Script|Script]]**
+- **7.1. [[#**7.1. SCRIPT**|Script]]**
+- **7.2. [[#**7.2. SCHEMA**|Schema]]**
 
 # **1. ANALISI DEI REQUISITI**
 ---
 ## **1.1. DECOMPOSIZIONE DEL TESTO**
-
 #### `UTENTE`
 - Tutti gli utenti della piattaforma dispongono di: **email** (univoca), **nickname**, **password**, **nome**, **cognome**, **anno di nascita**, e un **luogo di nascita**. Inoltre, ogni utente può indicare le proprie skill di curriculum
 - Gli utenti **possono appartenere** (non necessariamente) a due sotto-categorie: **amministratori** e **creatori**
@@ -219,28 +125,47 @@ bostarter/
 - Tali eventi vanno inseriti, sotto forma di **messaggi di testo**, **all’interno di un log**, implementato in un’ apposita **collezione MongoDB**
 
 ## **1.2. LISTA DELLE OPERAZIONI**
-
 #### Operazioni che riguardano TUTTI gli utenti:
-- Autenticazione/registrazione sulla piattaforma
-- Inserimento delle proprie skill di curriculum
-- Visualizzazione dei progetti disponibili
-- Finanziamento di un progetto (aperto). Un utente può finanziare anche il progetto di cui è creatore
-- Scelta della reward a valle del finanziamento di un progetto
-- Inserimento di un commento relativo ad un progetto
-- Inserimento di una candidatura per un profilo richiesto per la realizzazione di un progetto software
+- **Autenticazione/Gestione Account**
+    - Login/logout dalla piattaforma
+    - Registrazione con ruoli opzionali (creatore, admin)
+- **Curriculum**
+    - Inserimento, aggiornamento e rimozione delle proprie competenze
+    - Visualizzazione del proprio curriculum
+- **Progetti**
+    - Visualizzazione dei progetti disponibili
+    - Visualizzazione delle statistiche della piattaforma
+- **Finanziamenti**
+    - Effettuare finanziamenti su progetti aperti
+    - Selezione di reward associate ai finanziamenti
+    - Visualizzazione dei propri finanziamenti
+- **Interazioni**
+    - Inserimento e cancellazione dei propri commenti
+    - Invio di candidature per profili di progetti software
+    - Visualizzazione dello stato delle proprie candidature
 
 #### Operazioni che riguardano SOLO gli amministratori:
-- Inserimento di una nuova stringa nella lista delle competenze
-- In fase di autenticazione, oltre a username e password, viene richiesto anche il codice di sicurezza
-- Cancellazione di commenti
+- Gestione delle competenze globali (inserimento, aggiornamento)
+- Autenticazione con codice di sicurezza aggiuntivo
+- Cancellazione dei commenti di qualsiasi utente
+- Visualizzazione del registro delle attività (logs)
 
 #### Operazioni che riguardano SOLO i creatori:
-- Inserimento di un nuovo progetto
-- Inserimento delle reward per un progetto
-- Inserimento/cancellazione di una risposta ad un commento
-- Inserimento/cancellazione/aggiornamento di un profilo per un progetto software
-- Accettazione o meno di una candidatura
-- Inserimento/cancellazione/aggiornamento di componenti per un progetto hardware
+- **Gestione Progetti**
+    - Creazione di nuovi progetti (software/hardware)
+    - Aggiornamento descrizione e budget dei progetti
+    - Gestione delle foto dei progetti (caricamento/eliminazione)
+- **Gestione Componenti** (per progetti hardware)
+    - Inserimento, aggiornamento e rimozione di componenti
+- **Gestione Profili** (per progetti software)
+    - Creazione, modifica e cancellazione di profili
+    - Gestione delle competenze richieste per ciascun profilo
+- **Gestione Candidature**
+    - Accettazione o rifiuto delle candidature
+- **Gestione Reward**
+    - Creazione di reward per i progetti
+- **Interazioni**
+    - Inserimento e cancellazione di risposte ai commenti
 
 ## **1.3. GLOSSARIO DEI DATI**
 
@@ -792,19 +717,101 @@ Inoltre, viene automaticamente invocato lo script `config/seed_data.php` che pop
 
 ## **6.2. FRONTEND (PHP)**
 ### **STRUTTURA GENERALE**
-
-Di seguito la struttura generale del sito:
-# COPY PASTE HERE THE DIR STRUCTURE OF THE WEBSITE FROM ABOVE!!!!!!!!!!!!!!!!!!
-
-In particolare...
-- `/actions`: Le operazioni più complesse (generalmente associate ad una o più "main" stored procedures) che permettono il funzionamento della piattaforma. Vengono invocate all'interno delle pagine mediante i form.
-- `/components`: Componenti grafiche riutilizzabili in una o più pagine.
-- `/config`: Contiene le configurazioni necessarie per la piattaforma, come connessione al database.
-- `/functions`: Funzioni primitive / semi-primitive che eseguono controlli od operazioni semplici e comuni, usate per il funzionamento delle pagine.
-- `/public`: Le pagine php visibili al client.
+```
+bostarter/
+├── actions/
+│   ├── candidatura_insert.php
+│   ├── candidatura_update.php
+│   ├── commento_delete.php
+│   ├── commento_insert.php
+│   ├── commento_risposta_delete.php
+│   ├── commento_risposta_insert.php
+│   ├── componente_delete.php
+│   ├── componente_insert.php
+│   ├── componente_update.php
+│   ├── finanziamento_insert.php
+│   ├── foto_delete.php
+│   ├── foto_insert.php
+│   ├── login_handler.php
+│   ├── logout.php
+│   ├── profilo_delete.php
+│   ├── profilo_insert.php
+│   ├── profilo_nome_update.php
+│   ├── progetto_budget_update.php
+│   ├── progetto_descrizione_update.php
+│   ├── progetto_insert.php
+│   ├── register_handler.php
+│   ├── reward_insert.php
+│   ├── skill_curriculum_delete.php
+│   ├── skill_curriculum_insert.php
+│   ├── skill_curriculum_update.php
+│   ├── skill_insert.php
+│   ├── skill_profilo_delete.php
+│   ├── skill_profilo_insert.php
+│   ├── skill_profilo_update.php
+│   ├── skill_update.php
+│   └── utente_convert_creatore.php
+├── components/
+│   ├── componente_modifica.php
+│   ├── componente_nuovo.php
+│   ├── componenti_esistenti.php
+│   ├── error_alert.php
+│   ├── footer.php
+│   ├── header.php
+│   ├── profili_esistenti.php
+│   ├── profilo_modifica.php
+│   ├── profilo_nuovo.php
+│   ├── profilo_skill_modifica.php
+│   ├── progetto_aggiorna_budget.php
+│   ├── progetto_aggiorna_componenti.php
+│   ├── progetto_aggiorna_descrizione.php
+│   ├── progetto_aggiorna_profili.php
+│   ├── progetto_aggiorna_reward.php
+│   └── success_alert.php
+├── config/
+│   ├── config.php
+│   └── seed_data.php
+├── functions/
+│   ├── checks.php
+│   ├── EventPipeline.php
+│   ├── helpers.php
+│   ├── log.php
+│   ├── redirect.php
+│   ├── sp_invoke.php
+│   └── url.php
+├── public/
+│   ├── libs/
+│   ├── candidature.php
+│   ├── componente_conferma_insert.php
+│   ├── componente_conferma_update.php
+│   ├── curriculum.php
+│   ├── curriculum_skill_global_update.php
+│   ├── curriculum_skill_update.php
+│   ├── finanziamenti.php
+│   ├── finanziamento_conferma.php
+│   ├── home.php
+│   ├── index.php
+│   ├── login.php
+│   ├── logs.php
+│   ├── progetti.php
+│   ├── progetto_aggiorna.php
+│   ├── progetto_crea.php
+│   ├── progetto_dettagli.php
+│   ├── register.php
+│   └── statistiche.php
+```
+#### **`/actions`**
+- Le operazioni più complesse (generalmente associate ad una o più "main" stored procedures) che permettono il funzionamento della piattaforma. Vengono invocate all'interno delle pagine mediante i form.
+#### **`/components`**
+- Componenti grafiche individuali, utilizzate in pagine `/public` per delineare più chiaramente la struttura delle pagine
+#### **`/config`**
+- Contiene le configurazioni necessarie per la piattaforma, come connessione al database, ed alcuni dati pre-caricati per la demo.
+#### **`/functions`**
+- Funzioni primitive / semi-primitive che eseguono controlli od operazioni semplici e comuni, usate per il funzionamento delle pagine.
+#### **`/public`**
+- Le pagine php visibili al client, fungono come interfaccia principale per gli utenti nell'interazione con la piattaforma e database.
 
 ### **STRUTTURA FILE**
-
 #### **Directory `/public`**
 
 I file nella directory **`/public`** seguono un'architettura modulare con sezioni chiaramente delimitate:
@@ -911,14 +918,19 @@ La pagina `progetto_crea.php` guida il creatore attraverso il processo di inseri
 
 La pagina di dettaglio progetto è il centro operativo dove convergono la maggior parte delle funzionalità della piattaforma. Visualizza tutte le informazioni relative al progetto selezionato: descrizione, foto, budget, somma finanziamenti ricevuti, reward disponibili, componenti o profili richiesti in base al tipo, ed in fondo i commenti del progetto.
 
-![[progetto_dettagli.png]]
+![[progetto_dettagli_1.png]]
 
 **Funzionalità principali:**
 - Finanziamento del progetto (se aperto)
 - Visualizzazione delle reward disponibili
+
+![[progetto_dettagli_2.png]]
+
 - Gestione delle componenti (per progetti hardware)
 - Gestione dei profili e candidature (per progetti software)
 - Sezione commenti con possibilità di risposta per il creatore
+
+![[progetto_dettagli_3.png]]
 
 I creatori del progetto visualizzano anche bottoni di modifica per ogni sezione, che reindirizzano alle pagine di aggiornamento specifiche.
 
@@ -930,6 +942,31 @@ La pagina candidature mostra tutte le candidature inviate dall'utente per partec
 ![[candidature.png]]
 
 Le candidature possono avere tre stati: "in attesa", "accettato" o "rifiutato". I creatori possono gestire le candidature ricevute, accettandole o rifiutandole. Un utente può candidarsi a un profilo solo se possiede tutte le competenze richieste con livello uguale o superiore a quello richiesto.
+
+![[candidature_creatore.png]]
+
+### **GESTIONE DESCRIZIONE/FOTO**
+- `progetto_aggiorna.php`
+
+La pagina di gestione descrizione consente ai creatori di aggiornare il contenuto della descrizione del progetto, e di inserire/eliminare foto del progetto.
+
+![[gestione_desc_foto.png]]
+
+### **GESTIONE BUDGET**
+- `progetto_aggiorna.php`
+
+La pagina di gestione del budget consente ai creatori di aggiornare il budget richiesto per poter completare il progetto.
+
+![[gestione_budget.png]]
+
+Se il budget viene aggiornato ad un valore inferiore alla somma dei finanziamenti ricevuti, viene chiuso automaticamente. Ciò vale per entrambi tipi di progetto. Inoltre, per i progetti di tipo hardware, il budget non può essere inferiore alla somma del costo delle componenti richieste nel progetto.
+
+### **GESTIONE REWARD**
+- `progetto_aggiorna.php`
+
+La pagina di gestione reward consente ai creatori di inserire nuove reward per il progetto, oppure di aggiornare reward esistenti. Ogni progetto viene popolato con una reward di default.
+
+![[gestione_reward.png]]
 
 ### **GESTIONE PROFILI/COMPONENTI**
 - `progetto_aggiorna.php`
@@ -944,6 +981,8 @@ La pagina di gestione profili/componenti consente ai creatori di gestire i detta
 
 Eventuali modifiche ai requisiti di un profilo possono comportare il rifiuto automatico di candidature esistenti se i candidati non soddisfano più i nuovi requisiti.
 
+![[profilo_modifica.png]]
+
 **Per progetti hardware:**
 - Aggiunta, modifica ed eliminazione di componenti necessari
 - Definizione di quantità e prezzo di ciascun componente
@@ -951,6 +990,8 @@ Eventuali modifiche ai requisiti di un profilo possono comportare il rifiuto aut
 ![[gestione_componenti.png]]
 
 Eventuali modifiche alla quantità o prezzo di componenti esistenti, o inserimento di nuovi, possono comportare l'aumento automatico del budget del progetto, se la somma del costo dei componenti eccede il budget attuale.
+
+![[componente_modifica.png]]
 
 ### **LOGS**
 - `logs.php`
@@ -960,23 +1001,34 @@ La pagina logs permette agli amministratori di monitorare tutte le attività sul
 
 ![[logs.png]]
 
+Ciascun log dispone di un modal che offre ulteriori dettagli sull'evento, come il file php che ha scatenato l'evento, il nome della stored procedure invocata, il feedback dal database/piattaforma, ecc.
+
+![[log_dettagli.png]]
+
 ## **6.3. LOGGING (MongoDB)**
 ### **Overview**
 
-La piattaforma adotta un sistema di logging centralizzato basato su MongoDB, che consente di tracciare e registrare in tempo reale tutti gli eventi generati dagli utenti. Ogni interazione, che si tratti di un login, una registrazione o altre azioni, viene memorizzata nel database MongoDB, facilitando così il monitoraggio, l’analisi e la risoluzione di eventuali problemi.
+La piattaforma implementa un sistema di logging centralizzato basato su MongoDB che traccia tutte le operazioni degli utenti. L'architettura di logging è incapsulata nella classe `EventPipeline`, che gestisce in modo uniforme la validazione, l'esecuzione delle operazioni sul database e la registrazione degli eventi.
 
-Nei file PHP che gestiscono le azioni degli utenti (`/actions`), il logging (e redirect) avviene sempre con uno dei due scenari:
-- Fallimento: Il logging e redirect passano per la funzione `fail()` laddove è stata bloccata l'operazione (es. non sono stati superati i controlli di sicurezza)
-- Successo: Il logging a redirect avvengono in fondo al file, e passano per la funzione `success()`.
+L'`EventPipeline` fornisce un'interfaccia coerente per il logging attraverso i suoi metodi principali:
+- `check()`: Verifica condizioni e registra errori di validazione
+- `invoke()`: Esegue stored procedures e registra eventuali eccezioni
+- `fetch()/fetch_all()`: Recupera dati e registra errori di query
+- `continue()`: Completa il flusso con successo e registra l'operazione
+
+Ogni azione è monitorata attraverso due scenari principali:
+- **Fallimento**: Quando una validazione fallisce o si verifica un'eccezione, la pipeline invoca internamente la funzione `fail()` che registra l'evento negativo in MongoDB e gestisce il redirect
+- **Successo**: Al completamento dell'operazione, il metodo `continue()` invoca la funzione `success()` che registra l'evento positivo e gestisce il redirect appropriato
+
+Questo pattern garantisce che ogni interazione rilevante sia documentata con informazioni dettagliate (collezione, azione, procedura, utente, parametri) e sia facilmente consultabile dagli amministratori attraverso l'interfaccia dedicata.
+Solo eventi significativi, ed eventi di fallimento di azioni/fetching di data dal database vengono registrate nel log, questo per evitare il sovraccarico di log inutili (es. utente non autenticato che cerca di accedere ad una pagina che richiede di essere autenticati) che rischiano di offuscare log più importanti.
 
 ### **Accesso**
 
-I log sono disponibili a tutti gli utenti amministratori della piattaforma, e possono essere visualizzati nell'apposita pagina dei logs (`public/logs.php`).
-
-Se si desidera accedere esternamente ai database (MySQL e MongoDB) presenti all’interno del container, è sufficiente eseguire uno dei seguenti comandi sul terminale (per MySQL, sostituire `<DB_HOST>` e `<DB_PASS>` con le variabili definite nel file `.env`):
+I log sono disponibili a tutti gli utenti amministratori della piattaforma, e possono essere visualizzati nell'apposita pagina dei logs (`public/logs.php`). Se si desidera accedere esternamente ai database (MySQL e MongoDB) presenti all’interno del container, è sufficiente eseguire uno dei seguenti comandi sul terminale:
 ```
 # MySQL
-docker exec -it bostarter-db-1 mysql -u<DB_HOST> -p<DB_PASS> BOSTARTER;
+docker exec -it bostarter-db-1 mysql -uroot -ppassword BOSTARTER;
 
 # MongoDB
 docker exec -it bostarter-mongodb-1 mongosh BOSTARTER_LOG;
@@ -984,42 +1036,36 @@ docker exec -it bostarter-mongodb-1 mongosh BOSTARTER_LOG;
 
 # **7. APPENDICE**
 ---
-## **7.1. INIZIALIZZAZIONE**
+## **7.1. SCRIPT**
+
+Di seguito viene illustrato il funzionamento dello script di inizializzazione della piattaforma. Assicurarsi di avergli dato il permesso di esecuzione, e di trovarsi alla radice del progetto quando lo si esegue:
+```sh
+#!/bin/bash
+set -e
+
+docker-compose down -v
+export COMPOSE_BAKE=true
+docker-compose up --build
+```
+- Viene eseguito `docker-compose down -v` per arrestare e rimuovere eventuali container e volumi esistenti.
+- Viene eseguito `docker-compose up --build -d` per ricostruire e avviare i container.
+
+Se si vede comparire sul terminale il seguente log, allora l'inizializzazione della piattaforma è andata a buon fine:
+```sh
+web-1      | === SEEDING seed_data.php START! ===
+web-1      | Seeding ProgettoAlpha... OK.
+web-1      | Seeding ProgettoBeta... OK.
+web-1      | Seeding remaining projects... OK.
+web-1      | === SEEDING seed_data.php COMPLETE! ===
+web-1      |
+web-1      | === BOSTARTER INIZIALIZZATO. PIATTAFORMA PRONTA! ===
+```
+Questo script automatizza l’intero processo di configurazione, garantendo che tutte le dipendenze siano installate e che l’ambiente Docker sia correttamente ricostruito, rendendo l’avvio della piattaforma semplice e veloce.
+
+## **7.2. SCHEMA**
 
 Di seguito viene riportato il codice SQL completo utilizzato per la generazione della base di dati **BOSTARTER** e delle relative funzionalità (procedure, viste, trigger, eventi):
 
 ```sql
 bostarter_init.sql
 ```
-
-## **7.2. POPOLAMENTO**
-
-Di seguito viene riportato il codice SQL completo per la demo con popolamento di dati fittizi, usando le stored procedures definite nel punto di sopra: 
-
-```sql
-bostarter_demo.sql
-```
-
-## **7.3. SCRIPT**
-
-Di seguito viene illustrato il funzionamento dello script di inizializzazione della piattaforma:
-
-```sh
-init.sh
-```
-#### 1. **Verifica del file `.env`:**
-- Lo script inizia controllando se esiste il file `.env` nella root del progetto. Se non viene trovato, il processo si interrompe con un messaggio d’errore che invita a creare e configurare correttamente tale file.
-
-#### 2. **Installazione delle dipendenze:**
-- Lo script entra nella directory `/php` per gestire le dipendenze relative a PHP e Node.js.
-
-#### 3. **Avvio dei container Docker:**
-- Viene eseguito `docker-compose down -v` per arrestare e rimuovere eventuali container e volumi esistenti.
-- Viene eseguito `docker-compose up --build -d` per ricostruire e avviare i container.
-
-Se si vede comparire sul terminale il seguente log, allora l'inizializzazione della piattaforma è andata a buon fine:
-```sh
-web-1      | === BOSTARTER INIZIALIZZATO. PIATTAFORMA PRONTA! ===
-```
-
-Questo script automatizza l’intero processo di configurazione, garantendo che tutte le dipendenze siano installate e che l’ambiente Docker sia correttamente ricostruito, rendendo l’avvio della piattaforma semplice e veloce.

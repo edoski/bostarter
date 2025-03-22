@@ -68,7 +68,7 @@ if ($is_creatore) {
         foreach ($finanziamenti_ricevuti['data'] as &$finanziamento) {
             // DETTAGLI DEL FINANZIATORE
             $utente = $pipeline->fetch('sp_utente_select', ['p_email' => $finanziamento['email_utente']]);
-            $finanziamento['finanziatore_nickname'] = $utente['nickname'] ?? 'Utente sconosciuto';
+            $finanziamento['finanziatore_nickname'] = $utente['nickname'] ?? 'N/A';
 
             // DETTAGLI DEL PROGETTO
             $progetto = $pipeline->fetch('sp_progetto_select', ['p_nome' => $finanziamento['nome_progetto']]);
@@ -123,11 +123,11 @@ if ($is_creatore) {
                         <table class="table table-striped">
                             <thead>
                             <tr>
-                                <th>Data</th>
-                                <th>Progetto</th>
-                                <th>Finanziatore</th>
-                                <th>Importo</th>
-                                <th>Reward</th>
+                                <th style="width: 10%">Data</th>
+                                <th style="width: 10%">Progetto</th>
+                                <th style="width: 15%;">Finanziatore</th>
+                                <th style="width: 10%">Importo</th>
+                                <th style="width: 55%">Reward</th>
                             </tr>
                             </thead>
                             <tbody>
@@ -140,7 +140,7 @@ if ($is_creatore) {
                                         </a>
                                     </td>
                                     <td>
-                                        <?= htmlspecialchars($finanziamento['finanziatore_nickname'] ?? 'N/A'); ?>
+                                        <?= htmlspecialchars($finanziamento['finanziatore_nickname']); ?>
                                         <small class="text-muted d-block"><?= htmlspecialchars($finanziamento['email_utente']); ?></small>
                                     </td>
                                     <td class="fw-bold"><?= htmlspecialchars(number_format($finanziamento['importo'], 2)); ?>€</td>
@@ -191,10 +191,11 @@ if ($is_creatore) {
                     <table class="table table-striped">
                         <thead>
                         <tr>
-                            <th>Data</th>
-                            <th>Progetto</th>
-                            <th>Importo</th>
-                            <th>Reward</th>
+                            <th style="width: 10%">Data</th>
+                            <th style="width: 10%">Progetto</th>
+                            <th style="width: 15%">Creatore</th>
+                            <th style="width: 10%">Importo</th>
+                            <th style="width: 55%">Reward</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -206,6 +207,7 @@ if ($is_creatore) {
                                         <?= htmlspecialchars($finanziamento['nome_progetto']); ?>
                                     </a>
                                 </td>
+                                <td><?= htmlspecialchars($finanziamento['email_creatore']); ?></td>
                                 <td class="fw-bold"><?= htmlspecialchars(number_format($finanziamento['importo'], 2)); ?>€</td>
                                 <td>
                                     <?php if (isset($finanziamento['reward_foto'])): ?>
