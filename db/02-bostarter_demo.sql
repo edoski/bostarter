@@ -39,7 +39,7 @@ CALL sp_utente_register(
 CALL sp_utente_register(
         'bob@example.com',
         '$2y$10$UD3Szzw46Z.YGUVRwnbknOHa4pxJJZin/bd3E50DmeHID1NF/zkvC',
-        'bobTheBuilder',
+        'bobby85',
         'Bob',
         'Bianchi',
         1985,

@@ -20,11 +20,6 @@
 
 
 
-
-
-# verify correct multiline comments for public and components
-
-
 # check if can abstract sqlstate's from sp's into new sp util/check helpers
 
 
