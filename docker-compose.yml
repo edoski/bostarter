@@ -6,8 +6,6 @@ services:
         volumes:
             - ./php:/var/www/html
             - ./php/img:/var/www/html/img
-        env_file:
-            - ./.env
         depends_on:
             db:
                 condition: service_healthy
@@ -17,13 +15,11 @@ services:
 
     db:
         image: mysql:8.0
-        env_file:
-            - ./.env
         environment:
-            MYSQL_ROOT_PASSWORD: ${DB_PASS}
-            MYSQL_DATABASE: ${DB_NAME}
+            MYSQL_ROOT_PASSWORD: password
+            MYSQL_DATABASE: BOSTARTER
         healthcheck:
-            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${DB_PASS}"]
+            test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppassword"]
             interval: 2s
             timeout: 5s
             retries: 20
@@ -38,8 +34,6 @@ services:
     mongodb:
         image: mongo:latest
         command: ["mongod", "--quiet", "--logpath", "/dev/null"]
-        env_file:
-            - ./.env
         ports:
             - "27017:27017"
         volumes:

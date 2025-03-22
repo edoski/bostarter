@@ -167,7 +167,7 @@ $skills = $pipeline->fetch_all('sp_skill_curriculum_selectAll');
                                                     <p class="small text-muted">
                                                         <?php
                                                         $accettate = count(array_filter($candidature['data'], fn($s) => $s['stato'] === 'accettato'));
-                                                        echo "Accettate: {$accettate}/" . count($candidature['data']);
+                                                        echo "Accettate: $accettate/" . count($candidature['data']);
                                                         ?>
                                                     </p>
                                                 <?php endif; ?>

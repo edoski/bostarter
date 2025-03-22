@@ -3,36 +3,13 @@
 // Classi per MongoDB
 require_once __DIR__ . '/../vendor/autoload.php';
 
-/**
- * Funzione per ottenere una variabile d'ambiente
- *
- * @param string $key Nome della variabile d'ambiente
- * @return string Valore della variabile d'ambiente
- *
- * @throws Exception
- */
-function require_env(string $key): string
-{
-    $value = getenv($key);
-    if ($value === false) {
-        throw new Exception("ENV. $key NON TROVATA");
-    }
-    return $value;
-}
-
-try {
-    // MySQL Configuration
-    define("DB_HOST", require_env('DB_HOST'));
-    define("DB_NAME", require_env('DB_NAME'));
-    define("DB_USER", require_env('DB_USER'));
-    define("DB_PASS", require_env('DB_PASS'));
-
-    // MongoDB Configuration
-    define("MONGO_URI", require_env('MONGO_URI'));
-    define("MONGO_DB", require_env('MONGO_DB'));
-} catch (Exception $e) {
-    error_log("Errore di configurazione: " . $e->getMessage());
-}
+// === VARIABLES ===
+const DB_HOST = "db";
+const DB_NAME = "BOSTARTER";
+const DB_USER = "root";
+const DB_PASS = "password";
+const MONGO_URI = "mongodb://mongodb:27017";
+const MONGO_DB = "BOSTARTER_LOG";
 
 // MySQL Connection
 try {
@@ -53,5 +30,4 @@ try {
 
 // === FUNCTIONS ===
 // Funzioni per invocare le stored procedure, controlli di sicurezza, logging, ecc.
-// Includo tutti i file nella directory "/functions"
 foreach (glob(__DIR__ . '/../functions/*.php') as $filename) require_once $filename;

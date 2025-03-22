@@ -14,22 +14,31 @@
 
 
 
+Oggetto: Chiarimenti specifiche progetto Basi di Dati
 
-# email prof ask if OK that when creatore updates profile's skill if existing ACCEPTED partecipanti should be rifiutato (as is currently, and thus barred from re-applying) or if should just delete the candidatura (and thus allow them to reapply), and also about 18+ rule for users
+Gentile Prof. Di Felice,
 
+In vista della discussione del progetto in aprile, approfittavo di chiedere due ulteriori chiarimenti per quanto riguardano le specifiche del progetto:
 
+1. Se un creatore aggiorna un profilo (es. aggiunge una skill, o aumenta il livello di una skill esistente) per il quale esistono già partecipanti accettati o candidature potenziali, se quest'ultimi non avessero più le skill/livello necessari per il profilo, è ragionevole che lo stato venga posto a rifiutato, piuttosto di eliminare il record della candidatura dal db (stessa cosa anche se aggiornassero le proprie skill di curriculum)?
+
+2. Se la candidatura di un utente per un profilo viene rifiutata, è ragionevole che esso non possa più inviare candidature allo stesso profilo del progetto, anche se esso disponga delle skill/livelli necessari (es. per prevenire lo "spam" di candidature dall'utente)?
+
+3. Per quanto riguarda l'anno di nascita degli utenti, è ragionevole che solo utenti maggiorenni (\*) possano iscriversi alla piattaforma (questo per poter stabilire un anno di nascita minimo che abbia significato, es. anno di nascita 2024 sarebbe assurdo in quanto l'utente abbia ~1 anno)?
+
+(\*) Maggiorenni in maniera approssimativa (es. dal 2007 in poi), poiché salvando nel db solo l'anno di nascita non si può fare un controllo preciso basato sul giorno.
+
+Cordiali saluti,
+Edoardo Galli
 
 
 # use ide problem inspector to identify code duplications and ask claude to see if can abstract them
 
 
-## ask claude to refresh ui for things like progetto_dettagli, budget update etc
-
 
 ## ask claude to form presentation slides summarising sec. 5 riflessioni + explaining overall project
 
 
-## keep track of website structure, when complete paste it atop of section 6.2 report
 ```
 bostarter/
 ├── actions/
@@ -728,9 +737,15 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 - navigating unforeseen complexity: apache web server permissions, configuring php environment, getting mongodb extension working → All lead to me learning a bit about docker and containerising the whole project, ensuring also universal portability of the project
 
-- ActionPipeline class
+- EventPipeline class
 	- cleaning up code significantly, removing boilerplate/excess overhead code, much cleaner interface, centralising data management (\$context array) and execution (methods of class) while also baking in logging functionality in a decoupled manner (class methods use fail and success functions, and these 2 functions redirect + log, but the primitive redirect function does not perform logging and is used elsewhere in code where logging unnecessary)
+	- was a bit painful refactoring /public files to also fit EventPipeline, but ultimately made it work
+		- had to clearly understand how to manage between redirecting upon error or just rendering the error on screen, & how to manage data that is fetched as one record vs data which contains multiple records
 
+- concluding project, if i could redo it i would have:
+	- for db, invested more time in defining extremely well and fully all of the operations which I would have expected on the platform
+	- for php, invested more time in learning a php framework like Laravel, which would've done systematically from the get-go a lot of what I had to manually (EventPipeline, /actions, url etc) so to not reinvent the wheel when i dont have to
+- BUT, doing everything the "hard" way has taught me a lot about the inner workings of a web information system, and as such can make me better navigate projects like this knowing what sore points/potential issues i have to look out for, and appreciate the frameworks which are built to solve these issues now that i know why they can be problematic
 
 # **6. FUNZIONALITÀ**
 ---
@@ -745,25 +760,6 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
     - `mongodb`: Per la connettività MongoDB
 - **Apache Web Server**: Per servire l'applicazione PHP
 
-#### **Configurazione Ambiente**
-- File `.env` con variabili correttamente configurate:
-    - `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
-    - `MONGO_URI`, `MONGO_DB`
-
-```
-# MySQL Configuration
-DB_HOST=db
-DB_NAME=BOSTARTER
-DB_USER=root
-DB_PASS=<YOUR_PASSWORD>
-
-# MongoDB Configuration
-MONGO_URI=mongodb://mongodb:27017
-MONGO_DB=BOSTARTER_LOG
-```
-
-Basta rimpiazzare `<YOUR_PASSWORD>` con la propria password per accedere a MySQL.
-
 #### **Requisiti di Sistema**
 - Porta `8080` disponibile per l'accesso web
 - Porte `3307` e `27017` disponibili per l'accesso ai database
@@ -771,47 +767,28 @@ Basta rimpiazzare `<YOUR_PASSWORD>` con la propria password per accedere a MySQL
 ## **6.1. BACKEND (MySQL)**
 ### **INIZIALIZZAZIONE**
 
-Il file di inizializzazione del database, `bostarter_init.sql`, si suddivide nelle seguenti parti principali:
+Il file di inizializzazione del database, `01-bostarter_init.sql`, si suddivide nelle seguenti parti principali:
 
 #### `TABELLE`
-- Si definiscono tutte le tabelle usate dal database.
+- Tutte le tabelle usate dal database.
 #### `STORED PROCEDURES (HELPER)`
-- Si definiscono tutte stored procedure di tipo secondario/helper utilizzate da altre stored procedure (primarie/main) per effettuare controlli di sicurezza, o a livello di applicazione invocate mediante la funzione mia `sp_invoke(...)`.
+- Tutte le stored procedure di tipo secondario/helper utilizzate da altre stored procedure (primarie/main) per effettuare controlli di sicurezza, o a livello di applicazione invocate mediante la funzione mia `sp_invoke(...)`.
 #### `STORED PROCEDURES (MAIN)`
-- Si definiscono tutte le stored procedures di tipo primario/main, fungendo come interfaccia principale fra l'applicazione (sempre mediante `sp_invoke(...)` e il database per quasi ogni operazioni disponibile sulla piattaforma.
+- Tutte le stored procedures di tipo primario/main, fungendo come interfaccia principale fra l'applicazione (sempre mediante `sp_invoke(...)` e il database per quasi ogni operazioni disponibile sulla piattaforma.
 #### `VISTE`
-- Si definiscono le tre viste richieste dal progetto.
+- Le tre viste richieste dal progetto.
 #### `TRIGGERS`
-- Si definiscono tutti i trigger richiesti dal progetto.
+- Tutti i trigger richiesti dal progetto.
 #### `EVENTI`
-- Si definisce il solo evento richiesto dal progetto.
+- Il solo evento richiesto dal progetto.
 
-Le tabelle, attraverso vincoli inter-relazionali e check definiti a livello di attributo fungono già come un buon punto di partenza in termini di sicurezza e consistenza dei dati. Ho optato, però, di implementare un ulteriore livello di sicurezza centrale e robusto all'interno delle stored procedures definite nel file. Come menzionato di sopra, ho suddiviso le stored procedures in due categorie principali: Main e helper. Le stored procedure "main" performano operazioni richieste dalla piattaforma (es. aggiunta di una skill globale), e si appoggiano a stored procedures di tipo "helper" per verificare che ogni controllo di sicurezza richiesto per l'operazione sia garantito (es. l'utente che aggiunge una skill globale deve essere admin).
+Le tabelle, attraverso vincoli inter-relazionali e check definiti a livello di attributo fungono già come un buon punto di partenza in termini di sicurezza e consistenza dei dati. Ho optato, però, di implementare un ulteriore livello di sicurezza centrale e robusto all'interno delle stored procedures definite nel file.
+Come menzionato di sopra, ho suddiviso le stored procedures in due categorie principali: Main e helper. Le stored procedure "main" performano operazioni richieste dalla piattaforma (es. aggiunta di una skill globale), e si appoggiano a stored procedures di tipo "helper" per verificare che ogni controllo di sicurezza richiesto per l'operazione sia garantito (es. l'utente che aggiunge una skill globale deve essere admin).
 
 ### **POPOLAMENTO**
 
-Il file di popolamento con dati fittizi per il database, `bostarter_demo.sql`, si suddivide nelle seguenti parti principali:
-
-#### `UTENTE REGISTRATION (ALL)`
-- Registrazione di tutti gli utenti finti nella piattaforma, con svariati admin, creatori, ed utenti regolari.
-#### `SKILL INSERTION (ADMIN)`
-- Inserimento di skill nella lista globale della piattaforma. Solo admin possono fare tale operazione.
-#### `SKILL_CURRICULUM INSERTION (ALL)`
-- Inserimento di skill nel proprio curriculum da parte di ogni utente, in base alle skill globali definite di sopra.
-#### `PROGETTO INSERTION (CREATORE)`
-- Inserimento da parte del creatore di progetti nella piattaforma.
-#### `COMPONENTE OPERATIONS (CREATORE)`
-- Nel caso di progetti hardware, inserimento da parte del creatore del progetto di componenti necessarie.
-#### `PROFILO & SKILL_PROFILO OPERATIONS (CREATORE)`
-- Nel caso di progetti software, inserimento da parte del creatore del progetto di profili e relative competenze al quale utenti possono candidarsi.
-#### `COMMENTO OPERATIONS (ALL)`
-- Inserimento di commenti su ciascun progetto della piattaforma; alcuni commenti dispongono di una risposta dal creatore.
-#### `PARTECIPANTE OPERATIONS (ALL)`
-- Inserimento da utenti per candidature di profili dei progetti, accettati/rifiutati dal creatore.
-#### `FINANZIAMENTO OPERATIONS (ALL)`
-- Inserimento di finanziamenti di progetti da parte di ogni utente.
-
-In questo file vengono fatte chiamate delle stored procedures definite nel file di sopra per inserire i dati fittizi nella piattaforma. Ovviamente per il suo corretto funzionamento vengono fatte solo chiamate valide, e non vengono utilizzate qui stored procedures che rimuovono/aggiornano dati (ha più senso fare una dimostrazione di esso in sede d'esame).
+Nel file `02-bostarter_demo.sql` vengono fatte chiamate delle stored procedures definite nel file di sopra per inserire i dati fittizi nella piattaforma. Ovviamente per il suo corretto funzionamento vengono fatte solo chiamate valide, e non vengono utilizzate qui stored procedures che rimuovono/aggiornano dati (ha più senso fare una dimostrazione di esso in sede d'esame).
+Inoltre, viene automaticamente invocato lo script `config/seed_data.php` che popola i rimanenti dati necessari per la demo della piattaforma, che non potevano essere popolati dal file sql.
 
 ## **6.2. FRONTEND (PHP)**
 ### **STRUTTURA GENERALE**
@@ -828,82 +805,35 @@ In particolare...
 
 ### **STRUTTURA FILE**
 
-La struttura generale di ogni file php nelle directory `public/` e `actions/` è la seguente:
+#### **Directory `/public`**
 
-- `/public`:
+I file nella directory **`/public`** seguono un'architettura modulare con sezioni chiaramente delimitate:
 
-```php
-<?php
-// === SETUP ===
-session_start();
-require '../config/config.php';
-check_auth();
+- **`=== SETUP ===`**: Inizializzazione della sessione, caricamento delle dipendenze e verifica dell'autenticazione
+- **`=== VALIDATION ===`**: Controlli di sicurezza specifici per la pagina corrente
+- **`=== DATA ===`**: Recupero dei dati dal database tramite stored procedures
+- **`=== RENDERING ===`**: Funzioni per la generazione di componenti UI riutilizzabili
 
-// === VALIDATION ===
-// ...
+Questa struttura favorisce la separazione tra logica applicativa e presentazione, con inclusione di componenti HTML e minimo codice PHP inline per il rendering condizionale. La pagina utilizza i dati recuperati per costruire l'interfaccia utente, delegando la manipolazione dei dati alle stored procedures. In maniera analoga anche i file in **`/components`** seguono la stessa struttura, essendo componenti grafiche individuali che vengono importate nelle pagine di **`/public`**.
 
-// === DATA ===
-// ...
-?>
+#### **Directory `/actions`**
 
-// <HTML>
-```
-A capo di ogni file viene posta la sezione di configurazione (`=== SETUP ===`), che chiama `session_start()` per recuperare le variabili di sessioni, importa il file `config.php` contenente la connessione al database, e controlla se l'utente si è autenticato. Di seguito i controlli di sicurezza preliminari (`=== VALIDATION ===`) relativi alla pagina specifica, e per ultimo si recuperano dal db (`=== DATA ===`) i dati necessari mediante stored procedures. In fondo si ha la pagina html, con php minimale (tanto quanto necessario per del conditional rendering).
+I file nella directory **`/actions`** implementano un pattern pipeline uniforme:
 
-- `/actions`:
+- **`=== SETUP ===`**: Inizializzazione della sessione, caricamento delle dipendenze e verifica dell'autenticazione
+- **`=== VARIABLES ===`**: Estrazione e validazione dei parametri di input necessari per l'operazione
+- **`=== CONTEXT ===`**: Creazione di un contesto operativo (collezione, azione, redirect, procedura, ecc.)
+- **`=== VALIDATION ===`**: Controlli di validazione con interruzione al primo errore
+- **`=== ACTION ===`**: Invocazione della stored procedure per l'operazione sul database
+- **`=== SUCCESS ===`**: Gestione del successo con logging e redirect appropriato (definiti nella sezione di contesto sopra)
 
-```php
-<?php
-/**
- * ACTION: ...
- * PERFORMED BY: ...
- * UI: ...
- * 
- * PURPOSE:
- * - ...
- * - Se l'operazione va a buon fine, ...
- * - Per maggiori dettagli, vedere la documentazione ...
- *
- * VARIABLES:
- * - ...
- */
+Questa architettura centralizza la gestione degli errori e il logging nella classe `EventPipeline`, eliminando la necessità di recupero dati o rendering HTML poiché questi file eseguono operazioni atomiche sul database con redirect automatico. Il pattern fornisce un approccio consistente alla validazione dei dati, gestione delle transazioni e feedback all'utente.
 
-// === SETUP ===
-session_start();
-require '../config/config.php';
-check_auth();
+#### **Directory `/functions`**
 
-// === VARIABLES ===
-check_POST(...);
-...
+I file nella directory **`/functions`** implementano funzionalità di supporto e utility condivise nell'intero sistema. Questa directory contiene moduli specializzati come `sp_invoke.php`, che fornisce un'interfaccia semplificata per l'invocazione delle stored procedure MySQL, e `EventPipeline.php`, che implementa il pattern pipeline per gestire in modo consistente validazioni, operazioni sul database e logging. Altri componenti chiave includono `helpers.php` con funzioni di utilità generale, `checks.php` per i controlli di sicurezza, `redirect.php` per la gestione dei reindirizzamenti, e `url.php` per la generazione centralizzata degli URL.
 
-// === CONTEXT ===
-$context = [
-	...
-];
-$pipeline = new EventPipeline($context);
-
-// === VALIDATION ===
-$pipeline->check(...);
-
-// === ACTION ===
-$pipeline->invoke();
-
-// === SUCCESS ===
-$pipeline->continue();
-```
-Risulta immediato che la struttura dei file in `/action` segue un pattern uniforme che sfrutta la classe `ActionPipeline` per gestire validazioni, esecuzione e redirect in modo consistente. Ogni file è organizzato in sezioni chiaramente delimitate:
-
-- **`=== SETUP ===`**: Inizializzazione della sessione e inclusione delle dipendenze
-- **`=== VARIABLES ===`**: Estrazione e validazione dei parametri di input
-- **`=== CONTEXT ===`**: Creazione di un contesto dell'operazione che include collezione, azione, redirect e procedura da eseguire
-- **`=== VALIDATION ===`**: Controlli di validazione utilizzando il pattern pipeline che interrompe l'esecuzione al primo errore
-- **`=== ACTION ===`**: Invocazione della stored procedure per eseguire l'operazione sul database
-- **`=== SUCCESS ===`**: Gestione del successo con logging dell'evento e redirect
-
-Questa architettura semplifica la gestione degli errori e il logging centralizzando queste funzionalità nella classe `ActionPipeline`. Rispetto alla struttura in `/public`, non sono necessarie sezioni per il recupero dati (`=== DATA ===`) o per il rendering HTML (`<HTML>`), poiché questi file si occupano esclusivamente di operazioni atomiche sul database con redirect automatica in base all'esito.
-
-Il pattern migliora la mantenibilità e la consistenza del codice grazie all'incapsulamento della logica di controllo e gestione errori, permettendo una separazione chiara tra validazione, esecuzione e gestione del risultato.
+Questa organizzazione favorisce la riusabilità del codice e la separazione delle responsabilità, permettendo ai file delle directory `/public` e `/actions` di delegare le operazioni comuni a funzioni specializzate. L'approccio riduce la duplicazione del codice e aumenta la coerenza dell'implementazione, facilitando la manutenzione e l'estensione della piattaforma.
 
 ### **AUTENTICAZIONE UTENTE**
 - `login.php`
