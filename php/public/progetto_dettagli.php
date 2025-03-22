@@ -309,6 +309,7 @@ function render_finanziamenti(array $progetto, array $rewards, bool $finanziato_
                             <input type="number" class="form-control mb-2" id="importo" name="importo"
                                    step="0.01"
                                    min="0.01"
+                                   max="999999999.99"
                                    placeholder="150.00"
                                    required>
                             <button type="submit" class="btn btn-primary my-2">Invia</button>

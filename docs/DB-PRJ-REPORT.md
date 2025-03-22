@@ -15,13 +15,7 @@
 
 
 
-# email prof ask if OK that when creatore updates profile's skill if existing ACCEPTED partecipanti should be rifiutato (as is currently, and thus barred from re-applying) or if should just delete the candidatura (and thus allow them to reapply)
-
-
-
-
-
-# ask claude if can split componente_modifica and profilo_modifica each into two separate php files, one for adding new profilo/componente and the other for modifying existing profilo/componente
+# email prof ask if OK that when creatore updates profile's skill if existing ACCEPTED partecipanti should be rifiutato (as is currently, and thus barred from re-applying) or if should just delete the candidatura (and thus allow them to reapply), and also about 18+ rule for users
 
 
 
@@ -40,44 +34,30 @@
 - ## and also add multiline docs above all /functions etc
 
 
-## refactor /componenti too, ensure that even after /public refactor is complete that variable names originating from /public and used in /componenti align
-
-
-## fix anno_nascita registrazione check to look at the curdate - 18yrs in days to evaluate if user is 18 (better precision otherwise 17yr olds X months can still sign up)
 
 
 
-
-## use generate_url() to generate redirect URLs in /public
-- leave form tags leading to /actions alone? or refactor generate_url to also include actions in routes?
-
-# logs.php
-- remove logs recenti section and just have the table beneath showing w all the logs, and above it have the table selector area with an additional button Reset that resets the filter search (redirects back to plain logs.php w no query params)
-- create checkbox button to filter for errors only in logs.php
 
 
 # comb thru init sql and for each sp verify it is being used, if not remove it
 - sp_util_progetto_owner_exists
+- sp_util_reward_get_by_code
 
 
 
-## can I use a ActionPipeline in checks.php?
+# check if can abstract sqlstate's from sp's into new sp util/check helpers
 
 
-
-### (HELLA OPTIONAL) try to see with docker if can serve on php files from php/public, while having everything work like public pages can still load php/config, php/actions, php/components, php/public/libs etc
-- ### correct <\a> and <\form> tag paths in php code
+# use ide problem inspector to identify code duplications and ask claude to see if can abstract them
 
 
-## see claude chat on abstracting reusable php components
-- ### create reusable components for cards like reward cards, see if more shared visual components, or if can turn standardise platform with new reusable components
+# ask claude to refresh ui for things like progetto_dettagli, budget update etc
 
 
 
 ## standardise POST var names like 'nome_progetto' instead of 'nome' when passing project name via post, etc
 - #### need to update progetto_aggiorna attr to be passed via POST no GET
 - ensure they are also specific like id_foto instead of id
-- `if (!isset($_FILES['foto']) || $_FILES['foto']['error'] != UPLOAD_ERR_OK) {` is how foto upload handling is checked
 
 
 

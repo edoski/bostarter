@@ -86,7 +86,9 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto', $in);
             </div>
 
             <!-- SUBMIT -->
-            <button type="submit" class="btn btn-primary">Inserisci Reward</button>
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Sei sicuro di voler inserire questa reward?')">
+                Inserisci Reward
+            </button>
         </form>
     </div>
 </div>

@@ -56,7 +56,9 @@ $progetto['percentuale'] = ($progetto['tot_finanziamento'] / $progetto['budget']
                        name="budget" required
                        placeholder="<?= htmlspecialchars($progetto['budget']); ?>">
             </div>
-            <button type="submit" class="btn btn-primary mt-3">Aggiorna Budget</button>
+            <button type="submit" class="btn btn-primary mt-3" onclick="return confirm('Confermi l\'aggiornamento del budget?')">
+                Aggiorna Budget
+            </button>
         </form>
     </div>
 </div>

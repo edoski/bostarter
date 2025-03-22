@@ -18,7 +18,9 @@ $photos = $pipeline->fetch_all('sp_foto_selectAll', $in);
                 <textarea class="form-control my-3" id="descrizione" name="descrizione" rows="5"
                           required><?= htmlspecialchars($progetto['descrizione']); ?></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Aggiorna</button>
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Sei sicuro di voler aggiornare la descrizione?')">
+                Aggiorna
+            </button>
         </form>
     </div>
 </div>
@@ -67,7 +69,9 @@ $photos = $pipeline->fetch_all('sp_foto_selectAll', $in);
                 <p class="small text-muted">Insersci una foto per il progetto.</p>
                 <input type="file" class="form-control my-3" id="foto" name="foto" accept="image/*" required>
             </div>
-            <button type="submit" class="btn btn-primary">Inserisci Foto</button>
+            <button type="submit" class="btn btn-primary" onclick="return confirm('Sei sicuro di voler inserire questa foto?')">
+                Inserisci Foto
+            </button>
         </form>
     </div>
 </div>
