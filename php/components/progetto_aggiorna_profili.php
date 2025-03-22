@@ -1,9 +1,8 @@
 <?php
 // === VARIABLES ===
-check_GET(['profilo', 'competenza', 'livello']);
-$profilo_selezionato = $_GET['profilo'];
-$competenza_selezionata = $_GET['competenza'];
-$livello_selezionato = $_GET['livello'];
+$profilo_selezionato = $_GET['profilo'] ?? '';
+$competenza_selezionata = $_GET['competenza'] ?? '';
+$livello_selezionato = $_GET['livello'] ?? 0;
 
 // === DATA ===
 // PROFILI E RELATIVE COMPETENZE

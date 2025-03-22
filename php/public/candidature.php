@@ -80,7 +80,7 @@ function render_candidature_table(array $candidature, bool $is_ricevute): string
                     <tr>
                         <?php if ($is_ricevute): ?>
                             <td>
-                                <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $candidatura['nome_progetto']])); ?>">
+                                <a href="<?=generate_url('progetto_dettagli', ['nome' => $candidatura['nome_progetto']]); ?>">
                                     <?= htmlspecialchars($candidatura['nome_progetto']); ?>
                                 </a>
                             </td>
@@ -92,14 +92,14 @@ function render_candidature_table(array $candidature, bool $is_ricevute): string
                             <td><?= render_badge($candidatura['stato']); ?></td>
                             <td>
                                 <?php if ($candidatura['stato'] == 'potenziale'): ?>
-                                    <form action="../actions/candidatura_update.php" method="post" class="d-inline">
+                                    <form action="<?=generate_url('candidatura_update') ?>" method="post" class="d-inline">
                                         <input type="hidden" name="email_candidato" value="<?= htmlspecialchars($candidatura['email_utente']); ?>">
                                         <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($candidatura['nome_progetto']); ?>">
                                         <input type="hidden" name="nome_profilo" value="<?= htmlspecialchars($candidatura['nome_profilo']); ?>">
                                         <input type="hidden" name="nuovo_stato" value="accettato">
                                         <button type="submit" class="btn btn-sm btn-success">Accetta</button>
                                     </form>
-                                    <form action="../actions/candidatura_update.php" method="post" class="d-inline ms-1">
+                                    <form action="<?=generate_url('candidatura_update') ?>" method="post" class="d-inline ms-1">
                                         <input type="hidden" name="email_candidato" value="<?= htmlspecialchars($candidatura['email_utente']); ?>">
                                         <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($candidatura['nome_progetto']); ?>">
                                         <input type="hidden" name="nome_profilo" value="<?= htmlspecialchars($candidatura['nome_profilo']); ?>">
@@ -112,7 +112,7 @@ function render_candidature_table(array $candidature, bool $is_ricevute): string
                             </td>
                         <?php else: ?>
                             <td>
-                                <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $candidatura['nome_progetto']])); ?>">
+                                <a href="<?=generate_url('progetto_dettagli', ['nome' => $candidatura['nome_progetto']]); ?>">
                                     <?= htmlspecialchars($candidatura['nome_progetto']); ?>
                                 </a>
                                 <small class="text-muted d-block"><?= htmlspecialchars($candidatura['descrizione']); ?></small>

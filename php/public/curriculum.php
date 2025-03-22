@@ -76,11 +76,11 @@ $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
                                                 </div>
                                             </td>
                                             <td class="text-end">
-                                                <a href="<?= htmlspecialchars(generate_url('curriculum_skill_update', ['competenza' => $skill['competenza'], 'livello' => $skill['livello_effettivo']])); ?>"
+                                                <a href="<?=generate_url('curriculum_skill_update', ['competenza' => $skill['competenza'], 'livello' => $skill['livello_effettivo']]); ?>"
                                                    class="btn btn-sm btn-warning">
                                                     Modifica
                                                 </a>
-                                                <form action="../actions/skill_curriculum_delete.php" method="POST"
+                                                <form action="<?=generate_url('skill_curriculum_delete') ?>" method="POST"
                                                       class="d-inline">
                                                     <input type="hidden" name="competenza"
                                                            value="<?= htmlspecialchars($skill['competenza']); ?>">
@@ -112,7 +112,7 @@ $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
                         <p class="text-muted fst-italic mb-3">
                             Seleziona una skill disponibile e inserisci il livello che possiedi.
                         </p>
-                        <form action="../actions/skill_curriculum_insert.php" method="POST">
+                        <form action="<?=generate_url('skill_curriculum_insert') ?>" method="POST">
                             <div class="row">
                                 <div class="col-md-5 mb-3">
                                     <label for="skill" class="form-label fw-bold">Skill Disponibile</label>
@@ -159,7 +159,7 @@ $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
                                 Aggiungi o modifica le skill disponibili globalmente per tutti gli utenti.
                             </p>
 
-                            <form action="../actions/skill_insert.php" method="POST" class="mb-4">
+                            <form action="<?=generate_url('skill_insert') ?>" method="POST" class="mb-4">
                                 <div class="row">
                                     <div class="col-md-9 mb-3">
                                         <label for="new_skill" class="form-label fw-bold">Nuova Skill Globale</label>
@@ -201,7 +201,7 @@ $skill_disponibili = $pipeline->fetch_all('sp_skill_curriculum_selectDiff');
                                             <td><?= $rank++; ?></td>
                                             <td><?= htmlspecialchars($skill['competenza']); ?></td>
                                             <td class="text-end">
-                                                <a href="<?= htmlspecialchars(generate_url('curriculum_skill_global_update', ['competenza' => $skill['competenza']])); ?>"
+                                                <a href="<?=generate_url('curriculum_skill_global_update', ['competenza' => $skill['competenza']]); ?>"
                                                    class="btn btn-sm btn-warning">
                                                     Modifica
                                                 </a>

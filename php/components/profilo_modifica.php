@@ -13,7 +13,7 @@
                         <h5 class="mb-0">Modifica Livello Competenza</h5>
                     </div>
                     <div class="card-body">
-                        <form action="../actions/skill_profilo_update.php" method="post">
+                        <form action="<?=generate_url('skill_profilo_update') ?>" method="post">
                             <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($_GET['nome']); ?>">
                             <input type="hidden" name="nome_profilo" value="<?= htmlspecialchars($profilo_selezionato); ?>">
                             <input type="hidden" name="competenza" value="<?= htmlspecialchars($competenza_selezionata); ?>">
@@ -34,7 +34,7 @@
                             </div>
 
                             <div class="d-flex justify-content-between mt-3">
-                                <a href="?attr=profili&nome=<?= urlencode($_GET['nome']); ?>&profilo=<?= urlencode($profilo_selezionato); ?>"
+                                <a href="<?=generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $_GET['nome'], 'profilo' => $profilo_selezionato]) ?>"
                                    class="btn btn-secondary">Annulla</a>
                                 <button type="submit" class="btn btn-warning" onclick="return confirm('Sei sicuro di voler aggiornare il livello della competenza? Candidature esistenti potrebbero essere rimosse.')">
                                     Aggiorna
@@ -46,7 +46,7 @@
 
             <!-- CREA NUOVO PROFILO -->
             <?php elseif (empty($profilo_selezionato)): ?>
-                <form action="../actions/profilo_insert.php" method="post">
+                <form action="<?=generate_url('profilo_insert') ?>" method="post">
                     <input type="hidden" name="nome_progetto"
                            value="<?= htmlspecialchars($_GET['nome']); ?>">
 
@@ -63,7 +63,7 @@
             <!-- Interfaccia per modificare un profilo esistente -->
             <?php else: ?>
                 <!-- Form per aggiornare il nome del profilo-->
-                <form action="../actions/profilo_nome_update.php" method="post">
+                <form action="<?=generate_url('profilo_nome_update') ?>" method="post">
                     <label for="nuovo_nome" class="form-label">Nome Profilo</label>
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <div class="form-group flex-fill me-3">
@@ -96,11 +96,11 @@
                                     <td><?= htmlspecialchars($competenza['livello']); ?></td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <a href="?attr=profili&nome=<?= urlencode($_GET['nome']); ?>&profilo=<?= urlencode($profilo_selezionato); ?>&competenza=<?= urlencode($competenza['competenza']); ?>&livello=<?= urlencode($competenza['livello']); ?>"
+                                            <a href="<?=generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $_GET['nome'], 'profilo' => $profilo_selezionato, 'competenza' => $competenza['competenza'], 'livello' => $competenza['livello']]); ?>"
                                                class="btn btn-sm btn-warning">
                                                 Modifica
                                             </a>
-                                            <form action="../actions/skill_profilo_delete.php" method="post"
+                                            <form action="<?=generate_url('skill_profilo_delete') ?>" method="post"
                                                   class="d-inline">
                                                 <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($_GET['nome']); ?>">
                                                 <input type="hidden" name="nome_profilo" value="<?= htmlspecialchars($profilo_selezionato); ?>">
@@ -127,7 +127,7 @@
 
                 <!-- AGGIUNGI COMPETENZA AL PROFILO -->
                 <h5 class="mb-3">Aggiungi una competenza</h5>
-                <form action="../actions/skill_profilo_insert.php" method="post">
+                <form action="<?=generate_url('skill_profilo_insert') ?>" method="post">
                     <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($_GET['nome']); ?>">
                     <input type="hidden" name="nome_profilo" value="<?= htmlspecialchars($profilo_selezionato); ?>">
 

@@ -87,9 +87,9 @@ $nuovo_budget = $budget_diff ? $nuovo_costo_totale : $budget_progetto;
             </div>
         </div>
         <div class="card-footer d-flex justify-content-between">
-            <a href="<?= htmlspecialchars(generate_url('progetto_aggiorna', ['attr' => 'componenti', 'nome' => $nome_progetto])); ?>"
+            <a href="<?=generate_url('progetto_aggiorna', ['attr' => 'componenti', 'nome' => $nome_progetto]); ?>"
                class="btn btn-secondary">Annulla</a>
-            <form action="../actions/componente_insert.php" method="post">
+            <form action="<?=generate_url('componente_insert') ?>" method="post">
                 <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($nome_progetto); ?>">
                 <input type="hidden" name="nome_componente" value="<?= htmlspecialchars($nome_componente); ?>">
                 <input type="hidden" name="descrizione" value="<?= htmlspecialchars($descrizione); ?>">

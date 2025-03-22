@@ -20,7 +20,7 @@ if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url(
             <!-- TITLE -->
             <h1 class="text-center">Registrazione</h1>
 
-            <form action="../actions/register_handler.php" method="POST">
+            <form action="<?=generate_url('register_handler') ?>" method="POST">
                 <!-- EMAIL -->
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
@@ -159,7 +159,7 @@ if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url(
 
             <!-- LOGIN -->
             <p class="text-center mt-3">
-                Hai già un account? <a href="<?= htmlspecialchars(generate_url('login')); ?>">Accedi</a>
+                Hai già un account? <a href="<?=generate_url('login'); ?>">Accedi</a>
             </p>
         </div>
     </div>

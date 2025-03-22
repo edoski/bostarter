@@ -35,7 +35,7 @@ $pipeline->check(
                 <h5 class="mb-0">Modifica Skill Globale</h5>
             </div>
             <div class="card-body">
-                <form action="../actions/skill_update.php" method="POST">
+                <form action="<?=generate_url('skill_update'); ?>" method="POST">
                     <input type="hidden" name="vecchia_competenza" value="<?= htmlspecialchars($vecchia_competenza); ?>">
 
                     <div class="mb-3">
@@ -50,7 +50,7 @@ $pipeline->check(
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <a href="<?= htmlspecialchars(generate_url('curriculum')); ?>"
+                        <a href="<?=generate_url('curriculum'); ?>"
                            class="btn btn-secondary">Annulla</a>
                         <button type="submit" class="btn btn-danger">Aggiorna</button>
                     </div>

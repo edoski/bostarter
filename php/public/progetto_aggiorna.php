@@ -46,7 +46,7 @@ $progetto['tipo'] = $pipeline->fetch('sp_util_progetto_type', $in)['tipo_progett
     <!-- TORNA INDIETRO -->
     <div class="d-flex justify-content-start">
         <button class="btn btn-warning mb-3">
-            <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $nome_progetto])); ?>"
+            <a href="<?=generate_url('progetto_dettagli', ['nome' => $nome_progetto]); ?>"
                class="text-black text-decoration-none">Torna al Progetto</a>
         </button>
     </div>
@@ -77,7 +77,7 @@ $progetto['tipo'] = $pipeline->fetch('sp_util_progetto_type', $in)['tipo_progett
             redirect(
                 false,
                 "Attributo non valido.",
-                        htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $nome_progetto]))
+                       generate_url('progetto_dettagli', ['nome' => $nome_progetto])
             );
             break;
     } ?>

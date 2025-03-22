@@ -51,7 +51,7 @@ function render_progetto_card(array $progetto): string
 {
     ob_start();
     ?>
-    <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $progetto['nome']])); ?>"
+    <a href="<?=generate_url('progetto_dettagli', ['nome' => $progetto['nome']]); ?>"
        class="text-decoration-none text-reset">
         <div class="card h-100 shadow-sm">
             <div class="card-header text-white bg-primary">
@@ -127,14 +127,15 @@ function render_progetto_card(array $progetto): string
 
         <!-- BOTTONE CREA PROGETTO / DIVENTA CREATORE -->
         <?php if ($is_creatore): ?>
-            <form action="<?= htmlspecialchars(generate_url('progetto_crea')); ?>">
+            <form action="<?=generate_url('progetto_crea'); ?>">
                 <button class="btn btn-outline-primary" type="submit">Crea Progetto</button>
             </form>
         <?php else: ?>
-            <form action="../actions/utente_convert_creatore.php">
-                <input type="hidden" name="email" value="<?= $email; ?>">
-                <button class="btn btn-outline-primary" onclick="return confirm('Sei sicuro di voler diventare un creatore?')"
-                        type="submit">Diventa Creatore</button>
+            <form action="<?=generate_url('utente_convert_creatore') ?>" method="post">
+                <button class="btn btn-outline-primary" type="submit"
+                        onclick="return confirm('Sei sicuro di voler diventare un creatore?')">
+                    Diventa Creatore
+                </button>
             </form>
         <?php endif; ?>
     </div>

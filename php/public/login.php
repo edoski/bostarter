@@ -20,7 +20,7 @@ if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url(
             <!-- TITLE -->
             <h1 class="text-center">Login</h1>
 
-            <form action="../actions/login_handler.php" method="POST">
+            <form action="<?=generate_url('login_handler') ?>" method="POST">
                 <!-- EMAIL -->
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
@@ -65,7 +65,7 @@ if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url(
 
             <!-- REGISTER -->
             <p class="text-center mt-3">
-                Non hai un account? <a href="<?= htmlspecialchars(generate_url('register')) ?>"> Registrati</a>
+                Non hai un account? <a href="<?=generate_url('register') ?>"> Registrati</a>
             </p>
 
             <!-- AUTOLOGIN, UNCOMMENT IN SEDE D'ESAME -->
@@ -75,7 +75,7 @@ if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url(
                 </div>
                 <div class="card-body d-flex align-items-center justify-content-center gap-3">
                     <!-- Admin Alice -->
-                    <form action="../actions/login_handler.php" method="POST" class="d-inline">
+                    <form action="<?=generate_url('login_handler') ?>" method="POST" class="d-inline">
                         <input type="hidden" name="email" value="alice@example.com">
                         <input type="hidden" name="password" value="passAlice">
                         <input type="hidden" name="codice_sicurezza" value="admincode123">
@@ -83,21 +83,21 @@ if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url(
                     </form>
 
                     <!-- Creatore Bob (Software) -->
-                    <form action="../actions/login_handler.php" method="POST" class="d-inline">
+                    <form action="<?=generate_url('login_handler') ?>" method="POST" class="d-inline">
                         <input type="hidden" name="email" value="bob@example.com">
                         <input type="hidden" name="password" value="passBob">
                         <button type="submit" class="btn btn-primary">Bob (Creatore)</button>
                     </form>
 
                     <!-- Creatore Diana (Hardware) -->
-                    <form action="../actions/login_handler.php" method="POST" class="d-inline">
+                    <form action="<?=generate_url('login_handler') ?>" method="POST" class="d-inline">
                         <input type="hidden" name="email" value="diana@example.com">
                         <input type="hidden" name="password" value="passDiana">
                         <button type="submit" class="btn btn-primary">Diana (Creatore)</button>
                     </form>
 
                     <!-- Regolare Edo -->
-                    <form action="../actions/login_handler.php" method="POST" class="d-inline">
+                    <form action="<?=generate_url('login_handler') ?>" method="POST" class="d-inline">
                         <input type="hidden" name="email" value="edoardo.galli3@studio.unibo.it">
                         <input type="hidden" name="password" value="passEdo">
                         <button type="submit" class="btn btn-success">Edo (Regolare)</button>

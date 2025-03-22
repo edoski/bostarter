@@ -125,7 +125,7 @@ function render_progetto(array $progetto, array $photos, int $affidabilita): str
                 <div class="card-header d-inline-flex align-items-center justify-content-between">
                     <p class="fw-bold fs-5">Descrizione</p>
                     <?php if (is_progetto_owner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                        <form action="<?= htmlspecialchars(generate_url('progetto_aggiorna', ['attr' => 'descrizione', 'nome' => $progetto['nome']])); ?>"
+                        <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'descrizione', 'nome' => $progetto['nome']]); ?>"
                               method="post">
                             <button type="submit" class="btn btn-warning">Modifica</button>
                         </form>
@@ -206,7 +206,7 @@ function render_finanziamenti(array $progetto, array $rewards, bool $finanziato_
                 </small>
             </div>
             <?php if (is_progetto_owner($email, $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                <form action="<?= htmlspecialchars(generate_url('progetto_aggiorna', ['attr' => 'budget', 'nome' => $progetto['nome']])); ?>"
+                <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'budget', 'nome' => $progetto['nome']]); ?>"
                       method="post">
                     <button type="submit" class="btn btn-warning mt-2">Modifica</button>
                 </form>
@@ -252,7 +252,7 @@ function render_finanziamenti(array $progetto, array $rewards, bool $finanziato_
                         </small>
                     </div>
                     <?php if (is_progetto_owner($email, $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                        <form action="<?= htmlspecialchars(generate_url('progetto_aggiorna', ['attr' => 'rewards', 'nome' => $progetto['nome']])); ?>"
+                        <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'rewards', 'nome' => $progetto['nome']]); ?>"
                               method="post">
                             <button type="submit" class="btn btn-warning mt-2">Modifica</button>
                         </form>
@@ -300,7 +300,7 @@ function render_finanziamenti(array $progetto, array $rewards, bool $finanziato_
         <?php if ($progetto['stato'] === 'aperto'): ?>
             <?php if (!$finanziato_oggi): ?>
                 <div class="card-footer">
-                    <form action="<?= htmlspecialchars(generate_url('finanziamento_conferma')); ?>"
+                    <form action="<?=generate_url('finanziamento_conferma'); ?>"
                           method="post">
                         <input type="hidden" name="nome" value="<?= htmlspecialchars($progetto['nome']); ?>">
                         <div class="form-group mt-2">
@@ -354,7 +354,7 @@ function render_profili(array $profili, array $partecipanti_accettati, array $pr
                 </small>
             </div>
             <?php if (is_progetto_owner($email, $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                <form action="<?= htmlspecialchars(generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $progetto['nome']])); ?>"
+                <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $progetto['nome']]); ?>"
                       method="post">
                     <button type="submit" class="btn btn-warning mt-2">Modifica</button>
                 </form>
@@ -443,7 +443,7 @@ function render_profili(array $profili, array $partecipanti_accettati, array $pr
                                         <?php elseif (empty($skills)): ?>
                                             <button class="btn btn-secondary w-100" disabled>Profilo in creazione</button>
                                         <?php else: ?>
-                                            <form action="../actions/candidatura_insert.php" method="post">
+                                            <form action="<?=generate_url('candidatura_insert') ?>" method="post">
                                                 <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($progetto['nome']); ?>">
                                                 <input type="hidden" name="nome_profilo" value="<?= htmlspecialchars($nome_profilo); ?>">
                                                 <button type="submit" class="btn btn-primary w-100">Candidati</button>
@@ -483,7 +483,7 @@ function render_componenti(array $componenti, array $progetto): string
                 </small>
             </div>
             <?php if (is_progetto_owner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                <form action="<?= htmlspecialchars(generate_url('progetto_aggiorna', ['attr' => 'componenti', 'nome' => $progetto['nome']])); ?>"
+                <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'componenti', 'nome' => $progetto['nome']]); ?>"
                       method="post">
                     <button type="submit" class="btn btn-warning mt-2">Modifica</button>
                 </form>
@@ -563,7 +563,7 @@ function render_commenti(array $commenti, string $email, bool $is_admin, array $
                         <!-- BOTTONE ELIMINA COMMENTO -->
                         <?php if ($commento['email_utente'] === $email || $is_admin): ?>
                             <div class="card-footer">
-                                <form action="../actions/commento_delete.php" method="post">
+                                <form action="<?=generate_url('commento_delete') ?>" method="post">
                                     <input type="hidden" name="id_commento" value="<?= htmlspecialchars($commento['id']); ?>">
                                     <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($progetto['nome']); ?>">
                                     <input type="hidden" name="email_utente" value="<?= htmlspecialchars($commento['email_utente']); ?>">
@@ -580,7 +580,7 @@ function render_commenti(array $commenti, string $email, bool $is_admin, array $
                                 </strong>
                                 <p><?= htmlspecialchars($commento['risposta']); ?></p>
                                 <?php if (is_progetto_owner($email, $progetto['nome']) || $is_admin): ?>
-                                    <form action="../actions/commento_risposta_delete.php" method="post">
+                                    <form action="<?=generate_url('commento_risposta_delete') ?>" method="post">
                                         <input type="hidden" name="id_commento" value="<?= htmlspecialchars($commento['id']); ?>">
                                         <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($progetto['nome']); ?>">
                                         <button type="submit" class="btn btn-danger">Elimina</button>
@@ -589,7 +589,7 @@ function render_commenti(array $commenti, string $email, bool $is_admin, array $
                             </div>
                         <?php elseif (is_progetto_owner($email, $progetto['nome'])): ?>
                             <div class="card-footer">
-                                <form action="../actions/commento_risposta_insert.php" method="post">
+                                <form action="<?=generate_url('commento_risposta_insert') ?>" method="post">
                                     <input type="hidden" name="id_commento" value="<?= htmlspecialchars($commento['id']); ?>">
                                     <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($progetto['nome']); ?>">
                                     <div class="form-group mt-2">
@@ -607,7 +607,7 @@ function render_commenti(array $commenti, string $email, bool $is_admin, array $
 
         <!-- INSERIMENTO COMMENTO -->
         <div class="card-footer">
-            <form action="../actions/commento_insert.php" method="post">
+            <form action="<?=generate_url('commento_insert') ?>" method="post">
                 <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($progetto['nome']); ?>">
                 <div class="form-group">
                     <label class="fs-5 my-2 fw-bold" for="commento">Commento</label>

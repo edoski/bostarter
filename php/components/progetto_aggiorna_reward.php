@@ -51,7 +51,7 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto', $in);
 
         <!-- INSERIMENTO NUOVO REWARD -->
         <h4 class="mb-3">Aggiungi Nuova Reward</h4>
-        <form action="../actions/reward_insert.php" method="post" enctype="multipart/form-data">
+        <form action="<?=generate_url('reward_insert') ?>" method="post" enctype="multipart/form-data">
             <input type="hidden" name="nome" value="<?= htmlspecialchars($nome_progetto); ?>">
 
             <!-- CODICE REWARD E IMPORTO MINIMO -->

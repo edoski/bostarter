@@ -10,7 +10,7 @@
             // CALCOLO COSTO ATTUALE DEL COMPONENTE (SE IN MODIFICA)
             $costo_attuale = 0;
             if (!$nuovo_componente) {
-                $costo_attuale = $componente_corrente['prezzo'] * $componente_corrente['quantita'];
+                $costo_attuale = $componente_attuale['prezzo'] * $componente_attuale['quantita'];
             }
 
             // CALCOLO COSTO TOTALE DEI COMPONENTI
@@ -44,7 +44,7 @@
 
             <?php if ($nuovo_componente): ?>
                 <!-- CREA NUOVO COMPONENTE -->
-                <form action="../public/componente_conferma_insert.php" method="post">
+                <form action="<?=generate_url('componente_conferma_insert') ?>" method="post">
                     <input type="hidden" name="nome_progetto"
                            value="<?= htmlspecialchars($_GET['nome']); ?>">
 
@@ -78,7 +78,7 @@
                 </form>
             <?php else: ?>
                 <!-- AGGIORNA COMPONENTE ESISTENTE -->
-                <form action="../public/componente_conferma_update.php" method="post">
+                <form action="<?=generate_url('componente_conferma_update') ?>" method="post">
                     <input type="hidden" name="nome_progetto"
                            value="<?= htmlspecialchars($_GET['nome']); ?>">
                     <input type="hidden" name="nome_componente_originale"
@@ -92,24 +92,25 @@
 
                     <div class="mb-3">
                         <label for="descrizione" class="form-label fw-bold">Descrizione</label>
-                        <textarea class="form-control" id="descrizione" name="descrizione" rows="3" required><?= htmlspecialchars($componente_corrente['descrizione']); ?></textarea>
+                        <textarea class="form-control" id="descrizione" name="descrizione" rows="3" required><?= htmlspecialchars($componente_attuale['descrizione']); ?></textarea>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="quantita" class="form-label fw-bold">Quantità</label>
                             <input type="number" class="form-control" id="quantita" name="quantita" required min="1"
-                                   value="<?= htmlspecialchars($componente_corrente['quantita']); ?>">
+                                   value="<?= htmlspecialchars($componente_attuale['quantita']); ?>">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="prezzo" class="form-label fw-bold">Prezzo Unitario (€)</label>
                             <input type="number" class="form-control" id="prezzo" name="prezzo" required step="0.01" min="0.01"
-                                   value="<?= htmlspecialchars($componente_corrente['prezzo']); ?>">
+                                   value="<?= htmlspecialchars($componente_attuale['prezzo']); ?>">
                         </div>
                     </div>
 
                     <div class="d-flex justify-content-between">
-                        <a href="?attr=componenti&nome=<?= urlencode($_GET['nome']); ?>" class="btn btn-secondary">Annulla</a>
+                        <a href="<?=generate_url('progetto_aggiorna', ['attr' => 'componenti', 'nome' => $_GET['nome']]); ?>"
+                           class="btn btn-secondary">Annulla</a>
                         <button type="submit" class="btn btn-warning">Procedi</button>
                     </div>
                 </form>

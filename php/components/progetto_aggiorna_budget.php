@@ -40,7 +40,7 @@ $progetto['percentuale'] = ($progetto['tot_finanziamento'] / $progetto['budget']
             </div>
         </div>
         <!-- AGGIORNA BUDGET -->
-        <form action="../actions/progetto_budget_update.php" method="post">
+        <form action="<?=generate_url('progetto_budget_update') ?>" method="post">
             <input type="hidden" name="nome" value="<?= htmlspecialchars($_GET['nome']); ?>">
             <input type="hidden" name="tipo" value="<?= htmlspecialchars($progetto['tipo']); ?>">
             <input type="hidden" name="attr" value="budget">

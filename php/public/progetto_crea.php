@@ -36,7 +36,7 @@ $pipeline->check(
             <h4 class="mb-0">Informazioni Progetto</h4>
         </div>
         <div class="card-body">
-            <form action="../actions/progetto_insert.php" method="post">
+            <form action="<?=generate_url('progetto_insert') ?>" method="post">
 
                 <!-- NOME PROGETTO -->
                 <div class="mb-3">

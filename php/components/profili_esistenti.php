@@ -3,7 +3,7 @@
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h3 class="mb-0">Profili Esistenti</h3>
             <?php if (isset($_GET['profilo'])): ?>
-                <a href="?attr=profili&nome=<?= urlencode($_GET['nome']); ?>"
+                <a href="<?=generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $_GET['nome']]); ?>"
                    class="btn btn-success">Nuovo Profilo</a>
             <?php endif; ?>
         </div>
@@ -17,16 +17,13 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0"><?= htmlspecialchars($nome_profilo); ?></h6>
                                 <div>
-                                    <!-- Link per la modifica -->
-                                    <a href="?attr=profili&nome=<?= urlencode($_GET['nome']); ?>&profilo=<?= urlencode($nome_profilo); ?>"
+                                    <a href="<?=generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $_GET['nome'], 'profilo' => $nome_profilo]); ?>"
                                        class="btn btn-sm btn-primary">
                                         Modifica
                                     </a>
-                                    <form action="../actions/profilo_delete.php" method="post" class="d-inline">
-                                        <input type="hidden" name="nome_progetto"
-                                               value="<?= htmlspecialchars($_GET['nome']); ?>">
-                                        <input type="hidden" name="nome_profilo"
-                                               value="<?= htmlspecialchars($nome_profilo); ?>">
+                                    <form action="<?=generate_url('profilo_delete') ?>" method="post" class="d-inline">
+                                        <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($_GET['nome']); ?>">
+                                        <input type="hidden" name="nome_profilo" value="<?= htmlspecialchars($nome_profilo); ?>">
                                         <button type="submit" class="btn btn-sm btn-danger"
                                                 onclick="return confirm('Sei sicuro di voler eliminare questo profilo? Tutte le candidature associate verranno rimosse.')">
                                             Elimina

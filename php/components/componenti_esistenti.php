@@ -3,7 +3,7 @@
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
             <h3 class="mb-0">Componenti Esistenti</h3>
             <?php if (isset($_GET['componente'])): ?>
-                <a href="?attr=componenti&nome=<?= urlencode($_GET['nome']); ?>"
+                <a href="<?=generate_url('progetto_aggiorna', ['attr' => 'componenti', 'nome' => $_GET['nome']]); ?>"
                    class="btn btn-success">Nuovo Componente</a>
             <?php endif; ?>
         </div>
@@ -22,11 +22,11 @@
                                 <h6 class="mb-0"><?= htmlspecialchars($componente['nome_componente']); ?></h6>
                                 <div>
                                     <!-- Link per la modifica -->
-                                    <a href="?attr=componenti&nome=<?= urlencode($_GET['nome']); ?>&componente=<?= urlencode($componente['nome_componente']); ?>"
+                                    <a href="<?=generate_url('progetto_aggiorna', ['attr' => 'componenti', 'nome' => $_GET['nome'], 'componente' => $componente['nome_componente']]); ?>"
                                        class="btn btn-sm btn-primary">
                                         Modifica
                                     </a>
-                                    <form action="../actions/componente_delete.php" method="post" class="d-inline">
+                                    <form action="<?=generate_url('componente_delete') ?>" method="post" class="d-inline">
                                         <input type="hidden" name="nome_progetto"
                                                value="<?= htmlspecialchars($_GET['nome']); ?>">
                                         <input type="hidden" name="nome_componente"

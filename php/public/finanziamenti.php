@@ -125,7 +125,7 @@ if ($is_creatore) {
                                 <tr>
                                     <td><?= htmlspecialchars($finanziamento['data']); ?></td>
                                     <td>
-                                        <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $finanziamento['nome_progetto']])); ?>">
+                                        <a href="<?=generate_url('progetto_dettagli', ['nome' => $finanziamento['nome_progetto']]); ?>">
                                             <?= htmlspecialchars($finanziamento['nome_progetto']); ?>
                                         </a>
                                     </td>
@@ -192,7 +192,7 @@ if ($is_creatore) {
                             <tr>
                                 <td><?= htmlspecialchars($finanziamento['data']); ?></td>
                                 <td>
-                                    <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $finanziamento['nome_progetto']])); ?>">
+                                    <a href="<?=generate_url('progetto_dettagli', ['nome' => $finanziamento['nome_progetto']]); ?>">
                                         <?= htmlspecialchars($finanziamento['nome_progetto']); ?>
                                     </a>
                                 </td>

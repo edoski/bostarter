@@ -1,5 +1,6 @@
 <?php
-// Recupero le foto del progetto
+// === DATA ===
+// RECUPERO FOTO PROGETTO
 $in = ['p_nome_progetto' => $_GET['nome']];
 $photos = $pipeline->fetch_all('sp_foto_selectAll', $in);
 ?>
@@ -10,7 +11,7 @@ $photos = $pipeline->fetch_all('sp_foto_selectAll', $in);
         <h3>Aggiorna Descrizione</h3>
     </div>
     <div class="card-body">
-        <form action="../actions/progetto_descrizione_update.php" method="post">
+        <form action="<?=generate_url('progetto_descrizione_update') ?>" method="post">
             <input type="hidden" name="nome" value="<?= htmlspecialchars($_GET['nome']); ?>">
             <div class="form-group">
                 <label for="descrizione" class="fw-bold fs-5">Nuova Descrizione</label>
@@ -44,7 +45,7 @@ $photos = $pipeline->fetch_all('sp_foto_selectAll', $in);
                     <?php foreach ($photos['data'] as $photo): ?>
                         <div class="flex-shrink-0 w-25 px-2">
                             <?php $base64 = base64_encode($photo['foto']); ?>
-                            <form action="../actions/foto_delete.php" method="post">
+                            <form action="<?=generate_url('foto_delete') ?>" method="post">
                                 <input type="hidden" name="nome" value="<?= $progetto['nome']; ?>">
                                 <input type="hidden" name="id" value="<?= $photo['id']; ?>">
                                 <button type="submit" class="btn btn-danger btn-sm mb-2">Elimina</button>
@@ -59,7 +60,7 @@ $photos = $pipeline->fetch_all('sp_foto_selectAll', $in);
         <?php endif; ?>
         <hr>
         <!-- INSERIMENTO FOTO -->
-        <form action="../actions/foto_insert.php" method="post" enctype="multipart/form-data">
+        <form action="<?=generate_url('foto_insert') ?>" method="post" enctype="multipart/form-data">
             <input type="hidden" name="nome" value="<?= htmlspecialchars($_GET['nome']); ?>">
             <div class="form-group">
                 <label for="foto" class="fw-bold fs-5">Seleziona Foto (Max 4MB)</label>

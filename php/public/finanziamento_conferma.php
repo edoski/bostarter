@@ -47,12 +47,12 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByFinanziamentoImporto', ['p
             </div>
         <?php elseif (empty($rewards['data'])): ?>
             <p>Nessuna reward disponibile per questo importo. Impossibile procedere con il finanziamento.</p>
-            <a href="<?= htmlspecialchars(generate_url('progetto_dettagli', ['nome' => $nome_progetto])); ?>"
+            <a href="<?=generate_url('progetto_dettagli', ['nome' => $nome_progetto]); ?>"
                class="btn btn-secondary">
                 Torna al Progetto
             </a>
         <?php else: ?>
-            <form action="../actions/finanziamento_insert.php" method="post">
+            <form action="<?=generate_url('finanziamento_insert') ?>" method="post">
                 <input type="hidden" name="nome" value="<?= htmlspecialchars($nome_progetto); ?>">
                 <input type="hidden" name="importo" value="<?= htmlspecialchars($importo); ?>">
                 <div class="form-group card">

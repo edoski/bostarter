@@ -18,7 +18,7 @@ $email = $_SESSION['email'];
             <h5 class="mb-0">Modifica Livello Skill</h5>
         </div>
         <div class="card-body">
-            <form action="../actions/skill_curriculum_update.php" method="POST">
+            <form action="<?=generate_url('skill_curriculum_update') ?>" method="POST">
                 <input type="hidden" name="competenza" value="<?= htmlspecialchars($competenza); ?>">
 
                 <div class="mb-3">
@@ -33,7 +33,7 @@ $email = $_SESSION['email'];
                 </div>
 
                 <div class="d-flex justify-content-between">
-                    <a href="<?= htmlspecialchars(generate_url('curriculum')); ?>"
+                    <a href="<?=generate_url('curriculum'); ?>"
                        class="btn btn-secondary">Annulla</a>
                     <button type="submit" class="btn btn-warning"
                             onclick="return confirm('Sei sicuro di voler aggiornare il livello della competenza? Candidature esistenti potrebbero essere rimosse.')">
