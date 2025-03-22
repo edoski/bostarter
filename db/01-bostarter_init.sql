@@ -3,7 +3,7 @@
 -- ==================================================
 
 DROP DATABASE IF EXISTS BOSTARTER;
-CREATE DATABASE BOSTARTER;
+CREATE DATABASE BOSTARTER CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;;
 USE BOSTARTER;
 
 -- ==================================================
@@ -21,7 +21,7 @@ CREATE TABLE UTENTE (
 	luogo_nascita VARCHAR(50)  NOT NULL,
 	PRIMARY KEY (email)
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 2. ADMIN
 CREATE TABLE ADMIN (
@@ -34,7 +34,7 @@ CREATE TABLE ADMIN (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 3. CREATORE
 CREATE TABLE CREATORE (
@@ -48,7 +48,7 @@ CREATE TABLE CREATORE (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 4. PROGETTO
 CREATE TABLE PROGETTO (
@@ -66,7 +66,7 @@ CREATE TABLE PROGETTO (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 5. PROGETTO_SOFTWARE
 CREATE TABLE PROGETTO_SOFTWARE (
@@ -78,7 +78,7 @@ CREATE TABLE PROGETTO_SOFTWARE (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 6. PROGETTO_HARDWARE
 CREATE TABLE PROGETTO_HARDWARE (
@@ -90,7 +90,7 @@ CREATE TABLE PROGETTO_HARDWARE (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 7. FOTO
 CREATE TABLE FOTO (
@@ -104,7 +104,7 @@ CREATE TABLE FOTO (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 8. REWARD
 CREATE TABLE REWARD (
@@ -120,7 +120,7 @@ CREATE TABLE REWARD (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 9. COMPONENTE
 CREATE TABLE COMPONENTE (
@@ -136,7 +136,7 @@ CREATE TABLE COMPONENTE (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 10. PROFILO
 CREATE TABLE PROFILO (
@@ -149,14 +149,14 @@ CREATE TABLE PROFILO (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 11. SKILL
 CREATE TABLE SKILL (
 	competenza VARCHAR(100) NOT NULL CHECK ( LENGTH(competenza) > 0 ), -- Minimo 1 carattere
 	PRIMARY KEY (competenza)
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 12. FINANZIAMENTO
 CREATE TABLE FINANZIAMENTO (
@@ -182,7 +182,7 @@ CREATE TABLE FINANZIAMENTO (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 13. COMMENTO
 CREATE TABLE COMMENTO (
@@ -204,7 +204,7 @@ CREATE TABLE COMMENTO (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 14. SKILL_CURRICULUM
 CREATE TABLE SKILL_CURRICULUM (
@@ -223,7 +223,7 @@ CREATE TABLE SKILL_CURRICULUM (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 15. SKILL_PROFILO
 CREATE TABLE SKILL_PROFILO (
@@ -248,7 +248,7 @@ CREATE TABLE SKILL_PROFILO (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- 16. PARTECIPANTE
 CREATE TABLE PARTECIPANTE (
@@ -273,7 +273,7 @@ CREATE TABLE PARTECIPANTE (
 			ON DELETE CASCADE
 			ON UPDATE CASCADE
 ) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4;
+  CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- ==================================================
 -- STORED PROCEDURES (HELPER)
@@ -309,7 +309,7 @@ BEGIN
 	               FROM ADMIN
 	               WHERE email_utente = p_email) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Utente non è un admin.';
+			SET MESSAGE_TEXT = 'Utente non e\' un admin.';
 	END IF;
 END//
 
@@ -329,7 +329,7 @@ BEGIN
 	               FROM CREATORE
 	               WHERE email_utente = p_email) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Utente non è un creatore.';
+			SET MESSAGE_TEXT = 'Utente non e\' un creatore.';
 	END IF;
 END//
 
@@ -352,7 +352,7 @@ BEGIN
 	               WHERE nome = p_nome_progetto
 		             AND email_creatore = p_email) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Utente non è il creatore del progetto.';
+			SET MESSAGE_TEXT = 'Utente non e\' il creatore del progetto.';
 	END IF;
 END//
 
@@ -431,7 +431,7 @@ BEGIN
 	               FROM PROGETTO_SOFTWARE
 	               WHERE nome_progetto = p_nome_progetto) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Il progetto non è di tipo software.';
+			SET MESSAGE_TEXT = 'Il progetto non e\' di tipo software.';
 	END IF;
 END//
 
@@ -451,7 +451,7 @@ BEGIN
 	               FROM PROGETTO_HARDWARE
 	               WHERE nome_progetto = p_nome_progetto) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Il progetto non è di tipo hardware.';
+			SET MESSAGE_TEXT = 'Il progetto non e\' di tipo hardware.';
 	END IF;
 END//
 
@@ -616,7 +616,7 @@ CREATE PROCEDURE sp_util_progetto_is_aperto(
 BEGIN
 	IF (SELECT stato FROM PROGETTO WHERE nome = p_nome_progetto) = 'chiuso' THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Il progetto è chiuso.';
+			SET MESSAGE_TEXT = 'Il progetto e\' chiuso.';
 	END IF;
 END//
 
@@ -668,7 +668,7 @@ BEGIN
 	-- Controllo che l'utente non sia già un creatore
 	IF EXISTS (SELECT 1 FROM CREATORE WHERE email_utente = p_email) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Utente è già un creatore.';
+			SET MESSAGE_TEXT = 'Utente ha gia\' ruolo di creatore.';
 	END IF;
 
 	-- Conversione dell'utente in creatore
@@ -1053,7 +1053,7 @@ BEGIN
 		         AND nome_profilo = p_nome_profilo
 		         AND stato = 'accettato') THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Profilo già occupato da un altro utente.';
+			SET MESSAGE_TEXT = 'Profilo gia\' occupato da un altro utente.';
 	END IF;
 
 	-- Controllo se l'utente è stato precedentemente rifiutato per questo profilo
@@ -1074,7 +1074,7 @@ BEGIN
 		         AND nome_progetto = p_nome_progetto
 		         AND nome_profilo = p_nome_profilo) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Candidatura già presente per questo profilo. Attendi la risposta del creatore.';
+			SET MESSAGE_TEXT = 'Candidatura gia\' presente per questo profilo. Attendi la risposta del creatore.';
 	END IF;
 
 	-- Per ogni competenza richiesta dal profilo, controlla che il candidato abbia una entry in SKILL_CURRICULUM
@@ -1171,7 +1171,7 @@ BEGIN
 		-- Controllo che il commento NON ABBIA una risposta
 		IF EXISTS (SELECT 1 FROM COMMENTO WHERE id = p_commento_id AND risposta IS NOT NULL) THEN
 			SIGNAL SQLSTATE '45000'
-				SET MESSAGE_TEXT = 'Il commento contiene già una risposta.';
+				SET MESSAGE_TEXT = 'Il commento contiene gia\' una risposta.';
 		END IF;
 	ELSE
 		-- Altrimenti si intende cancellare una risposta...
@@ -1294,7 +1294,7 @@ BEGIN
 	-- Controllo che l'utente non esista già
 	IF EXISTS (SELECT 1 FROM UTENTE WHERE email = p_email) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Email già registrata.';
+			SET MESSAGE_TEXT = 'Email gia\' registrata.';
 	END IF;
 
 	-- Controllo che l'utente sia maggiorenne
@@ -1405,7 +1405,7 @@ BEGIN
 	-- Controllo che la skill non esista già nel curriculum dell'utente
 	IF EXISTS (SELECT 1 FROM SKILL_CURRICULUM WHERE email_utente = p_email AND competenza = p_competenza) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Skill già presente nel curriculum.';
+			SET MESSAGE_TEXT = 'Skill gia\' presente nel curriculum.';
 	END IF;
 
 	-- Controllo che il livello sia valido
@@ -1649,7 +1649,7 @@ BEGIN
 	-- Controllo che il progetto non esista già
 	IF EXISTS (SELECT 1 FROM PROGETTO WHERE nome = p_nome) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Un progetto con questo nome esiste già.';
+			SET MESSAGE_TEXT = 'Un progetto con questo nome esiste gia\'.';
 	END IF;
 
 	-- Controllo che la data_limite sia futura alla data attuale
@@ -1717,7 +1717,7 @@ BEGIN
 	-- Controllo che la descrizione non sia vuota
 	IF p_descrizione IS NULL OR LENGTH(p_descrizione) < 1 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'La descrizione non può essere vuota.';
+			SET MESSAGE_TEXT = 'La descrizione non puo\' essere vuota.';
 	END IF;
 
 	-- OK, aggiorno la descrizione
@@ -1859,7 +1859,7 @@ BEGIN
 
 	IF num_finanziamenti > 0 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Finanziamento già effettuato oggi.';
+			SET MESSAGE_TEXT = 'Finanziamento gia\' effettuato oggi.';
 	END IF;
 
 	-- Controllo che la reward esista
@@ -2002,7 +2002,7 @@ BEGIN
 	-- Controllo che il commento sia almeno lungo 1 carattere
 	IF p_testo IS NULL OR LENGTH(p_testo) < 1 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Il commento non può essere vuoto.';
+			SET MESSAGE_TEXT = 'Il commento non puo\' essere vuoto.';
 	END IF;
 
 	-- OK, inserisco il commento
@@ -2334,13 +2334,13 @@ BEGIN
 	-- Controllo che la competenza non esista già
 	IF EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_competenza) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Skill già esistente';
+			SET MESSAGE_TEXT = 'Skill gia\' esistente';
 	END IF;
 
 	-- Controllo che la competenza non sia nulla o vuota
 	IF p_competenza IS NULL OR p_competenza = '' THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Skill non può essere nulla o vuota';
+			SET MESSAGE_TEXT = 'Skill non puo\' essere nulla o vuota';
 	END IF;
 
 	-- OK, inserisco la competenza
@@ -2383,13 +2383,13 @@ BEGIN
 	-- Controllo che la nuova skill non esista già
 	IF EXISTS (SELECT 1 FROM SKILL WHERE competenza = p_nuova_competenza) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Esiste già una skill con questo nome';
+			SET MESSAGE_TEXT = 'Esiste gia\' una skill con questo nome';
 	END IF;
 
 	-- Controllo che la nuova skill non sia nulla o vuota
 	IF p_nuova_competenza IS NULL OR TRIM(p_nuova_competenza) = '' THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Skill non può essere nulla o vuota';
+			SET MESSAGE_TEXT = 'Skill non puo\' essere nulla o vuota';
 	END IF;
 
 	-- OK, aggiorno il nome della skill
@@ -2459,13 +2459,13 @@ BEGIN
 	--  Controllo che il codice della reward non sia già stato utilizzato
 	IF EXISTS(SELECT 1 FROM REWARD WHERE codice = p_codice AND nome_progetto = p_nome_progetto) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Codice reward già utilizzato per questo progetto.';
+			SET MESSAGE_TEXT = 'Codice reward gia\' utilizzato per questo progetto.';
 	END IF;
 
 	--  Controllo che la descrizione non sia vuota
 	IF p_descrizione IS NULL OR LENGTH(p_descrizione) < 1 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'La descrizione non può essere vuota.';
+			SET MESSAGE_TEXT = 'La descrizione non puo\' essere vuota.';
 	END IF;
 
 	--  Controllo che l'importo minimo sia >= 0.01
@@ -2477,7 +2477,7 @@ BEGIN
 	--  Controllo che la foto sia valida
 	IF p_foto IS NULL THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'La foto non può essere vuota.';
+			SET MESSAGE_TEXT = 'La foto non puo\' essere vuota.';
 	END IF;
 
 	-- OK, inserisco la reward
@@ -2715,7 +2715,7 @@ BEGIN
 	-- Controllo che la quantità del componente sia > 0
 	IF p_quantita <= 0 THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'La quantità del componente deve essere maggiore di 0';
+			SET MESSAGE_TEXT = 'La quantita\' del componente deve essere maggiore di 0';
 	END IF;
 
 	-- Controllo che non esista già un componente con il nuovo nome
@@ -2725,7 +2725,7 @@ BEGIN
 	           WHERE nome_componente = p_nuovo_nome_componente
 		         AND nome_progetto = p_nome_progetto) THEN
 		SIGNAL SQLSTATE '45000'
-			SET MESSAGE_TEXT = 'Esiste già un componente con questo nome';
+			SET MESSAGE_TEXT = 'Esiste gia\' un componente con questo nome';
 	END IF;
 
 	-- Recupero il budget del progetto

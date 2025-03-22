@@ -20,9 +20,6 @@
 
 
 
-# check if can abstract sqlstate's from sp's into new sp util/check helpers
-
-
 # use ide problem inspector to identify code duplications and ask claude to see if can abstract them
 
 

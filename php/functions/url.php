@@ -111,7 +111,7 @@ function generate_url(string $route, array $params = []): string
     // Aggiunge parametri query
     if (!empty($params)) {
         $escaped_params = array_map(function ($value) {
-            return is_string($value) ? htmlspecialchars($value) : $value;
+            return is_string($value) ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : $value;
         }, $params);
 
         $query = http_build_query($escaped_params);
