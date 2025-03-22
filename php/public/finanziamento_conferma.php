@@ -1,4 +1,18 @@
 <?php
+/**
+ * PAGE: finanziamento_conferma
+ *
+ * ACTIONS: finanziamento_insert
+ *
+ * LEADS: progetto_dettagli
+ *
+ * PURPOSE:
+ * - Conferma l'operazione di finanziamento di un progetto.
+ * - Mostra le reward disponibili in base all'importo del finanziamento.
+ * - Permette all'utente di selezionare una reward prima di finalizzare il finanziamento.
+ * - Visualizza i dettagli del progetto e dell'importo del finanziamento.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';
@@ -97,6 +111,10 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByFinanziamentoImporto', ['p
                         <?php endforeach; ?>
                     </div>
                 </div>
+                <a href="<?=generate_url('progetto_dettagli', ['nome' => $nome_progetto]); ?>"
+                   class="btn btn-secondary mt-3">
+                    Annulla
+                </a>
                 <button type="submit" class="btn btn-primary mt-3"
                         onclick="return confirm('Sei sicuro di voler procedere con il finanziamento?');">
                     Conferma Finanziamento</button>

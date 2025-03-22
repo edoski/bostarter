@@ -21,28 +21,8 @@
 
 
 
-# when done refactoring /public w ActionPipeline, push and ask claude to generate multiline header comments same as /actions but like this:
-```php
-/**
- * PAGE:
- * 
- * ACTIONS:
- *
- * PURPOSE:
- *
-```
-- ## and also add multiline docs above all /functions etc
 
-
-
-
-
-
-
-# comb thru init sql and for each sp verify it is being used, if not remove it
-- sp_util_progetto_owner_exists
-- sp_util_reward_get_by_code
-
+# verify correct multiline comments for public and components
 
 
 # check if can abstract sqlstate's from sp's into new sp util/check helpers
@@ -51,14 +31,10 @@
 # use ide problem inspector to identify code duplications and ask claude to see if can abstract them
 
 
-# ask claude to refresh ui for things like progetto_dettagli, budget update etc
+## ask claude to refresh ui for things like progetto_dettagli, budget update etc
 
 
-
-## standardise POST var names like 'nome_progetto' instead of 'nome' when passing project name via post, etc
-- #### need to update progetto_aggiorna attr to be passed via POST no GET
-- ensure they are also specific like id_foto instead of id
-
+## ask claude to form presentation slides summarising sec. 5 riflessioni + explaining overall project
 
 
 ## keep track of website structure, when complete paste it atop of section 6.2 report
@@ -76,6 +52,7 @@ bostarter/
 │   ├── componente_update.php
 │   ├── finanziamento_insert.php
 │   ├── foto_delete.php
+│   ├── foto_insert.php
 │   ├── login_handler.php
 │   ├── logout.php
 │   ├── profilo_delete.php
@@ -96,26 +73,47 @@ bostarter/
 │   ├── skill_update.php
 │   └── utente_convert_creatore.php
 ├── components/
+│   ├── componente_modifica.php
+│   ├── componente_nuovo.php
+│   ├── componenti_esistenti.php
 │   ├── error_alert.php
 │   ├── footer.php
 │   ├── header.php
+│   ├── profili_esistenti.php
+│   ├── profilo_modifica.php
+│   ├── profilo_nuovo.php
+│   ├── profilo_skill_modifica.php
+│   ├── progetto_aggiorna_budget.php
+│   ├── progetto_aggiorna_componenti.php
+│   ├── progetto_aggiorna_descrizione.php
+│   ├── progetto_aggiorna_profili.php
+│   ├── progetto_aggiorna_reward.php
 │   └── success_alert.php
 ├── config/
-│   └── config.php
+│   ├── config.php
+│   └── seed_data.php
 ├── functions/
 │   ├── checks.php
+│   ├── EventPipeline.php
+│   ├── helpers.php
+│   ├── log.php
 │   ├── redirect.php
-│   └── sp_invoke.php
+│   ├── sp_invoke.php
+│   └── url.php
 ├── public/
 │   ├── libs/
 │   ├── candidature.php
+│   ├── componente_conferma_insert.php
+│   ├── componente_conferma_update.php
 │   ├── curriculum.php
+│   ├── curriculum_skill_global_update.php
+│   ├── curriculum_skill_update.php
 │   ├── finanziamenti.php
 │   ├── finanziamento_conferma.php
 │   ├── home.php
 │   ├── index.php
 │   ├── login.php
-│   ├── profilo_dettagli.php
+│   ├── logs.php
 │   ├── progetti.php
 │   ├── progetto_aggiorna.php
 │   ├── progetto_crea.php

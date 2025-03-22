@@ -1,4 +1,16 @@
 <?php
+/**
+ * PAGE: register
+ *
+ * ACTIONS: register_handler
+ *
+ * LEADS: login, home
+ *
+ * PURPOSE:
+ * - Presenta il form di registrazione per nuovi utenti.
+ * - Consente la creazione di account con diversi ruoli (utente, creatore, amministratore).
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

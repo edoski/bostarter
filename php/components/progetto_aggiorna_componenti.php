@@ -1,3 +1,16 @@
+<!--
+/**
+ * COMPONENT: progetto_aggiorna_componenti (PARENT: progetto_aggiorna)
+ *
+ * ACTIONS: componente_insert, componente_update, componente_delete
+ *
+ * PURPOSE:
+ * - Gestisce l'interfaccia principale per la gestione dei componenti di un progetto hardware.
+ * - Coordina la visualizzazione dei componenti per creare, modificare ed eliminare componenti.
+ * - Recupera e organizza i dati dei componenti esistenti.
+ */
+-->
+
 <?php
 // === DATA ===
 // RECUPERO COMPONENTI DEL PROGETTO

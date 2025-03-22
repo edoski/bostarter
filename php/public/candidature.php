@@ -1,4 +1,18 @@
 <?php
+/**
+ * PAGE: candidature
+ *
+ * ACTIONS: candidatura_update
+ *
+ * LEADS: progetto_dettagli
+ *
+ * PURPOSE:
+ * - Visualizza le candidature inviate dall'utente ai progetti software.
+ * - Per i creatori, mostra anche le candidature ricevute per i propri progetti.
+ * - Permette ai creatori di accettare o rifiutare le candidature in attesa.
+ * - Mostra lo stato di ogni candidatura (in attesa, accettata, rifiutata).
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

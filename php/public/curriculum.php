@@ -1,4 +1,17 @@
 <?php
+/**
+ * PAGE: curriculum
+ *
+ * ACTIONS: skill_curriculum_insert, skill_curriculum_delete, skill_insert (solo per admin)
+ *
+ * LEADS: curriculum_skill_update, curriculum_skill_global_update
+ *
+ * PURPOSE:
+ * - Visualizza e gestisce il curriculum dell'utente con le relative competenze.
+ * - Permette agli utenti di aggiungere, modificare e rimuovere competenze dal proprio curriculum.
+ * - Consente agli amministratori di gestire le competenze globali disponibili nel sistema.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

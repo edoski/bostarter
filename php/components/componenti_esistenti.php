@@ -1,3 +1,17 @@
+<!--
+/**
+ * COMPONENT: componenti_esistenti (PARENT: progetto_aggiorna)
+ *
+ * ACTIONS: componente_delete
+ *
+ * PURPOSE:
+ * - Visualizza l'elenco dei componenti esistenti per un progetto hardware.
+ * - Mostra per ogni componente la descrizione, quantità e prezzo.
+ * - Permette la modifica e l'eliminazione dei componenti.
+ * - Fornisce navigazione tra i diversi componenti del progetto.
+ */
+-->
+
 <div class="col-md-4">
     <div class="card h-100">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">

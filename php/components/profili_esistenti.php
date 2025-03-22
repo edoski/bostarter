@@ -1,3 +1,19 @@
+<!--
+/**
+ * COMPONENT: profili_esistenti (PARENT: progetto_aggiorna)
+ *
+ * ACTIONS: profilo_delete
+ *
+ * LEADS: profilo_modifica
+ *
+ * PURPOSE:
+ * - Visualizza l'elenco dei profili esistenti per un progetto software.
+ * - Mostra per ogni profilo le competenze richieste e il relativo livello.
+ * - Permette la modifica e l'eliminazione dei profili.
+ * - Fornisce navigazione tra i diversi profili del progetto.
+ */
+-->
+
 <div class="col-md-4">
     <div class="card h-100">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">

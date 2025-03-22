@@ -1,3 +1,17 @@
+<!--
+/**
+ * COMPONENT: componente_nuovo (PARENT: progetto_aggiorna)
+ *
+ * LEADS: componente_conferma_insert
+ *
+ * PURPOSE:
+ * - Fornisce un form per la creazione di un nuovo componente per un progetto hardware.
+ * - Raccoglie nome, descrizione, quantità e prezzo del componente.
+ * - Mostra informazioni sul budget attuale e l'impatto potenziale del nuovo componente.
+ * - Reindirizza alla pagina di conferma prima dell'inserimento effettivo.
+ */
+-->
+
 <div class="col-md-8">
     <div class="card h-100">
         <div class="card-header bg-primary text-white">

@@ -1,4 +1,18 @@
 <?php
+/**
+ * PAGE: progetti
+ *
+ * ACTIONS: utente_convert_creatore
+ *
+ * LEADS: progetto_crea, progetto_dettagli
+ *
+ * PURPOSE:
+ * - Visualizza l'elenco di tutti i progetti presenti sulla piattaforma.
+ * - Mostra per ogni progetto le informazioni principali, lo stato e il progresso dei finanziamenti.
+ * - Permette agli utenti di diventare creatori.
+ * - Consente ai creatori di accedere alla pagina di creazione di un nuovo progetto.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

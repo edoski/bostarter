@@ -1,4 +1,16 @@
 <?php
+/**
+ * PAGE: home
+ *
+ * LEADS: progetti, finanziamenti, statistiche, curriculum, candidature, logs (per admin), progetto_dettagli
+ *
+ * PURPOSE:
+ * - Visualizza le informazioni personali dell'utente.
+ * - Mostra le statistiche personali, incluse le competenze, le candidature e i finanziamenti.
+ * - Per gli utenti creatori, visualizza anche i progetti creati e le relative statistiche.
+ * - Funge da dashboard personale per ogni utente autenticato.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

@@ -1,4 +1,18 @@
 <?php
+/**
+ * PAGE: componente_conferma_update
+ *
+ * ACTIONS: componente_update
+ *
+ * LEADS: progetto_aggiorna
+ *
+ * PURPOSE:
+ * - Conferma l'aggiornamento di un componente esistente per un progetto hardware.
+ * - Confronta i valori attuali con i nuovi valori proposti.
+ * - Mostra l'impatto della modifica sul budget del progetto.
+ * - Richiede conferma finale prima di procedere con l'aggiornamento.
+ */
+
 // === CONFIG ===
 session_start();
 require '../config/config.php';

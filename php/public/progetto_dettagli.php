@@ -1,4 +1,18 @@
 <?php
+/**
+ * PAGE: progetto_dettagli
+ *
+ * ACTIONS: candidatura_insert, commento_insert, commento_delete, commento_risposta_insert, commento_risposta_delete
+ *
+ * LEADS: progetti, progetto_aggiorna, finanziamento_conferma
+ *
+ * PURPOSE:
+ * - Visualizza in dettaglio tutte le informazioni di un progetto specifico.
+ * - Mostra descrizione, foto, budget, rewards, progressi di finanziamento, commenti e componenti/profili.
+ * - Permette agli utenti di finanziare il progetto, candidarsi a un profilo (se progetto software) e interagire nei commenti.
+ * - Consente ai creatori di modificare vari aspetti del progetto e rispondere ai commenti.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';
@@ -125,8 +139,7 @@ function render_progetto(array $progetto, array $photos, int $affidabilita): str
                 <div class="card-header d-inline-flex align-items-center justify-content-between">
                     <p class="fw-bold fs-5">Descrizione</p>
                     <?php if (is_progetto_owner($_SESSION['email'], $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                        <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'descrizione', 'nome' => $progetto['nome']]); ?>"
-                              method="post">
+                        <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'descrizione', 'nome' => $progetto['nome']]); ?>" method="post">
                             <button type="submit" class="btn btn-warning">Modifica</button>
                         </form>
                     <?php endif; ?>
@@ -206,8 +219,7 @@ function render_finanziamenti(array $progetto, array $rewards, bool $finanziato_
                 </small>
             </div>
             <?php if (is_progetto_owner($email, $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'budget', 'nome' => $progetto['nome']]); ?>"
-                      method="post">
+                <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'budget', 'nome' => $progetto['nome']]); ?>" method="post">
                     <button type="submit" class="btn btn-warning mt-2">Modifica</button>
                 </form>
             <?php endif; ?>
@@ -252,8 +264,7 @@ function render_finanziamenti(array $progetto, array $rewards, bool $finanziato_
                         </small>
                     </div>
                     <?php if (is_progetto_owner($email, $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                        <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'rewards', 'nome' => $progetto['nome']]); ?>"
-                              method="post">
+                        <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'rewards', 'nome' => $progetto['nome']]); ?>" method="post">
                             <button type="submit" class="btn btn-warning mt-2">Modifica</button>
                         </form>
                     <?php endif; ?>
@@ -300,8 +311,7 @@ function render_finanziamenti(array $progetto, array $rewards, bool $finanziato_
         <?php if ($progetto['stato'] === 'aperto'): ?>
             <?php if (!$finanziato_oggi): ?>
                 <div class="card-footer">
-                    <form action="<?=generate_url('finanziamento_conferma'); ?>"
-                          method="post">
+                    <form action="<?=generate_url('finanziamento_conferma'); ?>" method="post">
                         <input type="hidden" name="nome" value="<?= htmlspecialchars($progetto['nome']); ?>">
                         <div class="form-group mt-2">
                             <label class="fs-5 mb-2 fw-bold" for="importo">Finanzia il Progetto (€)</label>
@@ -355,8 +365,7 @@ function render_profili(array $profili, array $partecipanti_accettati, array $pr
                 </small>
             </div>
             <?php if (is_progetto_owner($email, $progetto['nome']) && $progetto['stato'] === 'aperto'): ?>
-                <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $progetto['nome']]); ?>"
-                      method="post">
+                <form action="<?=generate_url('progetto_aggiorna', ['attr' => 'profili', 'nome' => $progetto['nome']]); ?>" method="post">
                     <button type="submit" class="btn btn-warning mt-2">Modifica</button>
                 </form>
             <?php endif; ?>

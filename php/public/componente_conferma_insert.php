@@ -1,4 +1,18 @@
 <?php
+/**
+ * PAGE: componente_conferma_insert
+ *
+ * ACTIONS: componente_insert
+ *
+ * LEADS: progetto_aggiorna
+ *
+ * PURPOSE:
+ * - Conferma l'inserimento di un nuovo componente per un progetto hardware.
+ * - Mostra l'impatto del nuovo componente sul budget del progetto.
+ * - Avverte se il budget dovrà essere aumentato per coprire il costo del nuovo componente.
+ * - Richiede conferma finale prima di procedere con l'inserimento.
+ */
+
 // === CONFIG ===
 session_start();
 require '../config/config.php';

@@ -1,4 +1,17 @@
 <?php
+/**
+ * PAGE: curriculum_skill_global_update
+ *
+ * ACTIONS: skill_update
+ *
+ * LEADS: curriculum
+ *
+ * PURPOSE:
+ * - Fornisce un form per gli amministratori per modificare il nome di una competenza globale.
+ * - Permette di aggiornare la denominazione delle competenze disponibili a tutti gli utenti.
+ * - Accessibile solo agli utenti con ruolo di amministratore.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

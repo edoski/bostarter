@@ -1,3 +1,18 @@
+<!--
+/**
+ * COMPONENT: header (PARENT: all pages)
+ *
+ * ACTIONS: logout
+ *
+ * PURPOSE:
+ * - Fornisce la barra di navigazione superiore presente in tutte le pagine dell'applicazione.
+ * - Consente l'accesso rapido alle diverse sezioni del sito.
+ * - Mostra informazioni sull'utente corrente e fornisce l'opzione di logout.
+ * - Visualizza menu diversi in base allo stato di autenticazione e al ruolo dell'utente.
+ * - Carica la libreria CSS di Bootstrap necessaria per l'uso delle classi predefinite.
+ */
+-->
+
 <!DOCTYPE html>
 <html lang="it">
 <head>

@@ -1,4 +1,14 @@
 <?php
+/**
+ * PAGE: statistiche
+ *
+ * LEADS: home
+ *
+ * PURPOSE:
+ * - Visualizza statistiche generali della piattaforma.
+ * - Accessibile a tutti gli utenti autenticati.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

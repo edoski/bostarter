@@ -1,3 +1,15 @@
+<!--
+/**
+ * COMPONENT: profilo_skill_modifica (PARENT: progetto_aggiorna)
+ *
+ * ACTIONS: skill_profilo_update
+ *
+ * PURPOSE:
+ * - Permette la modifica del livello richiesto per una competenza specifica all'interno di un profilo.
+ * - Avverte l'utente delle potenziali conseguenze dell'aggiornamento sulle candidature esistenti.
+ */
+-->
+
 <div class="col-md-8">
     <div class="card h-100">
         <div class="card-header bg-primary text-white">

@@ -1,3 +1,15 @@
+<!--
+/**
+ * COMPONENT: profilo_nuovo (PARENT: progetto_aggiorna)
+ *
+ * ACTIONS: profilo_insert
+ *
+ * PURPOSE:
+ * - Fornisce un form per la creazione di un nuovo profilo per un progetto software.
+ * - Raccoglie il nome del profilo e lo invia al sistema.
+ */
+-->
+
 <div class="col-md-8">
     <div class="card h-100">
         <div class="card-header bg-primary text-white">

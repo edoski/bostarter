@@ -1,4 +1,14 @@
 <?php
+/**
+ * PAGE: finanziamenti
+ *
+ * LEADS: progetto_dettagli
+ *
+ * PURPOSE:
+ * - Visualizza tutti i finanziamenti effettuati dall'utente, con dettagli su importi e rewards.
+ * - Per i creatori, mostra anche i finanziamenti ricevuti per i propri progetti.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

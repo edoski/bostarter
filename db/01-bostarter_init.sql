@@ -357,31 +357,6 @@ BEGIN
 END//
 
 /*
-*  PROCEDURE: sp_util_reward_get_by_code
-*  PURPOSE: Recupera i dettagli di una reward dato il suo codice e il nome del progetto associato.
-*  USED BY: ALL
-*
-*  @param IN p_nome_progetto - Nome del progetto associato alla reward
-*  @param IN p_codice_reward - Codice della reward da recuperare
-*/
-CREATE PROCEDURE sp_util_reward_get_by_code(
-	IN p_nome_progetto VARCHAR(100),
-	IN p_codice_reward VARCHAR(50)
-)
-BEGIN
-	START TRANSACTION;
-	SELECT codice,
-	       nome_progetto,
-	       descrizione,
-	       foto,
-	       min_importo
-	FROM REWARD
-	WHERE nome_progetto = p_nome_progetto
-	  AND codice = p_codice_reward;
-	COMMIT;
-END//
-
-/*
 *  PROCEDURE: sp_util_reward_valid_finanziamento
 *  PURPOSE: Verifica se una specifica reward è valida per un determinato importo di finanziamento.
 *           Se la reward non esiste o l'importo è insufficiente, genera un errore.

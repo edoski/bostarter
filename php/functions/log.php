@@ -20,7 +20,6 @@ function log_event(bool $success, string $collection, string $action, string $pr
     // Momento e sorgente dell'evento
     $timestamp = new MongoDB\BSON\UTCDateTime() ?? new DateTime() ?? "N/A";
     $trace = debug_backtrace();
-    // TODO see if this correctly logs for both /public and /actions
     $source = basename($trace[2]['file'] ?? $trace[1]['file'] ?? "N/A");
 
     try {

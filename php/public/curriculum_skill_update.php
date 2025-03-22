@@ -1,4 +1,16 @@
 <?php
+/**
+ * PAGE: curriculum_skill_update
+ *
+ * ACTIONS: skill_curriculum_update
+ *
+ * LEADS: curriculum
+ *
+ * PURPOSE:
+ * - Fornisce un form per aggiornare il livello di una competenza specifica nel curriculum dell'utente.
+ * - Avverte l'utente che la modifica potrebbe influenzare candidature esistenti.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

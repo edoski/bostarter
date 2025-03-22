@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Classe per la gestione di eventi e interazioni con il database.
  * - Permette di eseguire una serie di controlli in sequenza e, se uno di essi fallisce, lancia un errore.

@@ -1,3 +1,17 @@
+<!--
+/**
+ * COMPONENT: profilo_modifica (PARENT: progetto_aggiorna)
+ *
+ * ACTIONS: profilo_nome_update, skill_profilo_insert, skill_profilo_delete
+ *
+ * PURPOSE:
+ * - Permette la modifica di un profilo esistente di un progetto software.
+ * - Consente di aggiornare il nome del profilo.
+ * - Visualizza, aggiunge e rimuove competenze associate al profilo.
+ * - Gestisce i livelli richiesti per ciascuna competenza.
+ */
+-->
+
 <div class="col-md-8">
     <div class="card h-100">
         <div class="card-header bg-primary text-white">

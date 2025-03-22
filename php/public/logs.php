@@ -1,4 +1,15 @@
 <?php
+/**
+ * PAGE: logs
+ *
+ * LEADS: home
+ *
+ * PURPOSE:
+ * - Visualizza i log delle operazioni effettuate nel sistema.
+ * - Permette di filtrare i log per collezione e per stato (successo/errore).
+ * - Accessibile solo agli utenti con ruolo di amministratore.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

@@ -1,3 +1,16 @@
+<!--
+/**
+ * COMPONENT: progetto_aggiorna_profili (PARENT: progetto_aggiorna)
+ *
+ * ACTIONS: profilo_insert, profilo_delete, profilo_nome_update, skill_profilo_insert, skill_profilo_update, skill_profilo_delete
+ *
+ * PURPOSE:
+ * - Gestisce l'interfaccia principale per la gestione dei profili di un progetto software.
+ * - Coordina la visualizzazione dei componenti per creare, modificare ed eliminare profili.
+ * - Gestisce le competenze richieste per ciascun profilo.
+ */
+-->
+
 <?php
 // === VARIABLES ===
 $profilo_selezionato = $_GET['profilo'] ?? '';

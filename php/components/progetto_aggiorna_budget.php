@@ -1,3 +1,17 @@
+<!--
+/**
+ * COMPONENT: progetto_aggiorna_budget (PARENT: progetto_aggiorna)
+ *
+ * ACTIONS: progetto_budget_update
+ *
+ * PURPOSE:
+ * - Fornisce un'interfaccia per aggiornare il budget di un progetto.
+ * - Visualizza il budget attuale e lo stato di finanziamento.
+ * - Per progetti hardware, mostra informazioni sul costo totale dei componenti.
+ * - Permette al creatore di aumentare o diminuire il budget richiesto.
+ */
+-->
+
 <?php
 // === DATA ===
 $in = ['p_nome_progetto' => $_GET['nome']];

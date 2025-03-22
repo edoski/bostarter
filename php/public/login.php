@@ -1,4 +1,16 @@
 <?php
+/**
+ * PAGE: login
+ *
+ * ACTIONS: login_handler
+ *
+ * LEADS: register, home
+ *
+ * PURPOSE:
+ * - Presenta il form di login per gli utenti.
+ * - Consente l'accesso all'applicazione tramite email, password e, per gli admin, codice di sicurezza.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

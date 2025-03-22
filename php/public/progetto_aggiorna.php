@@ -1,4 +1,19 @@
 <?php
+/**
+ * PAGE: progetto_aggiorna
+ *
+ * ACTIONS: progetto_descrizione_update, foto_insert, foto_delete, progetto_budget_update, reward_insert,
+ *          profilo_insert, profilo_delete, profilo_nome_update, skill_profilo_insert, skill_profilo_update,
+ *          skill_profilo_delete, componente_insert, componente_update, componente_delete
+ *
+ * LEADS: progetto_dettagli
+ *
+ * PURPOSE:
+ * - Permette ai creatori di aggiornare vari aspetti dei loro progetti.
+ * - Gestisce la modifica di: descrizione e foto, budget, rewards, profili (per progetti software) e componenti (per progetti hardware).
+ * - Accessibile solo al creatore del progetto quando lo stato è 'aperto'.
+ */
+
 // === SETUP ===
 session_start();
 require_once '../config/config.php';

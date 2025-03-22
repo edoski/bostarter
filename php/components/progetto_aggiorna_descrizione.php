@@ -1,3 +1,16 @@
+<!--
+/**
+ * COMPONENT: progetto_aggiorna_descrizione (PARENT: progetto_aggiorna)
+ *
+ * ACTIONS: progetto_descrizione_update, foto_insert, foto_delete
+ *
+ * PURPOSE:
+ * - Fornisce un'interfaccia per aggiornare la descrizione testuale di un progetto.
+ * - Permette di gestire le foto associate al progetto (inserimento ed eliminazione).
+ * - Visualizza le foto esistenti del progetto.
+ */
+-->
+
 <?php
 // === DATA ===
 // RECUPERO FOTO PROGETTO

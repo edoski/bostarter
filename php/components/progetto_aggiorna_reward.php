@@ -1,3 +1,16 @@
+<!--
+/**
+ * COMPONENT: progetto_aggiorna_reward (PARENT: progetto_aggiorna)
+ *
+ * ACTIONS: reward_insert
+ *
+ * PURPOSE:
+ * - Gestisce le ricompense (rewards) associate a un progetto.
+ * - Visualizza le rewards esistenti con le relative informazioni.
+ * - Permette l'inserimento di nuove rewards con codice, importo minimo, descrizione e foto.
+ */
+-->
+
 <?php
 // === VARIABLES ===
 check_GET(['nome']);

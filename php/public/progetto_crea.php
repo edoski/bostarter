@@ -1,4 +1,17 @@
 <?php
+/**
+ * PAGE: progetto_crea
+ *
+ * ACTIONS: progetto_insert
+ *
+ * LEADS: progetto_dettagli
+ *
+ * PURPOSE:
+ * - Fornisce un form per la creazione di un nuovo progetto.
+ * - Permette di specificare nome, descrizione, budget, data limite e tipo di progetto (software/hardware).
+ * - Accessibile solo agli utenti con ruolo di creatore.
+ */
+
 // === SETUP ===
 session_start();
 require '../config/config.php';

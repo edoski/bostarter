@@ -1,3 +1,17 @@
+<!--
+/**
+ * COMPONENT: componente_modifica (PARENT: progetto_aggiorna)
+ *
+ * LEADS: componente_conferma_update
+ *
+ * PURPOSE:
+ * - Permette la modifica di un componente esistente di un progetto hardware.
+ * - Consente di aggiornare nome, descrizione, quantità e prezzo del componente.
+ * - Mostra informazioni sul budget attuale e l'impatto potenziale delle modifiche.
+ * - Reindirizza alla pagina di conferma prima dell'aggiornamento effettivo.
+ */
+-->
+
 <div class="col-md-8">
     <div class="card h-100">
         <div class="card-header bg-primary text-white">
