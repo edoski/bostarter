@@ -26,8 +26,6 @@
 
 
 
-# ensure generate_url() is being used EVERYWHERE IN ALL PUBLIC AND COMPONENTS
-
 
 # when done refactoring /public w ActionPipeline, push and ask claude to generate multiline header comments same as /actions but like this:
 ```php

@@ -53,5 +53,9 @@ if (!empty($profilo_selezionato)) {
     <!-- COLONNA SINISTRA -->
     <?php require '../components/profili_esistenti.php'; ?>
     <!-- COLONNA DESTRA -->
-    <?php require '../components/profilo_modifica.php'; ?>
+    <?php
+    if (!empty($competenza_selezionata)) require '../components/profilo_skill_modifica.php';
+    elseif (empty($profilo_selezionato)) require '../components/profilo_nuovo.php';
+    else require '../components/profilo_modifica.php';
+    ?>
 </div>

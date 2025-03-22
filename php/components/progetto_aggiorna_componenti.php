@@ -33,5 +33,8 @@ if (!$nuovo_componente) {
     <!-- COLONNA SINISTRA -->
     <?php require '../components/componenti_esistenti.php'; ?>
     <!-- COLONNA DESTRA -->
-    <?php require '../components/componente_modifica.php'; ?>
+    <?php
+    if ($nuovo_componente) require '../components/componente_nuovo.php';
+    else require '../components/componente_modifica.php';
+    ?>
 </div>
