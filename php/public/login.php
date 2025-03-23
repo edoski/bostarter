@@ -86,29 +86,22 @@ if (isset($_SESSION['email'])) redirect(true, "Sei già loggato.", generate_url(
                     <p class="fw-bold text-center">AUTOLOGIN (UTILE IN SEDE D'ESAME)</p>
                 </div>
                 <div class="card-body d-flex align-items-center justify-content-center gap-3">
-                    <!-- Admin Alice -->
                     <form action="<?=generate_url('login_handler') ?>" method="POST" class="d-inline">
                         <input type="hidden" name="email" value="alice@example.com">
                         <input type="hidden" name="password" value="passAlice">
                         <input type="hidden" name="codice_sicurezza" value="admincode123">
                         <button type="submit" class="btn btn-danger me-2">Alice (Admin)</button>
                     </form>
-
-                    <!-- Creatore Bob (Software) -->
                     <form action="<?=generate_url('login_handler') ?>" method="POST" class="d-inline">
                         <input type="hidden" name="email" value="bob@example.com">
                         <input type="hidden" name="password" value="passBob">
                         <button type="submit" class="btn btn-primary">Bob (Creatore)</button>
                     </form>
-
-                    <!-- Creatore Diana (Hardware) -->
                     <form action="<?=generate_url('login_handler') ?>" method="POST" class="d-inline">
                         <input type="hidden" name="email" value="diana@example.com">
                         <input type="hidden" name="password" value="passDiana">
                         <button type="submit" class="btn btn-primary">Diana (Creatore)</button>
                     </form>
-
-                    <!-- Regolare Edo -->
                     <form action="<?=generate_url('login_handler') ?>" method="POST" class="d-inline">
                         <input type="hidden" name="email" value="edoardo.galli3@studio.unibo.it">
                         <input type="hidden" name="password" value="passEdo">
