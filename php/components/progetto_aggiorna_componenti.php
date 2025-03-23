@@ -1,4 +1,4 @@
-<!--
+<?php
 /**
  * COMPONENT: progetto_aggiorna_componenti (PARENT: progetto_aggiorna)
  *
@@ -9,9 +9,7 @@
  * - Coordina la visualizzazione dei componenti per creare, modificare ed eliminare componenti.
  * - Recupera e organizza i dati dei componenti esistenti.
  */
--->
 
-<?php
 // === DATA ===
 // RECUPERO COMPONENTI DEL PROGETTO
 $in = ['p_nome_progetto' => $_GET['nome']];

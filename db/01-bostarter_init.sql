@@ -2574,6 +2574,12 @@ BEGIN
 	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, TRUE);
 
+	-- Controllo che la quantità sia > 0
+	IF p_quantita < 1 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'La quantita\' deve essere maggiore di 0.';
+	END IF;
+
 	-- Recupero il budget del progetto
 	SELECT budget
 	INTO budget_progetto

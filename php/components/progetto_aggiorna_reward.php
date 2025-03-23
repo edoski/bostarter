@@ -1,4 +1,4 @@
-<!--
+<?php
 /**
  * COMPONENT: progetto_aggiorna_reward (PARENT: progetto_aggiorna)
  *
@@ -9,9 +9,7 @@
  * - Visualizza le rewards esistenti con le relative informazioni.
  * - Permette l'inserimento di nuove rewards con codice, importo minimo, descrizione e foto.
  */
--->
 
-<?php
 // === VARIABLES ===
 check_GET(['nome']);
 $nome_progetto = $_GET['nome'];
@@ -34,20 +32,20 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto', $in);
         <?php elseif (empty($rewards['data'])): ?>
             <p class="alert alert-warning">Nessuna reward definita per questo progetto. Aggiungi almeno la reward RWD_Default.</p>
         <?php else: ?>
-            <div class="d-flex flex-nowrap overflow-auto mb-4">
+            <div class="d-flex flex-nowrap overflow-auto mb-4 h-100">
                 <?php foreach ($rewards['data'] as $reward): ?>
                     <div class="flex-shrink-0 w-25 p-2">
-                        <div class="card shadow-sm">
+                        <div class="card shadow-sm h-100">
                             <div class="card-header">
                                 <p class="fw-bold"><?= htmlspecialchars($reward['codice']); ?></p>
                             </div>
-                            <div class="card-body">
+                            <div class="card-body d-flex flex-column">
                                 <p class="fw-bold">
                                     Importo minimo:
                                     <?= htmlspecialchars(number_format($reward['min_importo'], 2)); ?>€
                                 </p>
-                                <p><?= htmlspecialchars($reward['descrizione']); ?></p>
-                                <div class="d-flex justify-content-center">
+                                <p class="flex-grow-1"><?= htmlspecialchars($reward['descrizione']); ?></p>
+                                <div class="d-flex justify-content-center mt-auto">
                                     <?php $base64 = base64_encode($reward['foto']); ?>
                                     <img src="data:image/jpeg;base64,<?= $base64; ?>"
                                          class="img-fluid rounded"
@@ -99,7 +97,8 @@ $rewards = $pipeline->fetch_all('sp_reward_selectAllByProgetto', $in);
             </div>
 
             <!-- SUBMIT -->
-            <button type="submit" class="btn btn-primary" onclick="return confirm('Sei sicuro di voler inserire questa reward?')">
+            <button type="submit" class="btn btn-primary"
+                    onclick="return confirm('Sei sicuro di voler inserire questa reward?')">
                 Inserisci Reward
             </button>
         </form>

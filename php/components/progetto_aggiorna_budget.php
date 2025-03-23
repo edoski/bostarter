@@ -1,4 +1,4 @@
-<!--
+<?php
 /**
  * COMPONENT: progetto_aggiorna_budget (PARENT: progetto_aggiorna)
  *
@@ -10,9 +10,7 @@
  * - Per progetti hardware, mostra informazioni sul costo totale dei componenti.
  * - Permette al creatore di aumentare o diminuire il budget richiesto.
  */
--->
 
-<?php
 // === DATA ===
 $in = ['p_nome_progetto' => $_GET['nome']];
 $is_hardware = $progetto['tipo'] === 'HARDWARE';

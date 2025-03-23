@@ -1,12 +1,3 @@
-# TODO
----
-- [ ] review entire report and ensure consistent tables, attributes etc
-- [ ] create README.md for repo to explain how to setup and run project
-- [ ] export to pdf using pandoc
-	- [ ] potentially need to fix mismatching links text for correct rendering
-	- [ ] ensure clickable links for ToC
-
-
 Oggetto: Chiarimenti specifiche progetto Basi di Dati
 
 Gentile Prof. Di Felice,
@@ -23,37 +14,6 @@ In vista della discussione del progetto in aprile, approfittavo di chiedere due 
 
 Cordiali saluti,
 Edoardo Galli
-
-
-## ask claude to form presentation slides summarising sec. 5 riflessioni + explaining overall project
-
-
-# INDICE
----
-### **1.  [[DB-PRJ-REPORT#1. ANALISI DEI REQUISITI|Analisi dei Requisiti]]**
-- **1.1. [[DB-PRJ-REPORT#1.1. DECOMPOSIZIONE DEL TESTO**|Decomposizione del Testo]]**
-- **1.2. [[DB-PRJ-REPORT#1.2. LISTA DELLE OPERAZIONI**|Lista delle Operazioni]]**
-- **1.3. [[#1.3. GLOSSARIO DEI DATI**|Glossario dei Dati]]**
-### **2. [[#2. PROGETTAZIONE CONCETTUALE|Progettazione Concettuale]]**
-- **2.1. [[#2.1. DIAGRAMMA E-R**|Diagramma E-R]]**
-- **2.2. [[#2.2. DIZIONARIO DELLE ENTITÀ**|Dizionario delle Entità]]**
-- **2.3. [[#2.3. DIZIONARIO DELLE RELAZIONI**|Dizionario delle Relazioni]]**
-- **2.4. [[#2.4. BUSINESS RULES**|Business Rules]]**
-### **3. [[#3. PROGETTAZIONE LOGICA|Progettazione Logica]]**
-- **3.1. [[#3.1. ANALISI DELLE RIDONDANZE**|Analisi delle Ridondanze]]**
-- **3.2. [[#3.2. LISTA DELLE TABELLE**|Lista delle Tabelle]]**
-- **3.3. [[#3.3. LISTA DEI VINCOLI INTER-RELAZIONALI**|Lista dei Vincoli Inter-relazionali]]**
-### **4. [[#4. NORMALIZZAZIONE|Normalizzazione]]**
-- **4.1. [[#4.1. ANALISI|Analisi (3FN e FNBC)]]**
-### **5. [[#5. RIFLESSIONI|Riflessioni]]**
-...
-### **6. [[#6. FUNZIONALITÀ|Funzionalità]]**
-- **6.1. [[#**6.1. BACKEND (MySQL)**|BACKEND (MySQL)]]**
-- **6.2. [[#**6.2. FRONTEND (PHP)**|FRONTEND (PHP)]]**
-- **6.3. [[#**6.3. LOGGING (MongoDB)**|LOGGING (MongoDB)]]**
-### **7. [[#7. APPENDICE|Appendice]]**
-- **7.1. [[#**7.1. SCRIPT**|Script]]**
-- **7.2. [[#**7.2. SCHEMA**|Schema]]**
 
 # **1. ANALISI DEI REQUISITI**
 ---
@@ -111,7 +71,7 @@ Edoardo Galli
 - Ad ogni finanziamento è associata **una sola reward**, tra quelle **previste per il progetto** finanziato
 
 #### `COMMENTO`
-- Un utente può **inserire commenti relativi ad un progetto** Ogni commento dispone di: un **id** (univoco), una **data** ed un campo **testo**
+- Un utente può **inserire commenti relativi ad un progetto**. Ogni commento dispone di: un **id** (univoco), una **data** ed un campo **testo**
 
 #### `PARTECIPANTE`
 - È prevista la possibilità per gli **utenti** di **candidarsi come partecipanti allo sviluppo di un progetto software**
@@ -603,73 +563,7 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 - **F** = {email_utente, nome_progetto, nome_profilo → stato}
 - **3FN: ✅** / **FNBC: ✅**
 
-# **5. RIFLESSIONI**
----
-## select the most important ones here to add to presentation (eg. deffo slide for importance of db robust structure and clarity of sp's)
-
-### [[DB-PRJ-REPORT#TODO]]
-
-- having to reason over aspects of the project which beforehand seemed obvious but in hindsight paved way for significant reflection on how project works/should handle things
-	- budget proj hardware >= somma componenti
-		- new triggers to automatically adjust budget based on insert/delete/update of components
-			- php notification of change in budget before operation finalised
-		- can still manually adjust budget, as long as it stays >= sum component cost
-	- can an admin register?
-	- profili as a generic entity with infinite instances vs concrete entity with only 1 available instance / profile
-	- finanziamenti once a day (mysql DATE) vs once per second (mysql DATETIME)
-
-- additional logic in sp's for handling partecipazioni in the event of any skill profilo update, and automatic rejection of any user whose skill is inferior to requested level BY NEVER EVEN INSERTING THEM IN THE PARTECIPANTE TABLE AT ALL
-	- fundamental point at the end because PARTECIPANTE.stato = 'rifiutato' IS ONLY APPLICABLE TO THOSE WHOSE SKILL >= REQUESTED, BUT THE PROJECT CREATOR EXPLICITLY REFUSED THEM
-
-- multi-layer security check → redundant security > single line of defense php-level
-	- "security in depth"
-		- reasonable refactoring maintaining only checks which can be made purely in php while removing redundant ones which already baked into primary sp and require additional db call
-
-- profiles were global when PROFILO_PROGETTO was separate from SKILL_PROFILO, so I removed PROFILO_PROGETTO and added nome_progetto to PK of SKILL_PROFILO
-	- Otherwise updates for livello_richiesto were problematic due to profiles being global and thus multiple proj might reference the same profilo but have different livello_richiesto
-
-- finanziamento.codice_reward is defined at php-level when the user chooses finanziamento.importo and BEFORE the finanziamento record is submitted
-
-- use of sql signal state 45000 to be able to notice at php-level any db issues
-
-- testing stored procedures via dedicated sql demo fake data file
-
-- the use of business fields / client-facing fields as PK for the tables (es. PROGETTO.nome) is not ideal because it may be subject to change (es. project owner may decide to rename the project at some point), so I think it would've been better to use something like an ID that is not subject to change for the db to reference as PK. However I opted not to so as to be faithful to the traccia
-
-- was considering the possibility for a creator to delete his own project (sp_progetto_delete) but that would add significant complexity and considerations to make both db-level and real-life-level because
-	- db-level would mean having to also wipe all FK mentioning, 1 problem example is the rewards tied to a user after he finances project → if project is wiped all his rewards would also be wiped unless add new table that does not include project name as PK, this only introduces more complexity to system
-	- real-life-level there is the implication of fraud, can a creator just decide to delete the project and run away with all the financing of the users? no obviously
-- **This has led to my realisation that a clear picture of the operations needed to be done before he starts designing the db is crucial**
-- I have opted not to implement this as it was not required in the traccia and doing so would require restructuring the db schema and i am already a bit far into sql
-
-- I initially had a ridiculous amount of operations that far exceeded what was requested in the list of operations of the traccia, but cut down significantly as it wouldve made the system, though more realistic, far too complex beyond the scope of the project. The most complex of which were always sp_X_update procedures
-
-- lots of SPs have common logic checks, I decided to modularise this by abstracting out the common logic checks into secondary helper SP's to improve readability and maintainability of the code
-	- I followed the same philosophy and even file structure (checks first, action last) in php
-	- idem but with triggers, removed all triggers (except for the ones asked in the traccia) i defined and instead integrated the logic into existing sp's, to improve maintainability of the code so as to ensure that everything that has to be known about what the sp affects in the db is immediately visible there
-
-- With my main init file having grown to >2700 lines I decided to document it with very clear segmentations to make it clearer and more maintainable
-	- highlight importance of clear structure, documentation, and necessity of transmitting clearly the purpose/intent of the SP etc
-	- removing custom triggers and maintaining only the ones strictly required by project traccia. I opted to keep all the logic handling in sp's as it centralises all the logic checks and actions performed to the most relevant areas (eg. when a creatore updates a skill profilo level i want to see only the sp that he invokes and inside of it i should expect to infer every possible side-effect/change in db that emerges as a result of that operation)
-
-- while the existence check for the project might seem redundant from a pure data-integrity standpoint, it is valuable for providing a better, more controlled error response and enforcing additional business logic. EXAMPLE: The check for the project’s closed state is absolutely necessary for comments and financing operations because it’s not covered by the foreign key constraints.
-	- coming back to this from a near complete project pov im cleaning up unnecessary/redundant validations but maintaining key ones for php. Reasonable approach as reduces php code, avoids logical duplication of validations, eliminating the ones which would rely on sp calls that are already being made in the primary sp, but maintaining ones which do not rely on a sp call and can catch errors earlier on preventing unnecessary sp call
-
-- decomposing php site into components, actions, functions, and public (pages) to split page display from action logic, and components great for code reusability and security
-
-- navigating unforeseen complexity: apache web server permissions, configuring php environment, getting mongodb extension working → All lead to me learning a bit about docker and containerising the whole project, ensuring also universal portability of the project
-
-- EventPipeline class
-	- cleaning up code significantly, removing boilerplate/excess overhead code, much cleaner interface, centralising data management (\$context array) and execution (methods of class) while also baking in logging functionality in a decoupled manner (class methods use fail and success functions, and these 2 functions redirect + log, but the primitive redirect function does not perform logging and is used elsewhere in code where logging unnecessary)
-	- was a bit painful refactoring /public files to also fit EventPipeline, but ultimately made it work
-		- had to clearly understand how to manage between redirecting upon error or just rendering the error on screen, & how to manage data that is fetched as one record vs data which contains multiple records
-
-- concluding project, if i could redo it i would have:
-	- for db, invested more time in defining extremely well and fully all of the operations which I would have expected on the platform
-	- for php, invested more time in learning a php framework like Laravel, which would've done systematically from the get-go a lot of what I had to manually (EventPipeline, /actions, url etc) so to not reinvent the wheel when i dont have to
-- BUT, doing everything the "hard" way has taught me a lot about the inner workings of a web information system, and as such can make me better navigate projects like this knowing what sore points/potential issues i have to look out for, and appreciate the frameworks which are built to solve these issues now that i know why they can be problematic
-
-# **6. FUNZIONALITÀ**
+# **5. FUNZIONALITÀ**
 ---
 ## **PREREQUISITI**
 
@@ -686,7 +580,7 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 - Porta `8080` disponibile per l'accesso web
 - Porte `3307` e `27017` disponibili per l'accesso ai database
 
-## **6.1. BACKEND (MySQL)**
+## **5.1. BACKEND (MySQL)**
 ### **INIZIALIZZAZIONE**
 
 Il file di inizializzazione del database, `01-bostarter_init.sql`, si suddivide nelle seguenti parti principali:
@@ -712,7 +606,7 @@ Come menzionato di sopra, ho suddiviso le stored procedures in due categorie pri
 Nel file `02-bostarter_demo.sql` vengono fatte chiamate delle stored procedures definite nel file di sopra per inserire i dati fittizi nella piattaforma. Ovviamente per il suo corretto funzionamento vengono fatte solo chiamate valide, e non vengono utilizzate qui stored procedures che rimuovono/aggiornano dati (ha più senso fare una dimostrazione di esso in sede d'esame).
 Inoltre, viene automaticamente invocato lo script `config/seed_data.php` che popola i rimanenti dati necessari per la demo della piattaforma, che non potevano essere popolati dal file sql.
 
-## **6.2. FRONTEND (PHP)**
+## **5.2. FRONTEND (PHP)**
 ### **STRUTTURA GENERALE**
 ```
 bostarter/
@@ -1002,7 +896,7 @@ Ciascun log dispone di un modal che offre ulteriori dettagli sull'evento, come i
 
 ![[log_dettagli.png]]
 
-## **6.3. LOGGING (MongoDB)**
+## **5.3. LOGGING (MongoDB)**
 ### **Overview**
 
 La piattaforma implementa un sistema di logging centralizzato basato su MongoDB che traccia tutte le operazioni degli utenti. L'architettura di logging è incapsulata nella classe `EventPipeline`, che gestisce in modo uniforme la validazione, l'esecuzione delle operazioni sul database e la registrazione degli eventi.
@@ -1031,9 +925,9 @@ docker exec -it bostarter-db-1 mysql -uroot -ppassword BOSTARTER;
 docker exec -it bostarter-mongodb-1 mongosh BOSTARTER_LOG;
 ```
 
-# **7. APPENDICE**
+# **6. APPENDICE**
 ---
-## **7.1. SCRIPT**
+## **6.1. SCRIPT**
 
 Di seguito viene illustrato il funzionamento dello script di inizializzazione della piattaforma. Assicurarsi di avergli dato il permesso di esecuzione, e di trovarsi alla radice del progetto quando lo si esegue:
 ```sh
@@ -1045,7 +939,7 @@ export COMPOSE_BAKE=true
 docker-compose up --build
 ```
 - Viene eseguito `docker-compose down -v` per arrestare e rimuovere eventuali container e volumi esistenti.
-- Viene eseguito `docker-compose up --build -d` per ricostruire e avviare i container.
+- Viene eseguito `docker-compose up --build` per ricostruire e avviare i container.
 
 Se si vede comparire sul terminale il seguente log, allora l'inizializzazione della piattaforma è andata a buon fine:
 ```sh
@@ -1059,7 +953,7 @@ web-1      | === BOSTARTER INIZIALIZZATO. PIATTAFORMA PRONTA! ===
 ```
 Questo script automatizza l’intero processo di configurazione, garantendo che tutte le dipendenze siano installate e che l’ambiente Docker sia correttamente ricostruito, rendendo l’avvio della piattaforma semplice e veloce.
 
-## **7.2. SCHEMA**
+## **6.2. SCHEMA**
 
 Di seguito viene riportato il codice SQL completo utilizzato per la generazione della base di dati **BOSTARTER** e delle relative funzionalità (procedure, viste, trigger, eventi):
 
@@ -3639,6 +3533,12 @@ BEGIN
 
 	-- CONTROLLI: Vedi la documentazione di questo check
 	CALL sp_componente_check(p_nome_componente, p_nome_progetto, p_email_creatore, TRUE);
+
+	-- Controllo che la quantità sia > 0
+	IF p_quantita < 1 THEN
+		SIGNAL SQLSTATE '45000'
+			SET MESSAGE_TEXT = 'La quantita\' deve essere maggiore di 0.';
+	END IF;
 
 	-- Recupero il budget del progetto
 	SELECT budget

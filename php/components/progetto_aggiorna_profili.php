@@ -1,4 +1,4 @@
-<!--
+<?php
 /**
  * COMPONENT: progetto_aggiorna_profili (PARENT: progetto_aggiorna)
  *
@@ -9,9 +9,7 @@
  * - Coordina la visualizzazione dei componenti per creare, modificare ed eliminare profili.
  * - Gestisce le competenze richieste per ciascun profilo.
  */
--->
 
-<?php
 // === VARIABLES ===
 $profilo_selezionato = $_GET['profilo'] ?? '';
 $competenza_selezionata = $_GET['competenza'] ?? '';

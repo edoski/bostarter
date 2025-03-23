@@ -1,4 +1,4 @@
-<!--
+<?php
 /**
  * COMPONENT: progetto_aggiorna_descrizione (PARENT: progetto_aggiorna)
  *
@@ -9,9 +9,7 @@
  * - Permette di gestire le foto associate al progetto (inserimento ed eliminazione).
  * - Visualizza le foto esistenti del progetto.
  */
--->
 
-<?php
 // === DATA ===
 // RECUPERO FOTO PROGETTO
 $in = ['p_nome_progetto' => $_GET['nome']];
