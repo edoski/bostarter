@@ -33,23 +33,40 @@ chmod +x init.sh
 ```
 4. Wait for the system to display:
 ```
-=== BOSTARTER INIZIALIZZATO. PIATTAFORMA PRONTA! ===
+web-1      | === SEEDING seed_data.php START! ===
+web-1      | Seeding ProgettoAlpha... OK.
+web-1      | Seeding ProgettoBeta... OK.
+web-1      | Seeding remaining projects... OK.
+web-1      | === SEEDING seed_data.php COMPLETE! ===
+web-1      |
+web-1      | === BOSTARTER INIZIALIZZATO. PIATTAFORMA PRONTA! ===
 ```
-5. Access the platform at http://localhost:8080
+
+If it were not to work, manually run the following commands, adjusting sleep time as needed:
+```bash
+docker-compose down -v
+docker-compose up -d db
+sleep 10
+docker-compose up -d mongodb
+sleep 10
+docker-compose up -d web
+```
+
+5. Access the platform at http://localhost:8080/public/login.php
 
 ## Project Structure
 ---
 ```
 bostarter/
-├── actions/       # Operation handlers (db interactions)
-├── components/    # Reusable UI components
-├── config/        # Configuration files
-├── functions/     # Utility functions
-├── public/        # Client-facing pages
-│   └── libs/      # Frontend libraries
-├── db/            # Database initialization scripts
-├── init.sh        # Initialization script
-├── Dockerfile     # Docker configuration
+├── php/actions/       # Operation handlers (db interactions)
+├── php/components/    # Reusable UI components
+├── php/config/        # Configuration files
+├── php/functions/     # Utility functions
+├── php/public/        # Client-facing pages
+│   └── libs/          # Frontend libraries
+├── db/                # Database initialization scripts
+├── init.sh            # Initialization script
+├── Dockerfile         # Docker configuration
 └── docker-compose.yml # Docker Compose configuration
 ```
 ### Key Files

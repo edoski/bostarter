@@ -554,13 +554,6 @@ Di seguito viene dimostrato che **ogni tabella proposta di sopra è in Forma Nor
 
 #### **Requisiti Software**
 - **Docker** e **Docker Compose**: Per la containerizzazione e l'orchestrazione
-- **MySQL 8.0+**: Database per i dati principali dell'applicazione
-- **MongoDB**: Database secondario per la funzionalità di logging
-- **PHP 8.2** con estensioni:
-    - `pdo_mysql`: Per la connettività MySQL
-    - `mongodb`: Per la connettività MongoDB
-- **Apache Web Server**: Per servire l'applicazione PHP
-
 #### **Requisiti di Sistema**
 - Porta `8080` disponibile per l'accesso web
 - Porte `3307` e `27017` disponibili per l'accesso ai database

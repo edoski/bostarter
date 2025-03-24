@@ -576,7 +576,7 @@ function render_commenti(array $commenti, string $email, bool $is_admin, array $
                                 <form action="<?=generate_url('commento_delete') ?>" method="post">
                                     <input type="hidden" name="id_commento" value="<?= htmlspecialchars($commento['id']); ?>">
                                     <input type="hidden" name="nome_progetto" value="<?= htmlspecialchars($progetto['nome']); ?>">
-                                    <input type="hidden" name="email_utente" value="<?= htmlspecialchars($commento['email_utente']); ?>">
+                                    <input type="hidden" name="email_autore" value="<?= htmlspecialchars($commento['email_utente']); ?>">
                                     <button type="submit" class="btn btn-danger">Elimina</button>
                                 </form>
                             </div>

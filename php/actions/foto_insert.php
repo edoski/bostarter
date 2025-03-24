@@ -61,4 +61,4 @@ $pipeline->invoke();
 
 // === SUCCESS ===
 // REDIRECT ALLA PAGINA DI AGGIORNAMENTO DESCRIZIONE
-$pipeline->continue("Foto inserita con successo.");
+$pipeline->continue("Foto inserita con successo.", ['p_nome_progetto' => $nome_progetto, 'p_email_creatore' => $email]);
